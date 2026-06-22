@@ -1,0 +1,8 @@
+{
+  "name": "AlphaQubit Visualizer",
+  "description": "An elegant, PC-optimized 9-screen interactive presentation builder for research and product showcases with editable image and video backgrounds.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
