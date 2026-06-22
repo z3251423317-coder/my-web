@@ -26,6 +26,5 @@ export interface ScreenData {
   timeline?: { phase: string; title: string; desc: string; active?: boolean }[];
   gallery?: { title: string; subtitle: string; imageUrl: string }[];
   testimonial?: { quote: string; author: string; role: string; avatarUrl: string };
-  lanyardFront?: string;
-  lanyardBack?: string;
+  logoLoopLogos?: { src: string; alt: string; href?: string }[];
 }

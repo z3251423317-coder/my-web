@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { ScreenData, BackgroundType } from './types';
 import PillNav, { PillNavItem } from './components/PillNav';
+import LogoLoop from './components/LogoLoop';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Default Screen Templates
@@ -514,8 +515,6 @@ const App: React.FC = () => {
               id={`screen-${s.id}`}
               className="snap-start snap-always relative w-screen h-screen min-h-[600px] overflow-hidden flex items-center justify-center bg-transparent"
             >
-              {/* Screen 1: Fullscreen Absolute Lanyard layer (replaces grid-restricted version) - Removed Lanyard */}
-
               {/* 1700px Content Core ("版心控制在 1700px 左右") */}
               <div className="relative z-10 w-full h-full max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 flex flex-col justify-center text-white pointer-events-auto">
                 <div className={`w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center py-12 ${
@@ -671,11 +670,20 @@ const App: React.FC = () => {
                     
                     {/* Render unique live visualizations on selected sections */}
 
-                    {/* Screen 1: Reserved layout placeholder for Lanyard (rendered above in full-screen z-20 container) */}
-                    {s.id === 1 && (
-                      <div className="w-full max-w-xl lg:max-w-2xl h-[550px] lg:h-[680px] xl:h-[720px] bg-transparent pointer-events-none" />
+                    {/* Screen 2: Logo Loop */}
+                    {s.id === 2 && s.logoLoopLogos && s.logoLoopLogos.length > 0 && (
+                      <div className="w-full h-[60px] relative overflow-hidden bg-zinc-900/40 rounded-xl border border-zinc-800/60 backdrop-blur-sm">
+                        <LogoLoop
+                          logos={s.logoLoopLogos}
+                          speed={80}
+                          direction="left"
+                          logoHeight={40}
+                          gap={30}
+                          fadeOut
+                        />
+                      </div>
                     )}
-
+                    
                     {/* Screen 3: Embed SurfaceCodeDiagram inside the grid */}
                     {s.id === 3 && (
                       <div className="w-full max-w-md scale-[1.02] transition-transform duration-300">
@@ -945,8 +953,6 @@ const App: React.FC = () => {
             
             {activeTab === 'content' && (
               <div className="space-y-4">
-
-                {/* Removed Lanyard Panel */}
                 
                 {/* PillNav Interactive Editor Controller */}
                 <div className="p-3.5 bg-zinc-950 border border-zinc-800 rounded-xl space-y-3.5 shadow-inner">
@@ -1110,6 +1116,8 @@ const App: React.FC = () => {
                   <HelpCircle className="w-3.5 h-3.5 flex-shrink-0 text-amber-500" />
                   <span>修改框内文案，左侧网站展示层将进行实时无刷新同步刷新，且保存至浏览器的 localStorage。</span>
                 </div>
+
+                {/* Logo Loop Editor removed for debugging */}
               </div>
             )}
 
