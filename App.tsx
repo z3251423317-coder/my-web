@@ -48,7 +48,14 @@ const DEFAULT_SCREENS: ScreenData[] = [
     tintColor: "slate",
     align: "left",
     ctaText: "Read Nature Paper",
-    ctaUrl: "https://doi.org/10.1038/s41586-024-08148-8"
+    ctaUrl: "https://doi.org/10.1038/s41586-024-08148-8",
+    logoLoopLogos: [
+      { src: "https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?w=120&h=45&fit=crop&auto=format", alt: "DeepMind" },
+      { src: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&h=45&fit=crop&auto=format", alt: "Nature" },
+      { src: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=120&h=45&fit=crop&auto=format", alt: "Science" },
+      { src: "https://images.unsplash.com/photo-1557683316-973673baf926?w=120&h=45&fit=crop&auto=format", alt: "Google AI" },
+      { src: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=120&h=45&fit=crop&auto=format", alt: "Caltech" }
+    ]
   },
   {
     id: 3,
@@ -248,6 +255,31 @@ const App: React.FC = () => {
   });
 
   const [activeId, setActiveId] = useState<number>(1);
+
+  // Load custom_screens.json on startup if present in the Git/public repository
+  useEffect(() => {
+    const fetchGitConfig = async () => {
+      try {
+        const response = await fetch('/custom_screens.json');
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data) && data.length > 0) {
+            setScreens((prev) => {
+              const saved = localStorage.getItem("alphaqubit_custom_screens");
+              if (!saved) {
+                return data;
+              }
+              return prev;
+            });
+            console.log("Successfully loaded custom_screens.json from Git deployment fallback.");
+          }
+        }
+      } catch (e) {
+        console.warn("Could not load /custom_screens.json config:", e);
+      }
+    };
+    fetchGitConfig();
+  }, []);
   const [pillNavItems, setPillNavItems] = useState<PillNavItem[]>(() => {
     const saved = localStorage.getItem("alphaqubit_pill_nav_items");
     if (saved) {
@@ -1393,29 +1425,60 @@ const App: React.FC = () => {
           </div>
 
           {/* Quick operations footer footer */}
-          <div className="p-3 bg-zinc-950 border-t border-zinc-800 flex justify-between items-center bg-zinc-950/90 text-[10px] font-mono">
-            <button 
-              onClick={handleResetToDefault}
-              className="flex items-center gap-1 text-zinc-500 hover:text-red-400 transition-colors"
-            >
-              <RotateCcw className="w-3 h-3" />
-              <span>还原官方默认 (RESET)</span>
-            </button>
+          <div className="p-3 bg-zinc-950 border-t border-zinc-800 flex flex-col sm:flex-row justify-between gap-2.5 bg-zinc-950/90 text-[10px] font-mono">
+            <div className="flex gap-4">
+              <button 
+                onClick={handleResetToDefault}
+                className="flex items-center gap-1 text-zinc-500 hover:text-red-400 transition-colors"
+                title="Clears local storage and resets configuration to the hardcoded base setup"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>初始化标准模板 (RESET)</span>
+              </button>
+
+              <button 
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/custom_screens.json');
+                    if (response.ok) {
+                      const data = await response.json();
+                      if (Array.isArray(data) && data.length > 0) {
+                        setScreens(data);
+                        localStorage.setItem("alphaqubit_custom_screens", JSON.stringify(data));
+                        alert("🎉 成功同步加载 /public/custom_screens.json 预设配置！");
+                      } else {
+                        alert("数据错误: custom_screens.json 不是有效的数组！");
+                      }
+                    } else {
+                      alert("未检测到 /public/custom_screens.json 配置文件。请确认您已创建该文件。");
+                    }
+                  } catch (e) {
+                    alert("同步 Git 配置文件失败，请检验 custom_screens.json 的 JSON 语法格式是否正确！");
+                  }
+                }}
+                className="flex items-center gap-1.5 text-zinc-400 hover:text-amber-400 transition-colors"
+                title="Force-sync design settings with custom_screens.json in Git public directory"
+              >
+                <RefreshCw className="w-3 h-3 text-amber-500 animate-[spin_5s_linear_infinite]" />
+                <span>同步 GIT 配置 (SYNC GIT CONFIG)</span>
+              </button>
+            </div>
 
             <button 
               onClick={() => {
-                const configStr = localStorage.getItem("alphaqubit_custom_screens");
+                const configStr = localStorage.getItem("alphaqubit_custom_screens") || JSON.stringify(screens, null, 2);
                 if (configStr) {
                   navigator.clipboard.writeText(configStr);
-                  alert("所有的 9 屏配置 JSON 文本已复制至剪贴板，您可以将它发给开发或者保存！");
+                  alert("📋 所有 9 屏的配置 JSON 文本已成功复制到剪贴板！\n\n您可以将此内容直接粘贴并替换您项目中的 /public/custom_screens.json 文件内容，然后 push 提交至 GitHub / Git。这样其他人通过链接打开就会直接看到您现在的定制设计！");
                 } else {
-                  alert("无自定义修改，已自动保存系统标配。");
+                  alert("暂无自定义修改。");
                 }
               }}
-              className="flex items-center gap-1.5 text-zinc-400 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 text-amber-400 font-bold hover:text-white transition-colors"
+              title="Copy layouts JSON configuration for Git repository fallback"
             >
               <Copy className="w-3.5 h-3.5" />
-              <span>提取配置文本 (JSON)</span>
+              <span>提取配置文本 (EXPORT JSON FOR GIT)</span>
             </button>
           </div>
 
