@@ -362,10 +362,14 @@ const App: React.FC = () => {
       if (container) {
         setScrolled(container.scrollTop > 40);
         // Track which section is currently mostly visible
-        const viewH = container.clientHeight;
-        const index = Math.round(container.scrollTop / viewH) + 1;
-        if (index >= 1 && index <= 9 && index !== activeId) {
-          setActiveId(index);
+        const viewH = container.clientHeight || window.innerHeight || 800;
+        let index = Math.round(container.scrollTop / viewH) + 1;
+        if (isNaN(index) || !isFinite(index)) {
+          index = 1;
+        }
+        const clampedIndex = Math.max(1, Math.min(9, index));
+        if (clampedIndex !== activeId) {
+          setActiveId(clampedIndex);
         }
       }
     };
@@ -504,7 +508,7 @@ const App: React.FC = () => {
       {/* Primary vertical scroll presenter with snapping behavior */}
       <div 
         id="slides-container"
-        className="flex-1 w-full h-full overflow-y-auto snap-y snap-mandatory scroll-smooth relative z-10 bg-transparent"
+        className="flex-1 w-full h-full overflow-y-auto lg:snap-y lg:snap-mandatory scroll-smooth relative z-10 bg-transparent"
       >
         {screens.map(s => {
           const isSelected = s.id === activeId;
@@ -513,10 +517,10 @@ const App: React.FC = () => {
             <section 
               key={s.id}
               id={`screen-${s.id}`}
-              className="snap-start snap-always relative w-screen h-screen min-h-[600px] overflow-hidden flex items-center justify-center bg-transparent"
+              className="snap-start lg:snap-always relative w-full min-h-screen lg:h-screen lg:min-h-[600px] overflow-visible lg:overflow-hidden flex items-center justify-center bg-transparent py-12 lg:py-0"
             >
               {/* 1700px Content Core ("版心控制在 1700px 左右") */}
-              <div className="relative z-10 w-full h-full max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 flex flex-col justify-center text-white pointer-events-auto">
+              <div className="relative z-10 w-full h-auto lg:h-full max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 flex flex-col justify-center text-white pointer-events-auto">
                 <div className={`w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center py-12 ${
                   s.align === 'center' ? 'text-center' : s.align === 'right' ? 'text-right' : 'text-left'
                 }`}>
@@ -538,21 +542,19 @@ const App: React.FC = () => {
                   >
                     
                     {/* Highly polished headline */}
-                    {s.id === 1 && (
-                      <h1 className="font-display text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight leading-none text-white drop-shadow-md">
-                        {s.title}
-                      </h1>
-                    )}
+                    <h1 className="font-display text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight leading-none text-white drop-shadow-md">
+                      {s.title}
+                    </h1>
 
                     {/* Subheading */}
-                    {s.id === 1 && (
-                      <h2 className="font-serif italic text-lg md:text-xl lg:text-2xl text-zinc-300 font-light max-w-4xl tracking-wide drop-shadow-sm">
+                    {s.subtitle && (
+                      <h2 className="font-serif italic text-base md:text-lg lg:text-xl text-zinc-300 font-light max-w-4xl tracking-wide drop-shadow-sm">
                         {s.subtitle}
                       </h2>
                     )}
 
                     {/* Core narrative description paragraph */}
-                    {s.id === 1 && (
+                    {s.description && (
                       <p className={`text-zinc-300 text-sm md:text-base leading-relaxed font-sans font-light max-w-3xl ${
                         s.align === 'center' ? 'mx-auto' : s.align === 'right' ? 'ml-auto text-right' : 'text-left'
                       }`}>
@@ -631,7 +633,7 @@ const App: React.FC = () => {
                     )}
 
                     {/* Primary Button */}
-                    {s.id === 1 && s.ctaText && (
+                    {s.ctaText && (
                       <div className={`flex ${s.align === 'center' ? 'justify-center' : s.align === 'right' ? 'justify-end' : 'justify-start'} pt-3`}>
                         <a 
                           href={s.ctaUrl || "#"}
@@ -707,10 +709,17 @@ const App: React.FC = () => {
 
                     {/* Screen 6: Embed QuantumComputerScene */}
                     {s.id === 6 && (
-                      <div className="w-full max-w-md aspect-square bg-[#101424]/30 border border-zinc-800/80 rounded-2xl shadow-inner p-4 relative overflow-hidden group">
-                        <QuantumComputerScene />
+                      <div className="w-full max-w-md aspect-square bg-[#101424]/30 border border-zinc-800/80 rounded-2xl shadow-inner p-4 relative overflow-hidden group flex items-center justify-center">
+                        {isSelected ? (
+                          <QuantumComputerScene />
+                        ) : (
+                          <div className="text-zinc-600 font-mono text-[10px] uppercase tracking-wider animate-pulse flex flex-col items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-amber-500/50" />
+                            <span>CRYOGENIC RECIRCULATION IDLE</span>
+                          </div>
+                        )}
                         <div className="absolute top-4 right-4 bg-zinc-950/80 border border-zinc-800/80 px-2.5 py-1 rounded text-[9px] text-amber-500 font-mono tracking-widest uppercase">
-                          SLOW SPIN ACTIVE
+                          {isSelected ? "SLOW SPIN ACTIVE" : "STANDBY"}
                         </div>
                         <div className="absolute bottom-4 left-4 right-4 bg-gradient-to-r from-zinc-950/90 to-zinc-900/90 border border-zinc-800 p-3 rounded-xl backdrop-blur-sm z-10">
                           <code className="text-[10px] text-zinc-400 font-mono block">SUITE SYCAMORE ENVIRONMENT</code>
