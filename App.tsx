@@ -23,7 +23,7 @@ const DEFAULT_SCREENS: ScreenData[] = [
   {
     id: 1,
     label: "01. Title Hero",
-    title: "AlphaQubit • Neural Quantum Control",
+    title: "塑造",
     subtitle: "AI for Quantum Error Correction at Scale",
     description: "A state-of-the-art recurrent, transformer-based neural network model that learns to decode surface code errors with unprecedented reliability on real quantum processors.",
     bgType: "gradient",
@@ -145,7 +145,7 @@ const DEFAULT_SCREENS: ScreenData[] = [
     tintColor: "gold",
     align: "left",
     ctaText: "Read Joint Publication",
-    ctaUrl: "https://doi.org/10.1038/s41586-024-08148-8"
+    ctaUrl: "https://doi.org/10.1030/s41586-024-08148-8"
   },
   {
     id: 9,

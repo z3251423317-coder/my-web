@@ -2,7 +2,7 @@
   {
     "id": 1,
     "label": "01. Title Hero",
-    "title": "AlphaQubit • Neural Quantum Control",
+    "title": "塑造",
     "subtitle": "AI for Quantum Error Correction at Scale",
     "description": "A state-of-the-art recurrent, transformer-based neural network model that learns to decode surface code errors with unprecedented reliability on real quantum processors.",
     "bgType": "gradient",
@@ -21,7 +21,7 @@
     "subtitle": "Surpassing physical limitations via smart decoding",
     "description": "To operate standard quantum hardware, we must constantly decode physical errors without destroying structural qubyte data. By moving past simple, rigid human-designed heuristics, AlphaQubit analyzes noise trends directly, turning raw hardware turbulence into reliable, fault-tolerant logical memory.",
     "bgType": "image",
-    "bgUrl": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2000",
+    "bgUrl": "https://images.unsplash.com/photo-1507524428034-b723cf961d3e?q=80&w=2000",
     "overlayOpacity": 55,
     "overlayBlur": 0,
     "tintColor": "slate",
@@ -124,7 +124,7 @@
     "tintColor": "gold",
     "align": "left",
     "ctaText": "Read Joint Publication",
-    "ctaUrl": "https://doi.org/10.1038/s41586-024-08148-8"
+    "ctaUrl": "https://doi.org/10.1030/s41586-024-08148-8"
   },
   {
     "id": 9,
