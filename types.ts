@@ -20,6 +20,11 @@ export interface ScreenData {
   ctaText?: string;
   ctaUrl?: string;
   
+  // Temperature and its background
+  temperature?: number;
+  tempBgUrl?: string;
+  tempBgType?: BackgroundType;
+  
   // Custom interactive contents depending on the screen sequence
   features?: { title: string; desc: string; icon: string }[];
   metrics?: { value: string; label: string; progress: number }[];

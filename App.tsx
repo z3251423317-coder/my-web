@@ -67,7 +67,7 @@ const DEFAULT_SCREENS: ScreenData[] = [
     id: 1,
     label: "01. Title Hero",
     title: "塑造",
-    subtitle: "AI for Quantum Error Correction at Scale",
+    subtitle: "我不在执迷寻找\n我是谁由我自己塑造",
     description: "A state-of-the-art recurrent, transformer-based neural network model that learns to decode surface code errors with unprecedented reliability on real quantum processors.",
     bgType: "gradient",
     bgUrl: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #020617 100%)",
@@ -283,12 +283,12 @@ const PRESET_BG_VIDEOS = [
 
 const App: React.FC = () => {
   const [screens, setScreens] = useState<ScreenData[]>(() => {
-    const saved = localStorage.getItem("alphaqubit_custom_screens");
+    const saved = localStorage.getItem("alphaqubit_custom_screens_v3");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         if (!parsed.some((s: any) => s.id === 10)) {
-          localStorage.removeItem("alphaqubit_custom_screens");
+          localStorage.removeItem("alphaqubit_custom_screens_v3");
           return DEFAULT_SCREENS;
         }
         return parsed;
@@ -300,12 +300,12 @@ const App: React.FC = () => {
   const [activeId, setActiveId] = useState<number>(1);
 
   const [pillNavItems, setPillNavItems] = useState<PillNavItem[]>(() => {
-    const saved = localStorage.getItem("alphaqubit_pill_nav_items");
+    const saved = localStorage.getItem("alphaqubit_pill_nav_items_v3");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         if (!parsed.some((item: any) => item.href === "#screen-10")) {
-          localStorage.removeItem("alphaqubit_pill_nav_items");
+          localStorage.removeItem("alphaqubit_pill_nav_items_v3");
           // return default below
         } else {
           return parsed;
@@ -323,7 +323,7 @@ const App: React.FC = () => {
 
   const savePillNavItemsToStorage = (updated: PillNavItem[]) => {
     setPillNavItems(updated);
-    localStorage.setItem("alphaqubit_pill_nav_items", JSON.stringify(updated));
+    localStorage.setItem("alphaqubit_pill_nav_items_v3", JSON.stringify(updated));
   };
   const [scrolled, setScrolled] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<string>("07:15:42");
@@ -372,6 +372,44 @@ const App: React.FC = () => {
   const saveSphereCards = (updated: MarqueeCard[]) => {
     setSphereCards(updated);
     localStorage.setItem("alphaqubit_sphere_cards", JSON.stringify(updated));
+  };
+
+  // Dome Cards State for Screen 6
+  const [domeCards, setDomeCards] = useState<MarqueeCard[]>(() => {
+    const saved = localStorage.getItem("alphaqubit_dome_cards");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {
+        console.error("Failed to parse saved dome cards", e);
+      }
+    }
+    return JSON.parse(JSON.stringify(DEFAULT_MARQUEE_CARDS));
+  });
+
+  const saveDomeCards = (updated: MarqueeCard[]) => {
+    setDomeCards(updated);
+    localStorage.setItem("alphaqubit_dome_cards", JSON.stringify(updated));
+  };
+
+  // Trial Cards State for Screen 10
+  const [trialCards, setTrialCards] = useState<MarqueeCard[]>(() => {
+    const saved = localStorage.getItem("alphaqubit_trial_cards");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {
+        console.error("Failed to parse saved trial cards", e);
+      }
+    }
+    return JSON.parse(JSON.stringify(DEFAULT_MARQUEE_CARDS));
+  });
+
+  const saveTrialCards = (updated: MarqueeCard[]) => {
+    setTrialCards(updated);
+    localStorage.setItem("alphaqubit_trial_cards", JSON.stringify(updated));
   };
 
   const [isConsoleOpen3, setIsConsoleOpen3] = useState<boolean>(import.meta.env.DEV); // Open by default for Screen 3 editing discovery
@@ -609,13 +647,13 @@ const App: React.FC = () => {
   // Save changes to localStorage
   const saveToStorage = (updated: ScreenData[]) => {
     setScreens(updated);
-    localStorage.setItem("alphaqubit_custom_screens", JSON.stringify(updated));
+    localStorage.setItem("alphaqubit_custom_screens_v3", JSON.stringify(updated));
   };
 
   const updateScreenField = (field: keyof ScreenData, value: any) => {
     setScreens(prev => {
       const updated = prev.map(s => s.id === activeId ? { ...s, [field]: value } : s);
-      localStorage.setItem("alphaqubit_custom_screens", JSON.stringify(updated));
+      localStorage.setItem("alphaqubit_custom_screens_v3", JSON.stringify(updated));
       return updated;
     });
   };
@@ -623,7 +661,7 @@ const App: React.FC = () => {
   const updateScreenFields = (fields: Partial<ScreenData>) => {
     setScreens(prev => {
       const updated = prev.map(s => s.id === activeId ? { ...s, ...fields } : s);
-      localStorage.setItem("alphaqubit_custom_screens", JSON.stringify(updated));
+      localStorage.setItem("alphaqubit_custom_screens_v3", JSON.stringify(updated));
       return updated;
     });
   };
@@ -631,7 +669,7 @@ const App: React.FC = () => {
   const handleResetToDefault = () => {
     if (window.confirm("确定要重置当前的所有自定义文案、图片、视频背景以及导航选项吗？")) {
       saveToStorage(DEFAULT_SCREENS);
-      localStorage.removeItem("alphaqubit_pill_nav_items");
+      localStorage.removeItem("alphaqubit_pill_nav_items_v3");
       setPillNavItems([
         { label: "Home", href: "#screen-1" },
         { label: "Decoder", href: "#screen-4" },
@@ -700,6 +738,7 @@ const App: React.FC = () => {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   // Syndrome Deck Console for Marquee Cards (Screen 3)
   const renderMarqueeConsole = () => {
     return (
@@ -934,6 +973,7 @@ const App: React.FC = () => {
     );
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   // Syndrome Deck Console for 3D Sphere Cards (Screen 4)
   const renderSphereConsole = () => {
     return (
@@ -1168,8 +1208,77 @@ const App: React.FC = () => {
     );
   };
 
-  // Dome Gallery Console for 3D Dome Gallery (Screen 6)
-  const renderDomeConsole = (isOpen: boolean, setIsOpen: (open: boolean) => void, screenLabel: string) => {
+  const renderGenericConsole = (
+    isOpen: boolean, 
+    setIsOpen: (open: boolean) => void, 
+    consoleTitle: string,
+    screenLabel: string,
+    cards: MarqueeCard[],
+    saveCards: (updated: MarqueeCard[]) => void,
+    showRotateControls: boolean,
+    currentScreen: ScreenData,
+    onUpdateScreen: (updated: ScreenData) => void
+  ) => {
+    const addCard = () => {
+      const nextId = cards.length > 0 ? Math.max(...cards.map(c => c.id)) + 1 : 1;
+      const defaultTemplates = [
+        { title: "Fault-Tolerant Decoder", cat: "CORE SYSTEM", desc: "Predicts noise errors dynamically using neural inference thresholds.", colorType: "teal" },
+        { title: "Sycamore Calibrator", cat: "HARDWARE ENGINE", desc: "Automated drift correction module optimizing microwave pulses.", colorType: "indigo" },
+        { title: "Cosmic Event Tracker", cat: "METRIC ANALYZIS", desc: "High-density scintillation tracking mapping background radiation.", colorType: "rose" },
+        { title: "MWPM Super Solver", cat: "OPTIMIZER", desc: "Parallel graph perfect matcher solving threshold parameters.", colorType: "amber" }
+      ];
+      const template = defaultTemplates[nextId % defaultTemplates.length];
+      const newCard: MarqueeCard = {
+        id: nextId,
+        title: template.title,
+        cat: template.cat,
+        desc: template.desc,
+        url: "",
+        colorType: template.colorType
+      };
+      saveCards([...cards, newCard]);
+    };
+
+    const removeLastCard = () => {
+      if (cards.length > 1) {
+        saveCards(cards.slice(0, -1));
+      }
+    };
+
+    const deleteCard = (id: number) => {
+      if (cards.length > 1) {
+        saveCards(cards.filter(c => c.id !== id));
+      } else {
+        alert("System constraint: At least 1 console card must remain initialized.");
+      }
+    };
+
+    const updateCard = (id: number, fields: Partial<MarqueeCard>) => {
+      const updated = cards.map(c => c.id === id ? { ...c, ...fields } : c);
+      saveCards(updated);
+    };
+
+    const resetCards = () => {
+      if (window.confirm("Reset card matrices to Google default setup?")) {
+        saveCards(DEFAULT_MARQUEE_CARDS);
+      }
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, isTemp: boolean = false) => {
+      if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (isTemp) {
+            onUpdateScreen({ ...currentScreen, tempBgUrl: reader.result as string, tempBgType: file.type.startsWith('video') ? 'video' : 'image' });
+          } else {
+            onUpdateScreen({ ...currentScreen, bgUrl: reader.result as string, bgType: file.type.startsWith('video') ? 'video' : 'image' });
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
     return (
       <AnimatePresence>
         {isOpen && (
@@ -1189,7 +1298,7 @@ const App: React.FC = () => {
                 </span>
                 <div>
                   <h2 className="text-xs font-mono font-bold tracking-widest text-white uppercase">
-                    SLIDER CARD CONSOLE / 移动卡片控制台
+                    {consoleTitle}
                   </h2>
                   <p className="text-[10px] text-zinc-500 font-light font-sans">
                     {screenLabel}
@@ -1198,7 +1307,7 @@ const App: React.FC = () => {
               </div>
               <div 
                 role="button"
-                id="close-dome-console"
+                id="close-console"
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
@@ -1210,11 +1319,63 @@ const App: React.FC = () => {
               </div>
             </div>
 
+            {/* Background Control Panel */}
+            <div className="p-4 border-b border-zinc-800 bg-zinc-900/40 space-y-3">
+              <div className="flex items-center justify-between">
+                 <h3 className="text-xs font-mono font-bold text-zinc-300 uppercase tracking-widest">Background / 背景管理</h3>
+                 <span className="text-[10px] bg-zinc-800 px-2 py-0.5 rounded text-zinc-400">{currentScreen.bgType}</span>
+              </div>
+              <div className="flex gap-2">
+                 <input 
+                    type="text" 
+                    value={currentScreen.bgUrl}
+                    onChange={(e) => onUpdateScreen({...currentScreen, bgUrl: e.target.value})}
+                    placeholder="Enter image/video URL"
+                    className="flex-1 px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs"
+                 />
+                 <label className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg cursor-pointer text-xs">
+                    <UploadCloud className="w-3 h-3" />
+                    <span>Upload</span>
+                    <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileChange(e, false)} />
+                 </label>
+              </div>
+            </div>
+
+            {/* Temperature Control Panel */}
+            <div className="p-4 border-b border-zinc-800 bg-zinc-900/40 space-y-3">
+              <div className="flex items-center justify-between">
+                 <h3 className="text-xs font-mono font-bold text-zinc-300 uppercase tracking-widest">Temperature / 温度控制</h3>
+                 <span className="text-xs font-mono font-bold text-amber-400">{currentScreen.temperature || 25}°C</span>
+              </div>
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                value={currentScreen.temperature || 25}
+                onChange={(e) => onUpdateScreen({...currentScreen, temperature: parseInt(e.target.value)})}
+                className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer"
+              />
+              <div className="flex gap-2">
+                 <input 
+                    type="text" 
+                    value={currentScreen.tempBgUrl || ''}
+                    onChange={(e) => onUpdateScreen({...currentScreen, tempBgUrl: e.target.value})}
+                    placeholder="Enter temp background URL"
+                    className="flex-1 px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs"
+                 />
+                 <label className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg cursor-pointer text-xs">
+                    <UploadCloud className="w-3 h-3" />
+                    <span>Upload BG</span>
+                    <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileChange(e, true)} />
+                 </label>
+              </div>
+            </div>
+
             {/* Console Quick Toolbar Actions */}
             <div className="p-4 bg-zinc-900/30 border-b border-zinc-850/80 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <button
-                  onClick={addSphereCard}
+                  onClick={addCard}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/30 hover:border-amber-500/50 rounded-lg text-[10px] font-mono tracking-widest uppercase transition-all cursor-pointer"
                 >
                   <Plus className="w-3 h-3" />
@@ -1222,7 +1383,7 @@ const App: React.FC = () => {
                 </button>
                 
                 <button
-                  onClick={removeLastSphereCard}
+                  onClick={removeLastCard}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 rounded-lg text-[10px] font-mono tracking-widest uppercase transition-all cursor-pointer"
                 >
                   <Minus className="w-3 h-3" />
@@ -1234,7 +1395,7 @@ const App: React.FC = () => {
                 <button
                   onClick={() => {
                     try {
-                      const codeStr = JSON.stringify(sphereCards, null, 2);
+                      const codeStr = JSON.stringify(cards, null, 2);
                       if (navigator.clipboard) {
                         navigator.clipboard.writeText(codeStr);
                       }
@@ -1250,7 +1411,7 @@ const App: React.FC = () => {
                 </button>
 
                 <button
-                  onClick={resetSphereCards}
+                  onClick={resetCards}
                   className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 rounded-lg border border-zinc-800 transition-colors cursor-pointer"
                   title="Reset layout"
                 >
@@ -1262,51 +1423,53 @@ const App: React.FC = () => {
             {/* Editable List Body */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[calc(100vh-270px)]">
               <div className="p-3 bg-zinc-900/40 rounded-xl border border-zinc-800/60 text-[10.5px] leading-relaxed font-sans text-zinc-400">
-                💡 <span className="font-semibold text-zinc-200">互动卡片编辑：</span>这些修改会对第六屏的滑动卡片和第五屏的3D循环卡片共同生效。
+                💡 <span className="font-semibold text-zinc-200">互动卡片编辑：</span>这些修改仅会对当前屏幕的卡片生效。
               </div>
 
               {/* Auto Rotate Control Panel */}
-              <div className="p-4 bg-zinc-900/60 rounded-xl border border-zinc-800/80 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <span className="text-[11px] font-mono text-zinc-300 font-bold tracking-wider uppercase block">
-                      AUTO ROTATION / 自动旋转
-                    </span>
-                    <span className="text-[10px] text-zinc-500 block">
-                      Enable continuous slow horizontal rotation / 启用持续缓慢的水平旋转
-                    </span>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={domeAutoRotate} 
-                      onChange={(e) => setDomeAutoRotate(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500 peer-checked:after:bg-zinc-950"></div>
-                  </label>
-                </div>
-
-                {domeAutoRotate && (
-                  <div className="space-y-1.5 pt-2 border-t border-zinc-850">
-                    <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400">
-                      <span>ROTATION SPEED / 旋转速度</span>
-                      <span className="text-amber-500 font-bold">{domeAutoRotateSpeed.toFixed(2)} deg/frame</span>
+              {showRotateControls && (
+                <div className="p-4 bg-zinc-900/60 rounded-xl border border-zinc-800/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <span className="text-[11px] font-mono text-zinc-300 font-bold tracking-wider uppercase block">
+                        AUTO ROTATION / 自动旋转
+                      </span>
+                      <span className="text-[10px] text-zinc-500 block">
+                        Enable continuous slow horizontal rotation / 启用持续缓慢的水平旋转
+                      </span>
                     </div>
-                    <input 
-                      type="range" 
-                      min="0.02" 
-                      max="1.0" 
-                      step="0.02" 
-                      value={domeAutoRotateSpeed} 
-                      onChange={(e) => setDomeAutoRotateSpeed(parseFloat(e.target.value))}
-                      className="w-full h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                    />
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={domeAutoRotate} 
+                        onChange={(e) => setDomeAutoRotate(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500 peer-checked:after:bg-zinc-950"></div>
+                    </label>
                   </div>
-                )}
-              </div>
 
-              {sphereCards.map((card, idx) => {
+                  {domeAutoRotate && (
+                    <div className="space-y-1.5 pt-2 border-t border-zinc-850">
+                      <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400">
+                        <span>ROTATION SPEED / 旋转速度</span>
+                        <span className="text-amber-500 font-bold">{domeAutoRotateSpeed.toFixed(2)} deg/frame</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="0.02" 
+                        max="1.0" 
+                        step="0.02" 
+                        value={domeAutoRotateSpeed} 
+                        onChange={(e) => setDomeAutoRotateSpeed(parseFloat(e.target.value))}
+                        className="w-full h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {cards.map((card, idx) => {
                 return (
                   <div 
                     key={card.id}
@@ -1316,12 +1479,12 @@ const App: React.FC = () => {
                     <div className="flex items-center justify-between border-b border-zinc-800/40 pb-2">
                       <div className="flex items-center gap-2">
                         <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 font-mono text-[9px] rounded uppercase font-bold">
-                          DOME UNIT {idx + 1}
+                          CARD UNIT {idx + 1}
                         </span>
                         <span className="text-[10px] font-mono text-zinc-600">ID: {card.id}</span>
                       </div>
                       <button
-                        onClick={() => deleteSphereCard(card.id)}
+                        onClick={() => deleteCard(card.id)}
                         className="text-zinc-600 hover:text-rose-500 p-1 opacity-60 group-hover:opacity-100 transition-all rounded hover:bg-rose-500/10 cursor-pointer"
                         title="Delete card"
                       >
@@ -1338,7 +1501,7 @@ const App: React.FC = () => {
                         <input 
                           type="text" 
                           value={card.title}
-                          onChange={(e) => updateSphereCard(card.id, { title: e.target.value })}
+                          onChange={(e) => updateCard(card.id, { title: e.target.value })}
                           className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-850 rounded-lg text-xs text-white placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
                           placeholder="e.g. Qubit Topology"
                         />
@@ -1350,7 +1513,7 @@ const App: React.FC = () => {
                         <input 
                           type="text" 
                           value={card.cat}
-                          onChange={(e) => updateSphereCard(card.id, { cat: e.target.value })}
+                          onChange={(e) => updateCard(card.id, { cat: e.target.value })}
                           className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-850 rounded-lg text-xs text-white placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
                           placeholder="e.g. NOISE VECTOR"
                         />
@@ -1365,7 +1528,7 @@ const App: React.FC = () => {
                       <textarea 
                         rows={2}
                         value={card.desc}
-                        onChange={(e) => updateSphereCard(card.id, { desc: e.target.value })}
+                        onChange={(e) => updateCard(card.id, { desc: e.target.value })}
                         className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-850 rounded-lg text-xs text-white placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20 font-sans resize-none"
                         placeholder="Detail about this noise threshold..."
                       />
@@ -1379,7 +1542,7 @@ const App: React.FC = () => {
                       <input 
                         type="text" 
                         value={card.url}
-                        onChange={(e) => updateSphereCard(card.id, { url: e.target.value })}
+                        onChange={(e) => updateCard(card.id, { url: e.target.value })}
                         className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white font-mono placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
                         placeholder="https://..."
                       />
@@ -1393,7 +1556,7 @@ const App: React.FC = () => {
                       <input 
                         type="text" 
                         value={card.image || ""}
-                        onChange={(e) => updateSphereCard(card.id, { image: e.target.value })}
+                        onChange={(e) => updateCard(card.id, { image: e.target.value })}
                         className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white font-mono placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
                         placeholder="https://images.unsplash.com/photo-..."
                       />
@@ -1421,7 +1584,7 @@ const App: React.FC = () => {
                           return (
                             <button
                               key={color.name}
-                              onClick={() => updateSphereCard(card.id, { colorType: color.name })}
+                              onClick={() => updateCard(card.id, { colorType: color.name })}
                               className={`h-4.5 w-4.5 rounded-full ${color.bg} border transition-transform duration-200 cursor-pointer ${
                                 isSelected ? 'scale-125 ring-2 ring-white/50 border-white' : 'scale-100 hover:scale-110 border-transparent opacity-80'
                               }`}
@@ -1606,7 +1769,7 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Reusable Syndrome Deck Console drawer */}
-                {renderSphereConsole()}
+                {renderGenericConsole(isConsoleOpen4, setIsConsoleOpen4, "3D SPHERE CONSOLE / 3D球形卡片控制台", "Configure spherical noise matrices on Screen 5 (Fifth Slide)", sphereCards, saveSphereCards, false, screens.find(s => s.id === 4) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
               </section>
             );
           }
@@ -1637,7 +1800,7 @@ const App: React.FC = () => {
 
                 <div className="absolute inset-0 w-full h-full pointer-events-auto">
                   <DomeGallery
-                    images={sphereCards.map((card, idx) => ({
+                    images={domeCards.map((card, idx) => ({
                       src: card.image || [
                         "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop", // Qubit Topology
                         "https://images.unsplash.com/photo-1507668077129-56e32842fceb?q=80&w=600&auto=format&fit=crop", // Primal Syndrome
@@ -1659,7 +1822,7 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Reusable Dome Console drawer */}
-                {renderDomeConsole(isConsoleOpen6, setIsConsoleOpen6, "Configure 3D Dome Gallery and cards metadata on Screen 6")}
+                {renderGenericConsole(isConsoleOpen6, setIsConsoleOpen6, "SLIDER CARD CONSOLE / 移动卡片控制台", "Configure 3D Dome Gallery and cards metadata on Screen 6", domeCards, saveDomeCards, true, screens.find(s => s.id === 6) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
               </section>
             );
           }
@@ -1699,7 +1862,7 @@ const App: React.FC = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                         transition={{ duration: 0.5 }}
-                        className="w-full flex flex-col gap-6"
+                        className="w-full flex flex-col gap-6 mt-4 md:mt-8"
                       >
                         {/* Title and Instruction Header */}
                         <div className="text-center space-y-2 mb-4">
@@ -1730,7 +1893,7 @@ const App: React.FC = () => {
                               }}
                             >
                               {/* Quadruple clone for seamless looping of any cards amount */}
-                              {[...sphereCards, ...sphereCards, ...sphereCards, ...sphereCards].map((card, idx) => {
+                              {[...trialCards, ...trialCards, ...trialCards, ...trialCards].map((card, idx) => {
                                 const defaultImage = [
                                   "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop", // Qubit Topology
                                   "https://images.unsplash.com/photo-1507668077129-56e32842fceb?q=80&w=600&auto=format&fit=crop", // Primal Syndrome
@@ -1762,6 +1925,7 @@ const App: React.FC = () => {
                                     key={`clone-${card.id}-${idx}`}
                                     className="flex-shrink-0 cursor-pointer pointer-events-auto"
                                     style={{ width: '272px' }}
+                                    onClickCapture={() => setSelectedCard6(card)}
                                   >
                                     <ProfileCard
                                       name={card.title}
@@ -1775,7 +1939,6 @@ const App: React.FC = () => {
                                       behindGlowEnabled={false}
                                       behindGlowColor={glowColor}
                                       onContactClick={() => setSelectedCard6(card)}
-                                      onClick={() => setSelectedCard6(card)}
                                     />
                                   </div>
                                 );
@@ -1792,7 +1955,7 @@ const App: React.FC = () => {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.5, ease: "easeOut" }}
-                        className="w-full flex flex-col justify-center h-full max-h-[85vh]"
+                        className="w-full flex flex-col justify-center h-full max-h-[85vh] mt-4 md:mt-8"
                       >
                         {/* Go back Button at Top Left */}
                         <div className="mb-6 flex">
@@ -1938,7 +2101,7 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Reusable Dome Console drawer */}
-                {renderDomeConsole(isConsoleOpen10, setIsConsoleOpen10, "Configure sliding diagnostic cards and metadata on Screen 10")}
+                {renderGenericConsole(isConsoleOpen10, setIsConsoleOpen10, "SLIDER CARD CONSOLE / 移动卡片控制台", "Configure sliding diagnostic cards and metadata on Screen 10", trialCards, saveTrialCards, false, screens.find(s => s.id === 10) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
               </section>
             );
           }
@@ -2082,7 +2245,7 @@ const App: React.FC = () => {
                     </div>
 
                     {/* ⚙️ Interactive Card Syndrome Console (Only visible on Screen 4, slide-over layout) */}
-                    {renderMarqueeConsole()}
+                    {renderGenericConsole(isConsoleOpen3, setIsConsoleOpen3, "MARQUEE CONSOLE / 走马灯卡片控制台", "Configure sliding noise matrices on Screen 3 (Third Slide)", marqueeCards, saveMarqueeCards, false, screens.find(s => s.id === 3) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
 
                   </div>
                 ) : (
@@ -2108,13 +2271,13 @@ const App: React.FC = () => {
                   >
                     
                     {/* Highly polished headline */}
-                    <h1 className="font-display text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight leading-none text-white drop-shadow-md">
+                    <h1 className={`${s.id === 1 ? 'font-mono text-[86px] leading-[61px]' : 'font-display text-3xl md:text-4xl lg:text-5xl xl:text-6xl'} font-extrabold tracking-tight leading-none text-white drop-shadow-md`}>
                       {s.title}
                     </h1>
 
                     {/* Subheading */}
                     {s.subtitle && (
-                      <h2 className="font-serif italic text-base md:text-lg lg:text-xl text-zinc-300 font-light max-w-4xl tracking-wide drop-shadow-sm">
+                      <h2 className="font-serif italic text-[18px] text-zinc-300 font-light max-w-4xl tracking-wide drop-shadow-sm whitespace-pre-line">
                         {s.subtitle}
                       </h2>
                     )}
@@ -3095,168 +3258,110 @@ const App: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ type: "spring", damping: 30, stiffness: 150 }}
-              className="w-full max-w-4xl bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl p-6 md:p-10 flex flex-col gap-6 text-left relative overflow-hidden"
+              className="w-full max-w-4xl max-h-[75vh] md:max-h-[60vh] bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-row text-left relative overflow-hidden"
             >
               {/* Futuristic glowing backdrop */}
               <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full filter blur-[120px] pointer-events-none" />
               
-              {/* Navigation Indicator / Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-800 pb-6 gap-4 z-10">
-                <div className="space-y-1.5">
-                  <span className="font-mono text-amber-500 text-[10px] tracking-widest font-bold uppercase block bg-amber-500/10 px-2.5 py-1 rounded w-fit border border-amber-500/20">
-                    Q-CHASSIS DECK DIAGNOSTIC • CONNECTED NODE
-                  </span>
-                  <div className="flex items-center gap-3">
-                    <h2 className="text-xl md:text-2xl font-display font-extrabold text-white tracking-tight">
+              {/* Left: Image Panel */}
+              <div className="w-2/5 relative bg-zinc-950 flex-shrink-0 border-r border-zinc-800 hidden sm:block">
+                {activeCardDetail.image ? (
+                  <img 
+                    src={activeCardDetail.image} 
+                    alt={activeCardDetail.title} 
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 hover:scale-105" 
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="absolute inset-0 w-full h-full flex items-center justify-center text-zinc-600 font-mono text-xs flex-col gap-2">
+                    <span className="text-2xl opacity-20">◉</span>
+                    [NO IMAGE AVAILABLE]
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/20 to-transparent pointer-events-none" />
+                
+                <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+                  <div className="space-y-1">
+                    <span className="block text-[9px] font-mono text-emerald-400 font-bold bg-zinc-950/80 px-2 py-0.5 rounded backdrop-blur-sm border border-emerald-500/20 w-fit">● ONLINE</span>
+                  </div>
+                  <span className="text-[9px] font-mono text-zinc-500 bg-zinc-950/80 px-2 py-0.5 rounded backdrop-blur-sm border border-zinc-800">DX-6048</span>
+                </div>
+              </div>
+
+              {/* Right: Content Panel */}
+              <div className="w-full sm:w-3/5 p-5 sm:p-8 flex flex-col gap-4 overflow-y-auto z-10 bg-zinc-900">
+                <div className="flex justify-between items-start shrink-0">
+                  <div className="space-y-2">
+                    <span className="font-mono text-amber-500 text-[9px] tracking-widest font-bold uppercase block bg-amber-500/10 px-2 py-0.5 rounded w-fit border border-amber-500/20">
+                      DIAGNOSTIC
+                    </span>
+                    <h2 className="text-xl sm:text-2xl font-display font-bold text-white tracking-tight">
                       {activeCardDetail.title}
                     </h2>
-                    <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 font-mono text-[9px] rounded uppercase font-bold tracking-widest">
+                    <span className="inline-block px-1.5 py-0.5 bg-zinc-800 text-zinc-400 font-mono text-[9px] rounded uppercase tracking-widest">
                       {activeCardDetail.cat || "VIRTUAL MODULE"}
                     </span>
                   </div>
+                  <button
+                    onClick={() => setActiveCardDetail(null)}
+                    className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded transition-colors cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
-                
-                <button
-                  onClick={() => setActiveCardDetail(null)}
-                  className="group flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-mono text-[10px] tracking-widest uppercase rounded-xl transition-all cursor-pointer self-start"
-                >
-                  <ChevronLeft className="w-4 h-4 translate-x-0 group-hover:-translate-x-1 transition-transform" />
-                  <span>BACK TO SYSTEM / 返回主页</span>
-                </button>
-              </div>
 
-              {/* Diagnostic parameters grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 z-10 my-2">
-                {/* Diagnostic Stats Panel */}
-                <div className="p-5 bg-zinc-950/80 border border-zinc-850 rounded-2xl space-y-4">
-                  <h4 className="text-[10px] font-mono font-bold tracking-widest text-zinc-500 uppercase">SYS MODULE OVERVIEW</h4>
-                  <div className="space-y-3">
-                    <div className="flex justify-between border-b border-zinc-900 pb-2">
-                      <span className="text-[11px] text-zinc-400 font-sans">Module State</span>
-                      <span className="text-[11px] font-mono text-emerald-400 font-bold">● ACTIVE / ONLINE</span>
-                    </div>
-                    <div className="flex justify-between border-b border-zinc-900 pb-2">
-                      <span className="text-[11px] text-zinc-400 font-sans">Error Syndrome Feed</span>
-                      <span className="text-[11px] font-mono text-zinc-300">105 kHz</span>
-                    </div>
-                    <div className="flex justify-between border-b border-zinc-900 pb-2">
-                      <span className="text-[11px] text-zinc-400 font-sans">Decoding Threshold</span>
-                      <span className="text-[11px] font-mono text-amber-500">0.0573 s</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-[11px] text-zinc-400 font-sans">Validation Hash</span>
-                      <span className="text-[11px] font-mono text-zinc-500">DX-60482B</span>
+                <div className="space-y-3 shrink-0">
+                  <h4 className="text-[10px] font-mono font-bold tracking-widest text-zinc-500 uppercase">DESCRIPTION & UTILITY</h4>
+                  <p className="text-zinc-300 text-sm font-sans font-light leading-relaxed">
+                    {activeCardDetail.desc || "This chassis slot currently simulates an interactive sandbox node. No external physical routes are defined."}
+                  </p>
+                  <p className="text-zinc-500 text-[11px] font-sans">
+                    💡 <span className="text-amber-500 font-semibold font-mono">Tip:</span> Direct inputs save immediately as text onto this card. Try <code className="bg-zinc-800 px-1 py-0.5 rounded text-amber-500 font-mono text-[10px]">set title NewName</code>.
+                  </p>
+                </div>
+
+                <div className="bg-black border border-zinc-850 rounded-2xl flex flex-col font-mono text-xs shadow-inner flex-1 min-h-[200px]">
+                  <div className="flex items-center justify-between border-b border-zinc-900 pb-3 pt-4 px-4 shrink-0">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-zinc-400 text-[10px] uppercase font-bold tracking-widest">Q-CHASSIS DEBUG CONSOLE</span>
                     </div>
                   </div>
-                </div>
 
-                {/* Detailed Description & Interactive Q-Console Terminal */}
-                <div className="md:col-span-2 flex flex-col gap-5">
-                  {/* Info Box */}
-                  <div className="p-5 bg-zinc-950/80 border border-zinc-850 rounded-2xl space-y-3">
-                    <h4 className="text-[10px] font-mono font-bold tracking-widest text-zinc-500 uppercase">DESCRIPTION & UTILITY</h4>
-                    <p className="text-zinc-300 text-xs md:text-sm font-sans font-light leading-relaxed">
-                      {activeCardDetail.desc || "This chassis slot currently simulates an interactive sandbox node. No external physical routes are defined."}
-                    </p>
-                    <p className="text-zinc-500 text-[11px] font-sans">
-                      💡 <span className="text-amber-500 font-semibold font-mono">Tip:</span> Direct inputs save immediately as text onto this card. Try commands like <code className="bg-zinc-90 w-fit px-1.5 py-0.5 rounded text-amber-500 font-mono text-[9.5px] border border-zinc-800">set title NewName</code> or <code className="bg-zinc-90 w-fit px-1.5 py-0.5 rounded text-amber-500 font-mono text-[9.5px] border border-zinc-800">set cat HARDWARE</code> to customize unit parameters!
-                    </p>
+                  <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2 flex flex-col text-[11px] text-zinc-300 leading-relaxed font-mono">
+                    {activeCardLogs.map((log, lIdx) => {
+                      let colorType = "text-zinc-300";
+                      if (log.startsWith("guest@alphaqubit:~$")) {
+                        colorType = "text-amber-400";
+                      } else if (log.startsWith("[SUCCESS]")) {
+                        colorType = "text-emerald-400 font-semibold";
+                      } else if (log.startsWith("[ERROR]")) {
+                        colorType = "text-rose-400 font-semibold";
+                      } else if (log.startsWith("[SYS/INIT]") || log.startsWith("[SYS/OK]")) {
+                        colorType = "text-blue-400 font-light";
+                      } else if (log.startsWith("[ROM/WRITE]")) {
+                        colorType = "text-emerald-400 font-semibold";
+                      }
+                      return (
+                        <div key={lIdx} className={`${colorType} whitespace-pre-wrap`}>
+                          {log}
+                        </div>
+                      );
+                    })}
+                    <div ref={terminalEndRef} />
                   </div>
 
-                  {/* Interactive Quantum CLI Console */}
-                  <div className="p-5 bg-black border border-zinc-850 rounded-2xl flex flex-col gap-3 font-mono text-xs shadow-inner">
-                    <div className="flex items-center justify-between border-b border-zinc-900 pb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-zinc-400 text-[10px] uppercase font-bold tracking-widest">Q-CHASSIS DEBUG CONSOLE [PORT_LINK_STABLE]</span>
-                      </div>
-                      <span className="text-[9px] text-zinc-600">CLI BUFFER ACTIVE</span>
-                    </div>
-
-                    {/* Scrollable Log Terminal Lines */}
-                    <div className="h-36 overflow-y-auto bg-zinc-950/80 rounded-xl p-3 border border-zinc-900 space-y-2 flex flex-col text-[11px] text-zinc-300 leading-relaxed font-mono">
-                      {activeCardLogs.map((log, lIdx) => {
-                        let colorType = "text-zinc-300";
-                        if (log.startsWith("guest@alphaqubit:~$")) {
-                          colorType = "text-amber-400";
-                        } else if (log.startsWith("[SUCCESS]")) {
-                          colorType = "text-emerald-400 font-semibold";
-                        } else if (log.startsWith("[ERROR]")) {
-                          colorType = "text-rose-400 font-semibold";
-                        } else if (log.startsWith("[SYS/INIT]") || log.startsWith("[SYS/OK]")) {
-                          colorType = "text-blue-400 font-light";
-                        } else if (log.startsWith("[ROM/WRITE]")) {
-                          colorType = "text-emerald-400 font-semibold";
-                        }
-                        return (
-                          <div key={lIdx} className={`${colorType} whitespace-pre-wrap`}>
-                            {log}
-                          </div>
-                        );
-                      })}
-                      <div ref={terminalEndRef} />
-                    </div>
-
-                    {/* Interactive Input Form line */}
-                    <form onSubmit={handleTerminalSubmit} className="flex items-center gap-2.5 bg-zinc-950 px-3 py-2 rounded-xl border border-zinc-900 focus-within:border-amber-500/50 transition-colors">
-                      <span className="text-emerald-400 text-[11px] select-none shrink-0">guest@alphaqubit:~$</span>
-                      <input 
-                        type="text"
-                        value={terminalInput}
-                        onChange={(e) => setTerminalInput(e.target.value)}
-                        placeholder="Type text notes to save directly to card, or 'help' for triggers..."
-                        className="flex-1 bg-transparent border-none outline-none text-white text-[11.5px] placeholder-zinc-700 font-mono py-0 focus:outline-none focus:ring-0"
-                      />
-                      <button 
-                        type="submit"
-                        className="px-3.5 py-1 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold rounded-lg text-[10px] uppercase tracking-wider transition-all select-none cursor-pointer"
-                      >
-                        RUN
-                      </button>
-                    </form>
-                  </div>
+                  <form onSubmit={handleTerminalSubmit} className="flex items-center gap-2.5 bg-zinc-950 px-4 py-3 rounded-b-2xl border-t border-zinc-900 focus-within:border-amber-500/50 transition-colors shrink-0">
+                    <span className="text-emerald-400 text-[11px] select-none shrink-0">~$</span>
+                    <input 
+                      type="text"
+                      value={terminalInput}
+                      onChange={(e) => setTerminalInput(e.target.value)}
+                      placeholder="Type text notes..."
+                      className="flex-1 bg-transparent border-none outline-none text-white text-[11px] placeholder-zinc-700 font-mono py-0 focus:outline-none focus:ring-0"
+                    />
+                  </form>
                 </div>
-              </div>
-
-              {/* Fun, futuristic simulated metric grid chart */}
-              <div className="p-6 bg-zinc-950/40 border border-zinc-850/80 rounded-2xl space-y-4 z-10">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <h4 className="text-[10px] font-mono font-bold tracking-widest text-white uppercase">INTERPRETATION CHASSIS SIGNAL</h4>
-                    <p className="text-[10px] text-zinc-500 font-sans">Simulating active physical threshold validation across 100 microsec periods</p>
-                  </div>
-                  <span className="text-[10px] font-mono bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded border border-amber-500/20 uppercase">STABILIZED</span>
-                </div>
-
-                {/* Simple simulated CSS grid chart */}
-                <div className="h-28 flex items-end gap-1.5 pt-4">
-                  {[40, 65, 30, 85, 95, 45, 60, 75, 55, 90, 110, 80, 65, 40, 75, 85, 95, 120, 105, 90, 70, 50, 60, 85, 95].map((val, idx) => (
-                    <div key={idx} className="flex-1 bg-zinc-800 hover:bg-amber-500/80 rounded-t transition-all duration-200 relative group/chart" style={{ height: `${(val / 120) * 100}%` }}>
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover/chart:block bg-zinc-900 border border-zinc-850 text-[9px] font-mono p-1 rounded text-white whitespace-nowrap z-50">
-                        {val * 12} Operations/s
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex justify-between text-[9px] font-mono text-zinc-600">
-                  <span>START CYCLE 000ms</span>
-                  <span>CURRENT RECOVERY BUFFER</span>
-                  <span>END CYCLE 100ms</span>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-zinc-805 z-10">
-                <div className="text-[11px] text-zinc-500 font-sans">
-                  Want to change this behaviour? Open the <span className="text-zinc-350 underline">CARD CONSOLE</span> on the system dashboard to bind a different URL.
-                </div>
-                <button 
-                  onClick={() => setActiveCardDetail(null)}
-                  className="w-full sm:w-auto px-6 py-2.5 bg-zinc-100 hover:bg-white text-zinc-950 font-bold font-display tracking-widest text-xs uppercase rounded-lg transition-all text-center cursor-pointer"
-                >
-                  CLOSE DIAGNOSTIC / 关闭
-                </button>
               </div>
             </motion.div>
           </div>

@@ -274,9 +274,6 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
     shell.addEventListener('pointerleave', pointerLeaveHandler);
 
     const handleClick = () => {
-      if (onClick) {
-        onClick();
-      }
       if (!enableMobileTilt || location.protocol !== 'https:') return;
       const anyMotion = (window as any).DeviceMotionEvent;
       if (anyMotion && typeof anyMotion.requestPermission === 'function') {
@@ -339,7 +336,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
   }, [onContactClick]);
 
   return (
-    <div ref={wrapRef} className={`pc-card-wrapper ${className}`.trim()} style={cardStyle as any}>
+    <div ref={wrapRef} className={`pc-card-wrapper ${className}`.trim()} style={cardStyle as any} onClick={onClick}>
       {behindGlowEnabled && <div className="pc-behind" />}
       <div ref={shellRef} className="pc-card-shell">
         <section className="pc-card">
