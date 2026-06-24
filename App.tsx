@@ -19,6 +19,7 @@ import PillNav, { PillNavItem } from './components/PillNav';
 import LogoLoop from './components/LogoLoop';
 import ErrorBoundary from './components/ErrorBoundary';
 import InfiniteMenu from './components/InfiniteMenu';
+import DomeGallery from './components/DomeGallery';
 
 export interface MarqueeCard {
   id: number;
@@ -302,7 +303,7 @@ const App: React.FC = () => {
   // Interactive Timeline state on Screen 7
   const [activeTimelinePhase, setActiveTimelinePhase] = useState<number>(1);
 
-  // Dynamic Marquee Cards State for Screen 4
+  // Dynamic Marquee Cards State for Screen 4 (which is the 3rd screen, index 2)
   const [marqueeCards, setMarqueeCards] = useState<MarqueeCard[]>(() => {
     const saved = localStorage.getItem("alphaqubit_marquee_cards");
     if (saved) {
@@ -321,7 +322,31 @@ const App: React.FC = () => {
     localStorage.setItem("alphaqubit_marquee_cards", JSON.stringify(updated));
   };
 
-  const [isConsoleOpen, setIsConsoleOpen] = useState<boolean>(true); // Open by default for editing discovery
+  // Dynamic 3D Sphere Cards State for Screen 5 (which is the 4th screen, index 3)
+  const [sphereCards, setSphereCards] = useState<MarqueeCard[]>(() => {
+    const saved = localStorage.getItem("alphaqubit_sphere_cards");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {
+        console.error("Failed to parse saved sphere cards", e);
+      }
+    }
+    // Deep clone DEFAULT_MARQUEE_CARDS so changes are fully independent
+    return JSON.parse(JSON.stringify(DEFAULT_MARQUEE_CARDS));
+  });
+
+  const saveSphereCards = (updated: MarqueeCard[]) => {
+    setSphereCards(updated);
+    localStorage.setItem("alphaqubit_sphere_cards", JSON.stringify(updated));
+  };
+
+  const [isConsoleOpen3, setIsConsoleOpen3] = useState<boolean>(true); // Open by default for Screen 3 editing discovery
+  const [isConsoleOpen4, setIsConsoleOpen4] = useState<boolean>(true); // Open by default for Screen 4 editing discovery
+  const [isConsoleOpen6, setIsConsoleOpen6] = useState<boolean>(true); // Open by default for Screen 6 (DomeGallery) editing discovery
+  const [domeAutoRotate, setDomeAutoRotate] = useState<boolean>(true);
+  const [domeAutoRotateSpeed, setDomeAutoRotateSpeed] = useState<number>(0.15);
   const [activeCardDetail, setActiveCardDetail] = useState<MarqueeCard | null>(null);
   const [copyToast, setCopyToast] = useState<string | null>(null);
 
@@ -374,6 +399,60 @@ const App: React.FC = () => {
   const resetMarqueeCards = () => {
     if (window.confirm("Reset card matrices to Google default setup?")) {
       saveMarqueeCards(DEFAULT_MARQUEE_CARDS);
+    }
+  };
+
+  const addSphereCard = () => {
+    const nextId = sphereCards.length > 0 ? Math.max(...sphereCards.map(c => c.id)) + 1 : 1;
+    const defaultTemplates = [
+      { title: "Fault-Tolerant Decoder", cat: "CORE SYSTEM", desc: "Predicts noise errors dynamically using neural inference thresholds.", colorType: "teal" },
+      { title: "Sycamore Calibrator", cat: "HARDWARE ENGINE", desc: "Automated drift correction module optimizing microwave pulses.", colorType: "indigo" },
+      { title: "Cosmic Event Tracker", cat: "METRIC ANALYZIS", desc: "High-density scintillation tracking mapping background radiation.", colorType: "rose" },
+      { title: "MWPM Super Solver", cat: "OPTIMIZER", desc: "Parallel graph perfect matcher solving threshold parameters.", colorType: "amber" }
+    ];
+    const template = defaultTemplates[nextId % defaultTemplates.length];
+    const newCard: MarqueeCard = {
+      id: nextId,
+      title: template.title,
+      cat: template.cat,
+      desc: template.desc,
+      url: "",
+      colorType: template.colorType
+    };
+    saveSphereCards([...sphereCards, newCard]);
+  };
+
+  const removeLastSphereCard = () => {
+    if (sphereCards.length > 1) {
+      saveSphereCards(sphereCards.slice(0, -1));
+    }
+  };
+
+  const deleteSphereCard = (id: number) => {
+    if (sphereCards.length > 1) {
+      saveSphereCards(sphereCards.filter(c => c.id !== id));
+    } else {
+      alert("System constraint: At least 1 console card must remain initialized.");
+    }
+  };
+
+  const updateSphereCard = (id: number, fields: Partial<MarqueeCard>) => {
+    const updated = sphereCards.map(c => c.id === id ? { ...c, ...fields } : c);
+    saveSphereCards(updated);
+  };
+
+  const resetSphereCards = () => {
+    if (window.confirm("Reset 3D sphere card matrices to Google default setup?")) {
+      saveSphereCards(DEFAULT_MARQUEE_CARDS);
+    }
+  };
+
+  const updateCardInActiveList = (id: number, fields: Partial<MarqueeCard>) => {
+    if (marqueeCards.some(c => c.id === id)) {
+      updateMarqueeCard(id, fields);
+    }
+    if (sphereCards.some(c => c.id === id)) {
+      updateSphereCard(id, fields);
     }
   };
 
@@ -448,7 +527,7 @@ const App: React.FC = () => {
     } else if (cleanCmd.startsWith("set title ")) {
       const val = userInput.substring(10).trim();
       if (val) {
-        updateMarqueeCard(activeCardDetail.id, { title: val });
+        updateCardInActiveList(activeCardDetail.id, { title: val });
         setActiveCardDetail(prev => prev ? { ...prev, title: val } : null);
         reply = `[SUCCESS] Chassis title updated successfully to: "${val}"`;
       } else {
@@ -457,7 +536,7 @@ const App: React.FC = () => {
     } else if (cleanCmd.startsWith("set desc ")) {
       const val = userInput.substring(9).trim();
       if (val) {
-        updateMarqueeCard(activeCardDetail.id, { desc: val });
+        updateCardInActiveList(activeCardDetail.id, { desc: val });
         setActiveCardDetail(prev => prev ? { ...prev, desc: val } : null);
         reply = `[SUCCESS] Core description ROM overwritten: "${val}"`;
       } else {
@@ -466,14 +545,14 @@ const App: React.FC = () => {
     } else if (cleanCmd.startsWith("set cat ")) {
       const val = userInput.substring(8).trim().toUpperCase();
       if (val) {
-        updateMarqueeCard(activeCardDetail.id, { cat: val });
+        updateCardInActiveList(activeCardDetail.id, { cat: val });
         setActiveCardDetail(prev => prev ? { ...prev, cat: val } : null);
         reply = `[SUCCESS] Node category code updated to: "${val}"`;
       } else {
         reply = `[ERROR] Invalid parameter. Usage: set cat <your category>`;
       }
     } else {
-      updateMarqueeCard(activeCardDetail.id, { desc: userInput });
+      updateCardInActiveList(activeCardDetail.id, { desc: userInput });
       setActiveCardDetail(prev => prev ? { ...prev, desc: userInput } : null);
       reply = `[ROM/WRITE] Captured console notes! Overwrote card text: "${userInput}"`;
     }
@@ -587,11 +666,11 @@ const App: React.FC = () => {
     }
   };
 
-  // Reusable Syndrome Deck Console (Sidebar Editor for Marquee Cards)
-  const renderCardConsole = () => {
+  // Syndrome Deck Console for Marquee Cards (Screen 3)
+  const renderMarqueeConsole = () => {
     return (
       <AnimatePresence>
-        {isConsoleOpen && (
+        {isConsoleOpen3 && (
           <motion.div
             initial={{ opacity: 0, x: 250 }}
             animate={{ opacity: 1, x: 0 }}
@@ -608,15 +687,15 @@ const App: React.FC = () => {
                 </span>
                 <div>
                   <h2 className="text-xs font-mono font-bold tracking-widest text-white uppercase">
-                    SYNDROME DECK CONSOLE / 机架卡控制台
+                    MARQUEE CONSOLE / 走马灯卡片控制台
                   </h2>
                   <p className="text-[10px] text-zinc-500 font-light font-sans">
-                    Configure real-time noise matrices on this active chassis node
+                    Configure sliding noise matrices on Screen 3 (Third Slide)
                   </p>
                 </div>
               </div>
               <button 
-                onClick={() => setIsConsoleOpen(false)}
+                onClick={() => setIsConsoleOpen3(false)}
                 className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
@@ -675,7 +754,7 @@ const App: React.FC = () => {
             {/* Editable List Body */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[calc(100vh-270px)]">
               <div className="p-3 bg-zinc-900/40 rounded-xl border border-zinc-800/60 text-[10.5px] leading-relaxed font-sans text-zinc-400">
-                💡 <span className="font-semibold text-zinc-200">编辑须知：</span>您可以在此增减卡片，并即时查看卡片的更新。编辑完成后，点击右上角 <span className="text-emerald-400 font-mono font-bold">COPY CONFIG</span> 复制整个卡片配置的 JSON 数据，并发送在 AI 聊天中。AI 将为您把新卡片写入作为网站的硬编码永久保存。
+                💡 <span className="font-semibold text-zinc-200">走马灯卡片编辑：</span>这些修改仅对第三屏的走马灯滑动卡片生效。编辑完成后，可复制卡片配置发给 AI 写入代码。
               </div>
 
               {marqueeCards.map((card, idx) => {
@@ -794,6 +873,503 @@ const App: React.FC = () => {
                             <button
                               key={color.name}
                               onClick={() => updateMarqueeCard(card.id, { colorType: color.name })}
+                              className={`h-4.5 w-4.5 rounded-full ${color.bg} border transition-transform duration-200 cursor-pointer ${
+                                isSelected ? 'scale-125 ring-2 ring-white/50 border-white' : 'scale-100 hover:scale-110 border-transparent opacity-80'
+                              }`}
+                              title={color.name.toUpperCase()}
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                  </div>
+                );
+              })}
+            </div>
+
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  };
+
+  // Syndrome Deck Console for 3D Sphere Cards (Screen 4)
+  const renderSphereConsole = () => {
+    return (
+      <AnimatePresence>
+        {isConsoleOpen4 && (
+          <motion.div
+            initial={{ opacity: 0, x: 250 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 250 }}
+            transition={{ type: "spring", damping: 25, stiffness: 180 }}
+            className="absolute right-0 top-0 bottom-0 w-full max-w-lg lg:max-w-xl h-full bg-zinc-950/98 border-l border-zinc-800 backdrop-blur-xl shadow-2xl z-40 flex flex-col pointer-events-auto text-zinc-300"
+          >
+            {/* Console Header */}
+            <div className="p-5 border-b border-zinc-800 bg-zinc-900/60 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="flex h-2.5 w-2.5 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                </span>
+                <div>
+                  <h2 className="text-xs font-mono font-bold tracking-widest text-white uppercase">
+                    3D SPHERE CONSOLE / 3D球形卡片控制台
+                  </h2>
+                  <p className="text-[10px] text-zinc-500 font-light font-sans">
+                    Configure spherical noise matrices on Screen 4 (Fourth Slide)
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsConsoleOpen4(false)}
+                className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Console Quick Toolbar Actions */}
+            <div className="p-4 bg-zinc-900/30 border-b border-zinc-850/80 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={addSphereCard}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/30 hover:border-amber-500/50 rounded-lg text-[10px] font-mono tracking-widest uppercase transition-all cursor-pointer"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>ADD CARD / 增加卡片</span>
+                </button>
+                
+                <button
+                  onClick={removeLastSphereCard}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 rounded-lg text-[10px] font-mono tracking-widest uppercase transition-all cursor-pointer"
+                >
+                  <Minus className="w-3 h-3" />
+                  <span>REMOVE LAST / 减少卡片</span>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    try {
+                      const codeStr = JSON.stringify(sphereCards, null, 2);
+                      if (navigator.clipboard) {
+                        navigator.clipboard.writeText(codeStr);
+                      }
+                      setCopyToast(codeStr);
+                    } catch (e) {
+                      alert("Oops, automatic clipboard blocked! Please copy from the pop-up field instead.");
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-[10px] font-mono tracking-widest uppercase transition-all shadow-md cursor-pointer"
+                >
+                  <Code className="w-3 h-3" />
+                  <span>COPY CONFIG / 用于发给AI</span>
+                </button>
+
+                <button
+                  onClick={resetSphereCards}
+                  className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 rounded-lg border border-zinc-800 transition-colors cursor-pointer"
+                  title="Reset layout"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Editable List Body */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[calc(100vh-270px)]">
+              <div className="p-3 bg-zinc-900/40 rounded-xl border border-zinc-800/60 text-[10.5px] leading-relaxed font-sans text-zinc-400">
+                💡 <span className="font-semibold text-zinc-200">3D球形卡片编辑：</span>这些修改仅对第四屏的3D旋转球形卡片生效。
+              </div>
+
+              {sphereCards.map((card, idx) => {
+                return (
+                  <div 
+                    key={card.id}
+                    className="p-4 bg-zinc-900/60 rounded-xl border border-zinc-850 hover:border-zinc-800 transition-all space-y-3 relative group"
+                  >
+                    {/* Item Header */}
+                    <div className="flex items-center justify-between border-b border-zinc-800/40 pb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 font-mono text-[9px] rounded uppercase font-bold">
+                          SPHERE UNIT {idx + 1}
+                        </span>
+                        <span className="text-[10px] font-mono text-zinc-600">ID: {card.id}</span>
+                      </div>
+                      <button
+                        onClick={() => deleteSphereCard(card.id)}
+                        className="text-zinc-600 hover:text-rose-500 p-1 opacity-60 group-hover:opacity-100 transition-all rounded hover:bg-rose-500/10 cursor-pointer"
+                        title="Delete card"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Title & Category Form Rows */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
+                          Card Title / 标题
+                        </label>
+                        <input 
+                          type="text" 
+                          value={card.title}
+                          onChange={(e) => updateSphereCard(card.id, { title: e.target.value })}
+                          className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
+                          placeholder="Qubit Topology..."
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
+                          Category / 类别
+                        </label>
+                        <input 
+                          type="text" 
+                          value={card.cat}
+                          onChange={(e) => updateSphereCard(card.id, { cat: e.target.value.toUpperCase() })}
+                          className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white uppercase focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
+                          placeholder="HARDWARE..."
+                        />
+                      </div>
+                    </div>
+
+                    {/* Description Form Row */}
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
+                        Description / 简述
+                      </label>
+                      <textarea 
+                        value={card.desc}
+                        onChange={(e) => updateSphereCard(card.id, { desc: e.target.value })}
+                        rows={2}
+                        className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20 resize-none leading-normal font-sans"
+                        placeholder="Configure details..."
+                      />
+                    </div>
+
+                    {/* Custom URL Form Row */}
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
+                        Interactive Action Link / 点击跳转链接 (可选)
+                      </label>
+                      <input 
+                        type="text" 
+                        value={card.url}
+                        onChange={(e) => updateSphereCard(card.id, { url: e.target.value })}
+                        className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white font-mono placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
+                        placeholder="https://..."
+                      />
+                    </div>
+
+                    {/* Custom Image Form Row */}
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
+                        Circle Background Image URL / 圈圈背景图片链接
+                      </label>
+                      <input 
+                        type="text" 
+                        value={card.image || ""}
+                        onChange={(e) => updateSphereCard(card.id, { image: e.target.value })}
+                        className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white font-mono placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
+                        placeholder="https://images.unsplash.com/photo-..."
+                      />
+                    </div>
+
+                    {/* Color Picker Row */}
+                    <div className="space-y-1.5">
+                      <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
+                        Accent Theme / 系统色系
+                      </span>
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {[
+                          { name: "indigo", bg: "bg-indigo-500 border-indigo-400" },
+                          { name: "teal", bg: "bg-teal-500 border-teal-400" },
+                          { name: "amber", bg: "bg-amber-500 border-amber-400" },
+                          { name: "rose", bg: "bg-rose-500 border-rose-400" },
+                          { name: "purple", bg: "bg-purple-500 border-purple-400" },
+                          { name: "emerald", bg: "bg-emerald-500 border-emerald-400" },
+                          { name: "pink", bg: "bg-pink-500 border-pink-400" },
+                          { name: "sky", bg: "bg-sky-500 border-sky-400" },
+                          { name: "fuchsia", bg: "bg-fuchsia-500 border-fuchsia-400" },
+                          { name: "blue", bg: "bg-blue-500 border-blue-400" }
+                        ].map((color) => {
+                          const isSelected = (card.colorType || "blue") === color.name;
+                          return (
+                            <button
+                              key={color.name}
+                              onClick={() => updateSphereCard(card.id, { colorType: color.name })}
+                              className={`h-4.5 w-4.5 rounded-full ${color.bg} border transition-transform duration-200 cursor-pointer ${
+                                isSelected ? 'scale-125 ring-2 ring-white/50 border-white' : 'scale-100 hover:scale-110 border-transparent opacity-80'
+                              }`}
+                              title={color.name.toUpperCase()}
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                  </div>
+                );
+              })}
+            </div>
+
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  };
+
+  // Dome Gallery Console for 3D Dome Gallery (Screen 6)
+  const renderDomeConsole = () => {
+    return (
+      <AnimatePresence>
+        {isConsoleOpen6 && (
+          <motion.div
+            initial={{ opacity: 0, x: 250 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 250 }}
+            transition={{ type: "spring", damping: 25, stiffness: 180 }}
+            className="absolute right-0 top-0 bottom-0 w-full max-w-lg lg:max-w-xl h-full bg-zinc-950/98 border-l border-zinc-800 backdrop-blur-xl shadow-2xl z-45 flex flex-col pointer-events-auto text-zinc-300"
+          >
+            {/* Console Header */}
+            <div className="p-5 border-b border-zinc-800 bg-zinc-900/60 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="flex h-2.5 w-2.5 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                </span>
+                <div>
+                  <h2 className="text-xs font-mono font-bold tracking-widest text-white uppercase">
+                    DOME GALLERY CONSOLE / 穹顶画廊控制台
+                  </h2>
+                  <p className="text-[10px] text-zinc-500 font-light font-sans">
+                    Configure spherical noise and image matrices on Screen 6 (Sixth Slide)
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsConsoleOpen6(false)}
+                className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Console Quick Toolbar Actions */}
+            <div className="p-4 bg-zinc-900/30 border-b border-zinc-850/80 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={addSphereCard}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/30 hover:border-amber-500/50 rounded-lg text-[10px] font-mono tracking-widest uppercase transition-all cursor-pointer"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>ADD CARD / 增加卡片</span>
+                </button>
+                
+                <button
+                  onClick={removeLastSphereCard}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 rounded-lg text-[10px] font-mono tracking-widest uppercase transition-all cursor-pointer"
+                >
+                  <Minus className="w-3 h-3" />
+                  <span>REMOVE LAST / 减少卡片</span>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    try {
+                      const codeStr = JSON.stringify(sphereCards, null, 2);
+                      if (navigator.clipboard) {
+                        navigator.clipboard.writeText(codeStr);
+                      }
+                      setCopyToast(codeStr);
+                    } catch (e) {
+                      alert("Oops, automatic clipboard blocked! Please copy from the pop-up field instead.");
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-[10px] font-mono tracking-widest uppercase transition-all shadow-md cursor-pointer"
+                >
+                  <Code className="w-3 h-3" />
+                  <span>COPY CONFIG / 用于发给AI</span>
+                </button>
+
+                <button
+                  onClick={resetSphereCards}
+                  className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 rounded-lg border border-zinc-800 transition-colors cursor-pointer"
+                  title="Reset layout"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Editable List Body */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[calc(100vh-270px)]">
+              <div className="p-3 bg-zinc-900/40 rounded-xl border border-zinc-800/60 text-[10.5px] leading-relaxed font-sans text-zinc-400">
+                💡 <span className="font-semibold text-zinc-200">穹顶画廊编辑：</span>这些修改会对穹顶画廊（第六屏）和3D循环卡片（第五屏）共同生效。
+              </div>
+
+              {/* Auto Rotate Control Panel */}
+              <div className="p-4 bg-zinc-900/60 rounded-xl border border-zinc-800/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <span className="text-[11px] font-mono text-zinc-300 font-bold tracking-wider uppercase block">
+                      AUTO ROTATION / 自动旋转
+                    </span>
+                    <span className="text-[10px] text-zinc-500 block">
+                      Enable continuous slow horizontal rotation / 启用持续缓慢的水平旋转
+                    </span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={domeAutoRotate} 
+                      onChange={(e) => setDomeAutoRotate(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500 peer-checked:after:bg-zinc-950"></div>
+                  </label>
+                </div>
+
+                {domeAutoRotate && (
+                  <div className="space-y-1.5 pt-2 border-t border-zinc-850">
+                    <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400">
+                      <span>ROTATION SPEED / 旋转速度</span>
+                      <span className="text-amber-500 font-bold">{domeAutoRotateSpeed.toFixed(2)} deg/frame</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="0.02" 
+                      max="1.0" 
+                      step="0.02" 
+                      value={domeAutoRotateSpeed} 
+                      onChange={(e) => setDomeAutoRotateSpeed(parseFloat(e.target.value))}
+                      className="w-full h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {sphereCards.map((card, idx) => {
+                return (
+                  <div 
+                    key={card.id}
+                    className="p-4 bg-zinc-900/60 rounded-xl border border-zinc-850 hover:border-zinc-800 transition-all space-y-3 relative group"
+                  >
+                    {/* Item Header */}
+                    <div className="flex items-center justify-between border-b border-zinc-800/40 pb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 font-mono text-[9px] rounded uppercase font-bold">
+                          DOME UNIT {idx + 1}
+                        </span>
+                        <span className="text-[10px] font-mono text-zinc-600">ID: {card.id}</span>
+                      </div>
+                      <button
+                        onClick={() => deleteSphereCard(card.id)}
+                        className="text-zinc-600 hover:text-rose-500 p-1 opacity-60 group-hover:opacity-100 transition-all rounded hover:bg-rose-500/10 cursor-pointer"
+                        title="Delete card"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Title & Category Form Rows */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
+                          Title / 卡片标题
+                        </label>
+                        <input 
+                          type="text" 
+                          value={card.title}
+                          onChange={(e) => updateSphereCard(card.id, { title: e.target.value })}
+                          className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-850 rounded-lg text-xs text-white placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
+                          placeholder="e.g. Qubit Topology"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
+                          Sub-Category / 副类别
+                        </label>
+                        <input 
+                          type="text" 
+                          value={card.cat}
+                          onChange={(e) => updateSphereCard(card.id, { cat: e.target.value })}
+                          className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-850 rounded-lg text-xs text-white placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
+                          placeholder="e.g. NOISE VECTOR"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Description Form Row */}
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
+                        Detailed Description / 详细描述
+                      </label>
+                      <textarea 
+                        rows={2}
+                        value={card.desc}
+                        onChange={(e) => updateSphereCard(card.id, { desc: e.target.value })}
+                        className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-850 rounded-lg text-xs text-white placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20 font-sans resize-none"
+                        placeholder="Detail about this noise threshold..."
+                      />
+                    </div>
+
+                    {/* Custom URL Form Row */}
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
+                        Interactive Action Link / 点击跳转链接 (可选)
+                      </label>
+                      <input 
+                        type="text" 
+                        value={card.url}
+                        onChange={(e) => updateSphereCard(card.id, { url: e.target.value })}
+                        className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white font-mono placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
+                        placeholder="https://..."
+                      />
+                    </div>
+
+                    {/* Custom Image Form Row */}
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
+                        Circle Background Image URL / 圈圈背景图片链接
+                      </label>
+                      <input 
+                        type="text" 
+                        value={card.image || ""}
+                        onChange={(e) => updateSphereCard(card.id, { image: e.target.value })}
+                        className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white font-mono placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
+                        placeholder="https://images.unsplash.com/photo-..."
+                      />
+                    </div>
+
+                    {/* Color Picker Row */}
+                    <div className="space-y-1.5">
+                      <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
+                        Accent Theme / 系统色系
+                      </span>
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {[
+                          { name: "indigo", bg: "bg-indigo-500 border-indigo-400" },
+                          { name: "teal", bg: "bg-teal-500 border-teal-400" },
+                          { name: "amber", bg: "bg-amber-500 border-amber-400" },
+                          { name: "rose", bg: "bg-rose-500 border-rose-400" },
+                          { name: "purple", bg: "bg-purple-500 border-purple-400" },
+                          { name: "emerald", bg: "bg-emerald-500 border-emerald-400" },
+                          { name: "pink", bg: "bg-pink-500 border-pink-400" },
+                          { name: "sky", bg: "bg-sky-500 border-sky-400" },
+                          { name: "fuchsia", bg: "bg-fuchsia-500 border-fuchsia-400" },
+                          { name: "blue", bg: "bg-blue-500 border-blue-400" }
+                        ].map((color) => {
+                          const isSelected = (card.colorType || "blue") === color.name;
+                          return (
+                            <button
+                              key={color.name}
+                              onClick={() => updateSphereCard(card.id, { colorType: color.name })}
                               className={`h-4.5 w-4.5 rounded-full ${color.bg} border transition-transform duration-200 cursor-pointer ${
                                 isSelected ? 'scale-125 ring-2 ring-white/50 border-white' : 'scale-100 hover:scale-110 border-transparent opacity-80'
                               }`}
@@ -938,22 +1514,22 @@ const App: React.FC = () => {
                 {/* Floating controls specifically for Screen 5 to toggle the drawer */}
                 <div className="absolute top-20 right-6 lg:top-6 lg:right-44 z-50 pointer-events-auto flex items-center gap-3">
                   <button
-                    onClick={() => setIsConsoleOpen(!isConsoleOpen)}
+                    onClick={() => setIsConsoleOpen4(!isConsoleOpen4)}
                     className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[11px] font-mono tracking-widest uppercase transition-all duration-300 shadow-lg cursor-pointer backdrop-blur-md ${
-                      isConsoleOpen 
+                      isConsoleOpen4 
                         ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 border-amber-550 font-bold' 
                         : 'bg-zinc-900/90 text-zinc-300 border-zinc-800 hover:text-white hover:border-zinc-700 hover:bg-zinc-850'
                     }`}
                   >
-                    <Settings className={`w-3.5 h-3.5 ${isConsoleOpen ? 'animate-spin' : ''}`} />
-                    <span>{isConsoleOpen ? "HIDE CONSOLE / 隐藏控制台" : "CARD CONSOLE / 打开控制台"}</span>
+                    <Settings className={`w-3.5 h-3.5 ${isConsoleOpen4 ? 'animate-spin' : ''}`} />
+                    <span>{isConsoleOpen4 ? "HIDE CONSOLE / 隐藏控制台" : "CARD CONSOLE / 打开控制台"}</span>
                   </button>
                 </div>
 
                 <div className="absolute inset-0 w-full h-full pointer-events-auto">
                   <InfiniteMenu
                     scale={1.4}
-                    items={marqueeCards.map((card, idx) => ({
+                    items={sphereCards.map((card, idx) => ({
                       id: card.id,
                       image: card.image || [
                         "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop", // Qubit Topology
@@ -972,7 +1548,7 @@ const App: React.FC = () => {
                       link: card.url
                     }))}
                     onItemClick={(item) => {
-                      const originalCard = marqueeCards.find(c => c.id === item.id);
+                      const originalCard = sphereCards.find(c => c.id === item.id);
                       if (originalCard) {
                         if (originalCard.url) {
                           window.open(originalCard.url, '_blank', 'noopener,noreferrer');
@@ -985,7 +1561,58 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Reusable Syndrome Deck Console drawer */}
-                {renderCardConsole()}
+                {renderSphereConsole()}
+              </section>
+            );
+          }
+
+          if (s.id === 6) {
+            return (
+              <section 
+                key={s.id}
+                id={`screen-${s.id}`}
+                className="snap-start lg:snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-zinc-950"
+              >
+                {/* Floating controls specifically for Screen 6 to toggle the dome drawer */}
+                <div className="absolute top-24 right-6 lg:top-6 lg:right-6 z-50 pointer-events-auto flex items-center gap-3">
+                  <button
+                    onClick={() => setIsConsoleOpen6(!isConsoleOpen6)}
+                    className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[11px] font-mono tracking-widest uppercase transition-all duration-300 shadow-lg cursor-pointer backdrop-blur-md ${
+                      isConsoleOpen6 
+                        ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 border-amber-550 font-bold' 
+                        : 'bg-zinc-900/90 text-zinc-300 border-zinc-800 hover:text-white hover:border-zinc-700 hover:bg-zinc-850'
+                    }`}
+                  >
+                    <Settings className={`w-3.5 h-3.5 ${isConsoleOpen6 ? 'animate-spin' : ''}`} />
+                    <span>{isConsoleOpen6 ? "HIDE CONSOLE / 隐藏控制台" : "DOME CONSOLE / 打开画廊控制台"}</span>
+                  </button>
+                </div>
+
+                <div className="absolute inset-0 w-full h-full pointer-events-auto">
+                  <DomeGallery
+                    images={sphereCards.map((card, idx) => ({
+                      src: card.image || [
+                        "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop", // Qubit Topology
+                        "https://images.unsplash.com/photo-1507668077129-56e32842fceb?q=80&w=600&auto=format&fit=crop", // Primal Syndrome
+                        "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=600&auto=format&fit=crop", // Stabilizer Parity
+                        "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=600&auto=format&fit=crop", // Decoder Mesh
+                        "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=600&auto=format&fit=crop", // Cosmic Ray Shield
+                        "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=600&auto=format&fit=crop", // Synergy Routing
+                        "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop", // Coherent Decay
+                        "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=600&auto=format&fit=crop", // MWPM Solver
+                        "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=600&auto=format&fit=crop", // Decoder Latency
+                        "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=600&auto=format&fit=crop"  // Weight Distribution
+                      ][idx % 10],
+                      alt: card.title
+                    }))}
+                    grayscale={false}
+                    autoRotate={domeAutoRotate}
+                    autoRotateSpeed={domeAutoRotateSpeed}
+                  />
+                </div>
+
+                {/* Reusable Dome Console drawer */}
+                {renderDomeConsole()}
               </section>
             );
           }
@@ -1026,15 +1653,15 @@ const App: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <button
                           id="console-toggle-btn"
-                          onClick={() => setIsConsoleOpen(!isConsoleOpen)}
+                          onClick={() => setIsConsoleOpen3(!isConsoleOpen3)}
                           className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[11px] font-mono tracking-widest uppercase transition-all duration-300 shadow-md cursor-pointer ${
-                            isConsoleOpen 
+                            isConsoleOpen3 
                               ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 border-amber-550 font-bold' 
                               : 'bg-zinc-900/90 text-zinc-300 border-zinc-800 hover:text-white hover:border-zinc-700 hover:bg-zinc-850'
                           }`}
                         >
-                          <Settings className={`w-3.5 h-3.5 ${isConsoleOpen ? 'animate-spin' : ''}`} />
-                          <span>{isConsoleOpen ? "HIDE CONSOLE / 隐藏控制台" : "CARD CONSOLE / 打开控制台"}</span>
+                          <Settings className={`w-3.5 h-3.5 ${isConsoleOpen3 ? 'animate-spin' : ''}`} />
+                          <span>{isConsoleOpen3 ? "HIDE CONSOLE / 隐藏控制台" : "CARD CONSOLE / 打开控制台"}</span>
                         </button>
                       </div>
                     </div>
@@ -1046,45 +1673,58 @@ const App: React.FC = () => {
                       <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-zinc-950 to-transparent z-10 pointer-events-none" />
                       
                       {/* Flex track running marquee animation. Hovering pauses the animation as requested. */}
-                      <div className="animate-marquee-reverse flex gap-6 py-2 hover:[animation-play-state:paused]">
-                        {[...Array(2)].map((_, groupIdx) => (
-                          <React.Fragment key={groupIdx}>
-                            {marqueeCards.map((card, idx) => {
-                              const { style: colorStyle, icon: CardIcon } = getCardColorAndIcon(card.colorType);
-                              return (
-                                <div 
-                                  key={`${groupIdx}-${idx}-${card.id}`}
-                                  onClick={() => handleCardClick(card)}
-                                  className={`w-[270px] shrink-0 p-5 rounded-2xl bg-zinc-900/80 border border-zinc-800 backdrop-blur-md shadow-lg transition-all duration-300 flex flex-col justify-between text-left group/card cursor-pointer ${colorStyle}`}
-                                >
-                                  <div>
-                                    <div className="flex items-center justify-between mb-4">
-                                      <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase">
-                                        {card.cat || "GENERAL"}
-                                      </span>
-                                      <div className="p-1.5 rounded-lg border border-current opacity-85">
-                                        <CardIcon className="w-3.5 h-3.5" />
+                      {(() => {
+                        // Ensure there are enough cards to span the viewport width (at least 10 cards per group)
+                        // This allows seamless infinite scrolling loop even when only 1 or 2 cards exist in the console
+                        const minCardsRequired = 10;
+                        const repeats = Math.ceil(minCardsRequired / Math.max(1, marqueeCards.length));
+                        const singleGroupCards: typeof marqueeCards = [];
+                        for (let r = 0; r < repeats; r++) {
+                          singleGroupCards.push(...marqueeCards);
+                        }
+
+                        return (
+                          <div className="animate-marquee-reverse flex gap-6 py-2 hover:[animation-play-state:paused]">
+                            {[...Array(2)].map((_, groupIdx) => (
+                              <React.Fragment key={groupIdx}>
+                                {singleGroupCards.map((card, idx) => {
+                                  const { style: colorStyle, icon: CardIcon } = getCardColorAndIcon(card.colorType);
+                                  return (
+                                    <div 
+                                      key={`${groupIdx}-${idx}-${card.id}`}
+                                      onClick={() => handleCardClick(card)}
+                                      className={`w-[270px] shrink-0 p-5 rounded-2xl bg-zinc-900/80 border border-zinc-800 backdrop-blur-md shadow-lg transition-all duration-300 flex flex-col justify-between text-left group/card cursor-pointer ${colorStyle}`}
+                                    >
+                                      <div>
+                                        <div className="flex items-center justify-between mb-4">
+                                          <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase">
+                                            {card.cat || "GENERAL"}
+                                          </span>
+                                          <div className="p-1.5 rounded-lg border border-current opacity-85">
+                                            <CardIcon className="w-3.5 h-3.5" />
+                                          </div>
+                                        </div>
+                                        <h3 className="font-display font-semibold text-white text-xs group-hover/card:text-amber-400 transition-colors mb-2">
+                                          {card.title}
+                                        </h3>
+                                        <p className="text-zinc-400 text-[10.5px] leading-relaxed font-sans font-light h-12 overflow-hidden text-ellipsis">
+                                          {card.desc}
+                                        </p>
+                                      </div>
+                                      <div className="mt-4 pt-3 border-t border-zinc-800/40 flex items-center justify-between text-[9px] font-mono text-zinc-500">
+                                        <span>MATRIX: {card.id.toString().padStart(2, '0')}</span>
+                                        <span className="text-amber-500/80 opacity-0 group-hover/card:opacity-100 transition-opacity flex items-center gap-1 font-bold">
+                                          {card.url ? "OPEN LINK" : "ENTER NODE"} <ExternalLink className="w-2.5 h-2.5" />
+                                        </span>
                                       </div>
                                     </div>
-                                    <h3 className="font-display font-semibold text-white text-xs group-hover/card:text-amber-400 transition-colors mb-2">
-                                      {card.title}
-                                    </h3>
-                                    <p className="text-zinc-400 text-[10.5px] leading-relaxed font-sans font-light h-12 overflow-hidden text-ellipsis">
-                                      {card.desc}
-                                    </p>
-                                  </div>
-                                  <div className="mt-4 pt-3 border-t border-zinc-800/40 flex items-center justify-between text-[9px] font-mono text-zinc-500">
-                                    <span>MATRIX: {card.id.toString().padStart(2, '0')}</span>
-                                    <span className="text-amber-500/80 opacity-0 group-hover/card:opacity-100 transition-opacity flex items-center gap-1 font-bold">
-                                      {card.url ? "OPEN LINK" : "ENTER NODE"} <ExternalLink className="w-2.5 h-2.5" />
-                                    </span>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </React.Fragment>
-                        ))}
-                      </div>
+                                  );
+                                })}
+                              </React.Fragment>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* Bottom Action Footer for Screen 4 */}
@@ -1114,230 +1754,7 @@ const App: React.FC = () => {
                     </div>
 
                     {/* ⚙️ Interactive Card Syndrome Console (Only visible on Screen 4, slide-over layout) */}
-                    {renderCardConsole()}
-                    {false && <AnimatePresence>
-                      {isConsoleOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, x: 250 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 250 }}
-                          transition={{ type: "spring", damping: 25, stiffness: 180 }}
-                          className="absolute right-0 top-0 bottom-0 w-full max-w-lg lg:max-w-xl h-full bg-zinc-950/98 border-l border-zinc-800 backdrop-blur-xl shadow-2xl z-40 flex flex-col pointer-events-auto text-zinc-300"
-                        >
-                          {/* Console Header */}
-                          <div className="p-5 border-b border-zinc-800 bg-zinc-900/60 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <span className="flex h-2.5 w-2.5 relative">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-                              </span>
-                              <div>
-                                <h2 className="text-xs font-mono font-bold tracking-widest text-white uppercase">
-                                  SYNDROME DECK CONSOLE / 机架卡控制台
-                                </h2>
-                                <p className="text-[10px] text-zinc-500 font-light font-sans">
-                                  Configure real-time noise matrices on this active chassis node
-                                </p>
-                              </div>
-                            </div>
-                            <button 
-                              onClick={() => setIsConsoleOpen(false)}
-                              className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-white transition-colors cursor-pointer"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-
-                          {/* Console Quick Toolbar Actions */}
-                          <div className="p-4 bg-zinc-900/30 border-b border-zinc-850/80 flex flex-wrap items-center justify-between gap-3">
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={addMarqueeCard}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/30 hover:border-amber-500/50 rounded-lg text-[10px] font-mono tracking-widest uppercase transition-all cursor-pointer"
-                              >
-                                <Plus className="w-3 h-3" />
-                                <span>ADD CARD / 增加卡片</span>
-                              </button>
-                              
-                              <button
-                                onClick={removeLastMarqueeCard}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 rounded-lg text-[10px] font-mono tracking-widest uppercase transition-all cursor-pointer"
-                              >
-                                <Minus className="w-3 h-3" />
-                                <span>REMOVE LAST / 减少卡片</span>
-                              </button>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              {/* Copy config button specifically requested as '给我留一个按钮我编辑完后复制发给你，你给我写到网站里' */}
-                              <button
-                                onClick={() => {
-                                  try {
-                                    const codeStr = JSON.stringify(marqueeCards, null, 2);
-                                    if (navigator.clipboard) {
-                                      navigator.clipboard.writeText(codeStr);
-                                    }
-                                    setCopyToast(codeStr);
-                                  } catch (e) {
-                                    alert("Oops, automatic clipboard blocked! Please copy from the pop-up field instead.");
-                                  }
-                                }}
-                                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-[10px] font-mono tracking-widest uppercase transition-all shadow-md cursor-pointer"
-                              >
-                                <Code className="w-3 h-3" />
-                                <span>COPY CONFIG / 用于发给AI</span>
-                              </button>
-
-                              <button
-                                onClick={resetMarqueeCards}
-                                className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 rounded-lg border border-zinc-800 transition-colors cursor-pointer"
-                                title="Reset layout"
-                              >
-                                <RotateCcw className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Editable List Body */}
-                          <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[calc(100vh-270px)]">
-                            <div className="p-3 bg-zinc-900/40 rounded-xl border border-zinc-800/60 text-[10.5px] leading-relaxed font-sans text-zinc-400">
-                              💡 <span className="font-semibold text-zinc-200">编辑须知：</span>您可以在此增减卡片，并即时查看左侧跑马灯的更新。编辑完成后，点击右上角 <span className="text-emerald-400 font-mono font-bold">COPY CONFIG</span> 复制整个卡片配置的 JSON 数据，并发送在 AI 聊天中。AI 将为您把新卡片写入作为网站的硬编码永久保存。
-                            </div>
-
-                            {marqueeCards.map((card, idx) => {
-                              return (
-                                <div 
-                                  key={card.id}
-                                  className="p-4 bg-zinc-900/60 rounded-xl border border-zinc-850 hover:border-zinc-800 transition-all space-y-3 relative group"
-                                >
-                                  {/* Item Header */}
-                                  <div className="flex items-center justify-between border-b border-zinc-800/40 pb-2">
-                                    <div className="flex items-center gap-2">
-                                      <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 font-mono text-[9px] rounded uppercase font-bold">
-                                        CHASSIS UNIT {idx + 1}
-                                      </span>
-                                      <span className="text-[10px] font-mono text-zinc-600">ID: {card.id}</span>
-                                    </div>
-                                    <button
-                                      onClick={() => deleteMarqueeCard(card.id)}
-                                      className="text-zinc-600 hover:text-rose-500 p-1 opacity-60 group-hover:opacity-100 transition-all rounded hover:bg-rose-500/10 cursor-pointer"
-                                      title="Delete card"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                  </div>
-
-                                  {/* Title & Category Form Rows */}
-                                  <div className="grid grid-cols-2 gap-3">
-                                    <div className="space-y-1">
-                                      <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
-                                        Card Title / 标题
-                                      </label>
-                                      <input 
-                                        type="text" 
-                                        value={card.title}
-                                        onChange={(e) => updateMarqueeCard(card.id, { title: e.target.value })}
-                                        className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
-                                        placeholder="Qubit Topology..."
-                                      />
-                                    </div>
-                                    <div className="space-y-1">
-                                      <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
-                                        Category / 类别
-                                      </label>
-                                      <input 
-                                        type="text" 
-                                        value={card.cat}
-                                        onChange={(e) => updateMarqueeCard(card.id, { cat: e.target.value.toUpperCase() })}
-                                        className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white uppercase focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
-                                        placeholder="HARDWARE..."
-                                      />
-                                    </div>
-                                  </div>
-
-                                  {/* Description Form Row */}
-                                  <div className="space-y-1">
-                                    <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
-                                      Description / 简述
-                                    </label>
-                                    <textarea 
-                                      value={card.desc}
-                                      onChange={(e) => updateMarqueeCard(card.id, { desc: e.target.value })}
-                                      rows={2}
-                                      className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20 resize-none leading-normal font-sans"
-                                      placeholder="Distance-3 Sycamore array tracking physical operations..."
-                                    />
-                                  </div>
-
-                                  {/* Navigation Link Form Row */}
-                                  <div className="space-y-1">
-                                    <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
-                                      Navigation Link / 点击跳转链接 (留空则打开交互详情悬浮窗)
-                                    </label>
-                                    <input 
-                                      type="text" 
-                                      value={card.url}
-                                      onChange={(e) => updateMarqueeCard(card.id, { url: e.target.value })}
-                                      className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white font-mono placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
-                                      placeholder="https://... 或留空使用虚拟主板交互"
-                                    />
-                                  </div>
-
-                                  {/* Custom Image Form Row */}
-                                  <div className="space-y-1">
-                                    <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
-                                      Circle Background Image URL / 圈圈背景图片链接
-                                    </label>
-                                    <input 
-                                      type="text" 
-                                      value={card.image || ""}
-                                      onChange={(e) => updateMarqueeCard(card.id, { image: e.target.value })}
-                                      className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white font-mono placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
-                                      placeholder="https://images.unsplash.com/photo-..."
-                                    />
-                                  </div>
-
-                                  {/* Color Picker Row */}
-                                  <div className="space-y-1.5">
-                                    <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
-                                      Accent Color / 跑马灯主题色
-                                    </span>
-                                    <div className="flex items-center gap-2">
-                                      {[
-                                        { name: "indigo", bg: "bg-indigo-500 border-indigo-400" },
-                                        { name: "teal", bg: "bg-teal-500 border-teal-400" },
-                                        { name: "amber", bg: "bg-amber-500 border-amber-400" },
-                                        { name: "rose", bg: "bg-rose-500 border-rose-400" },
-                                        { name: "purple", bg: "bg-purple-500 border-purple-400" },
-                                        { name: "emerald", bg: "bg-emerald-500 border-emerald-400" },
-                                        { name: "pink", bg: "bg-pink-500 border-pink-400" },
-                                        { name: "sky", bg: "bg-sky-500 border-sky-400" },
-                                        { name: "fuchsia", bg: "bg-fuchsia-500 border-fuchsia-400" },
-                                        { name: "blue", bg: "bg-blue-500 border-blue-400" }
-                                      ].map((color) => {
-                                        const isSelected = (card.colorType || "blue") === color.name;
-                                        return (
-                                          <button
-                                            key={color.name}
-                                            onClick={() => updateMarqueeCard(card.id, { colorType: color.name })}
-                                            className={`h-4.5 w-4.5 rounded-full ${color.bg} border transition-transform duration-200 cursor-pointer ${
-                                              isSelected ? 'scale-125 ring-2 ring-white/50 border-white' : 'scale-100 hover:scale-110 border-transparent opacity-80'
-                                            }`}
-                                            title={color.name.toUpperCase()}
-                                          />
-                                        );
-                                      })}
-                                    </div>
-                                  </div>
-
-                                </div>
-                              );
-                            })}
-                          </div>
-
-                        </motion.div>
-                      )}
-                    </AnimatePresence>}
+                    {renderMarqueeConsole()}
 
                   </div>
                 ) : (

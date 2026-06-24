@@ -1099,15 +1099,21 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick }: I
   const [activeItem, setActiveItem] = useState<InfiniteMenuItem | null>(null);
   const [isMoving, setIsMoving] = useState(false);
   const sketchRef = useRef<InfiniteGridMenu | null>(null);
+  const itemsRef = useRef(items);
+
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const handleActiveItem = (index: number) => {
-      if (!items.length) return;
-      const itemIndex = index % items.length;
-      setActiveItem(items[itemIndex]);
+      const currentItems = itemsRef.current;
+      if (!currentItems.length) return;
+      const itemIndex = index % currentItems.length;
+      setActiveItem(currentItems[itemIndex]);
     };
 
     const sketch = new InfiniteGridMenu(
@@ -1145,6 +1151,15 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick }: I
       if (sketchRef.current) {
         sketchRef.current.updateItems(items);
       }
+      
+      // Keep activeItem state in sync when items (marqueeCards) are updated in the editing console
+      setActiveItem(prevActive => {
+        if (!prevActive) {
+          return items.length > 0 ? items[0] : null;
+        }
+        const updated = items.find(item => item.id === prevActive.id);
+        return updated || (items.length > 0 ? items[0] : null);
+      });
     }
   }, [items]);
 
@@ -1187,7 +1202,7 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick }: I
                 isMoving ? 'opacity-0 translate-y-6 scale-90 pointer-events-none' : 'opacity-100 translate-y-0 scale-100'
               }`}
             >
-              <span>{activeItem.link ? "OPEN LINK / 打开链接" : "OPEN CONSOLE / 打开控制台"}</span>
+              <span>{activeItem.link ? "OPEN LINK / 打开链接" : "ENTER NODE / 进入节点"}</span>
               <p className="font-sans text-sm font-bold transition-transform group-hover:translate-x-0.5">&#x2197;</p>
             </button>
           </div>
