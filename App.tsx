@@ -20,6 +20,7 @@ import LogoLoop from './components/LogoLoop';
 import ErrorBoundary from './components/ErrorBoundary';
 import InfiniteMenu from './components/InfiniteMenu';
 import DomeGallery from './components/DomeGallery';
+import ProfileCard from './components/ProfileCard';
 
 export interface MarqueeCard {
   id: number;
@@ -138,8 +139,23 @@ const DEFAULT_SCREENS: ScreenData[] = [
     ctaUrl: "#"
   },
   {
+    id: 10,
+    label: "06. Interactive Trial Deck",
+    title: "Sycamore Syndrome Diagnostic Suite",
+    subtitle: "Real-time spatial error patterns and physical latency metrics",
+    description: "Click any card in the continuous right-to-left feed to lock onto the signal, analyze real-time spatial error patterns, and review physical latency metrics.",
+    bgType: "gradient",
+    bgUrl: "linear-gradient(to bottom, #090d16, #020408)",
+    overlayOpacity: 30,
+    overlayBlur: 0,
+    tintColor: "none",
+    align: "center",
+    ctaText: "Launch Diagnostics",
+    ctaUrl: "#"
+  },
+  {
     id: 7,
-    label: "06. Global Roadmap",
+    label: "07. Global Roadmap",
     title: "Evolution of Quantum Systems",
     subtitle: "Timeline of the fault-tolerance horizon",
     description: "Our blueprint stretches over key functional eras—from initial noisy hardware calibration (Phase 1) to scalable error correction (Phase 3) and full multi-thousand physical cubyte computational systems (Phase 4).",
@@ -154,7 +170,7 @@ const DEFAULT_SCREENS: ScreenData[] = [
   },
   {
     id: 8,
-    label: "07. Perspective",
+    label: "08. Perspective",
     title: "Revolutionary Foundations",
     subtitle: "The word from our leadership team",
     description: "By utilizing direct machine-learned patterns over simulated templates, we break past theoretical algorithm boundaries, making physical quantum computers appear substantially cleaner than their physical components indicate.",
@@ -169,7 +185,7 @@ const DEFAULT_SCREENS: ScreenData[] = [
   },
   {
     id: 9,
-    label: "08. Access Point",
+    label: "09. Access Point",
     title: "Connect with AlphaQubit",
     subtitle: "Enter the fault-tolerant era today",
     description: "Be the first to access our open-source research code pipelines, test your customs models, or initiate corporate research partnerships with our high-performance simulation grid.",
@@ -269,7 +285,14 @@ const App: React.FC = () => {
   const [screens, setScreens] = useState<ScreenData[]>(() => {
     const saved = localStorage.getItem("alphaqubit_custom_screens");
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+      try {
+        const parsed = JSON.parse(saved);
+        if (!parsed.some((s: any) => s.id === 10)) {
+          localStorage.removeItem("alphaqubit_custom_screens");
+          return DEFAULT_SCREENS;
+        }
+        return parsed;
+      } catch (e) { console.error(e); }
     }
     return DEFAULT_SCREENS;
   });
@@ -279,12 +302,21 @@ const App: React.FC = () => {
   const [pillNavItems, setPillNavItems] = useState<PillNavItem[]>(() => {
     const saved = localStorage.getItem("alphaqubit_pill_nav_items");
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+      try {
+        const parsed = JSON.parse(saved);
+        if (!parsed.some((item: any) => item.href === "#screen-10")) {
+          localStorage.removeItem("alphaqubit_pill_nav_items");
+          // return default below
+        } else {
+          return parsed;
+        }
+      } catch (e) { console.error(e); }
     }
     return [
       { label: "Home", href: "#screen-1" },
       { label: "Decoder", href: "#screen-4" },
-      { label: "Results", href: "#screen-6" },
+      { label: "Gallery", href: "#screen-6" },
+      { label: "Trial Deck", href: "#screen-10" },
       { label: "Roadmap", href: "#screen-7" },
     ];
   });
@@ -342,12 +374,14 @@ const App: React.FC = () => {
     localStorage.setItem("alphaqubit_sphere_cards", JSON.stringify(updated));
   };
 
-  const [isConsoleOpen3, setIsConsoleOpen3] = useState<boolean>(true); // Open by default for Screen 3 editing discovery
-  const [isConsoleOpen4, setIsConsoleOpen4] = useState<boolean>(true); // Open by default for Screen 4 editing discovery
-  const [isConsoleOpen6, setIsConsoleOpen6] = useState<boolean>(true); // Open by default for Screen 6 (DomeGallery) editing discovery
+  const [isConsoleOpen3, setIsConsoleOpen3] = useState<boolean>(import.meta.env.DEV); // Open by default for Screen 3 editing discovery
+  const [isConsoleOpen4, setIsConsoleOpen4] = useState<boolean>(import.meta.env.DEV); // Open by default for Screen 4 editing discovery
+  const [isConsoleOpen6, setIsConsoleOpen6] = useState<boolean>(import.meta.env.DEV); // Open by default for Screen 6 (DomeGallery) editing discovery
+  const [isConsoleOpen10, setIsConsoleOpen10] = useState<boolean>(import.meta.env.DEV); // Open by default for Screen 10 (Interactive Trial Deck) editing discovery
   const [domeAutoRotate, setDomeAutoRotate] = useState<boolean>(true);
   const [domeAutoRotateSpeed, setDomeAutoRotateSpeed] = useState<number>(0.15);
   const [activeCardDetail, setActiveCardDetail] = useState<MarqueeCard | null>(null);
+  const [selectedCard6, setSelectedCard6] = useState<MarqueeCard | null>(null);
   const [copyToast, setCopyToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -676,7 +710,7 @@ const App: React.FC = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 250 }}
             transition={{ type: "spring", damping: 25, stiffness: 180 }}
-            className="absolute right-0 top-0 bottom-0 w-full max-w-lg lg:max-w-xl h-full bg-zinc-950/98 border-l border-zinc-800 backdrop-blur-xl shadow-2xl z-40 flex flex-col pointer-events-auto text-zinc-300"
+            className="absolute right-0 top-0 bottom-0 w-full max-w-lg lg:max-w-xl h-full bg-zinc-950/98 border-l border-zinc-800 backdrop-blur-xl shadow-2xl z-[100] flex flex-col pointer-events-auto text-zinc-300"
           >
             {/* Console Header */}
             <div className="p-5 border-b border-zinc-800 bg-zinc-900/60 flex items-center justify-between">
@@ -694,12 +728,18 @@ const App: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <button 
-                onClick={() => setIsConsoleOpen3(false)}
-                className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-white transition-colors cursor-pointer"
+              <div 
+                role="button"
+                id="close-console-3"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setIsConsoleOpen3(false);
+                }}
+                className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-white transition-all cursor-pointer relative z-[999] pointer-events-auto flex items-center justify-center min-w-[32px] min-h-[32px]"
               >
                 <X className="w-4 h-4" />
-              </button>
+              </div>
             </div>
 
             {/* Console Quick Toolbar Actions */}
@@ -904,7 +944,7 @@ const App: React.FC = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 250 }}
             transition={{ type: "spring", damping: 25, stiffness: 180 }}
-            className="absolute right-0 top-0 bottom-0 w-full max-w-lg lg:max-w-xl h-full bg-zinc-950/98 border-l border-zinc-800 backdrop-blur-xl shadow-2xl z-40 flex flex-col pointer-events-auto text-zinc-300"
+            className="absolute right-0 top-0 bottom-0 w-full max-w-lg lg:max-w-xl h-full bg-zinc-950/98 border-l border-zinc-800 backdrop-blur-xl shadow-2xl z-[100] flex flex-col pointer-events-auto text-zinc-300"
           >
             {/* Console Header */}
             <div className="p-5 border-b border-zinc-800 bg-zinc-900/60 flex items-center justify-between">
@@ -922,12 +962,18 @@ const App: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <button 
-                onClick={() => setIsConsoleOpen4(false)}
-                className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-white transition-colors cursor-pointer"
+              <div 
+                role="button"
+                id="close-console-4"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setIsConsoleOpen4(false);
+                }}
+                className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-white transition-all cursor-pointer relative z-[999] pointer-events-auto flex items-center justify-center min-w-[32px] min-h-[32px]"
               >
                 <X className="w-4 h-4" />
-              </button>
+              </div>
             </div>
 
             {/* Console Quick Toolbar Actions */}
@@ -1123,16 +1169,16 @@ const App: React.FC = () => {
   };
 
   // Dome Gallery Console for 3D Dome Gallery (Screen 6)
-  const renderDomeConsole = () => {
+  const renderDomeConsole = (isOpen: boolean, setIsOpen: (open: boolean) => void, screenLabel: string) => {
     return (
       <AnimatePresence>
-        {isConsoleOpen6 && (
+        {isOpen && (
           <motion.div
             initial={{ opacity: 0, x: 250 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 250 }}
             transition={{ type: "spring", damping: 25, stiffness: 180 }}
-            className="absolute right-0 top-0 bottom-0 w-full max-w-lg lg:max-w-xl h-full bg-zinc-950/98 border-l border-zinc-800 backdrop-blur-xl shadow-2xl z-45 flex flex-col pointer-events-auto text-zinc-300"
+            className="absolute right-0 top-0 bottom-0 w-full max-w-lg lg:max-w-xl h-full bg-zinc-950/98 border-l border-zinc-800 backdrop-blur-xl shadow-2xl z-[100] flex flex-col pointer-events-auto text-zinc-300"
           >
             {/* Console Header */}
             <div className="p-5 border-b border-zinc-800 bg-zinc-900/60 flex items-center justify-between">
@@ -1143,19 +1189,25 @@ const App: React.FC = () => {
                 </span>
                 <div>
                   <h2 className="text-xs font-mono font-bold tracking-widest text-white uppercase">
-                    DOME GALLERY CONSOLE / 穹顶画廊控制台
+                    SLIDER CARD CONSOLE / 移动卡片控制台
                   </h2>
                   <p className="text-[10px] text-zinc-500 font-light font-sans">
-                    Configure spherical noise and image matrices on Screen 6 (Sixth Slide)
+                    {screenLabel}
                   </p>
                 </div>
               </div>
-              <button 
-                onClick={() => setIsConsoleOpen6(false)}
-                className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-white transition-colors cursor-pointer"
+              <div 
+                role="button"
+                id="close-dome-console"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setIsOpen(false);
+                }}
+                className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-white transition-all cursor-pointer relative z-[999] pointer-events-auto flex items-center justify-center min-w-[32px] min-h-[32px]"
               >
                 <X className="w-4 h-4" />
-              </button>
+              </div>
             </div>
 
             {/* Console Quick Toolbar Actions */}
@@ -1210,7 +1262,7 @@ const App: React.FC = () => {
             {/* Editable List Body */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[calc(100vh-270px)]">
               <div className="p-3 bg-zinc-900/40 rounded-xl border border-zinc-800/60 text-[10.5px] leading-relaxed font-sans text-zinc-400">
-                💡 <span className="font-semibold text-zinc-200">穹顶画廊编辑：</span>这些修改会对穹顶画廊（第六屏）和3D循环卡片（第五屏）共同生效。
+                💡 <span className="font-semibold text-zinc-200">互动卡片编辑：</span>这些修改会对第六屏的滑动卡片和第五屏的3D循环卡片共同生效。
               </div>
 
               {/* Auto Rotate Control Panel */}
@@ -1430,15 +1482,6 @@ const App: React.FC = () => {
 
       {/* Floating Controls (Top Right) */}
       <div className="fixed top-6 right-6 z-40 flex items-center gap-2.5">
-        <a 
-          href="https://doi.org/10.1038/s41586-024-08148-8" 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="hidden md:flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black rounded-xl text-[11px] tracking-wider transition-all shadow-md"
-        >
-          <BookOpen className="w-3 h-3" />
-          <span>NATURE PAPER</span>
-        </a>
       </div>
 
       {/* Global Animated Background Container */}
@@ -1512,19 +1555,21 @@ const App: React.FC = () => {
                 className="snap-start lg:snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-zinc-950"
               >
                 {/* Floating controls specifically for Screen 5 to toggle the drawer */}
-                <div className="absolute top-20 right-6 lg:top-6 lg:right-44 z-50 pointer-events-auto flex items-center gap-3">
-                  <button
-                    onClick={() => setIsConsoleOpen4(!isConsoleOpen4)}
-                    className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[11px] font-mono tracking-widest uppercase transition-all duration-300 shadow-lg cursor-pointer backdrop-blur-md ${
-                      isConsoleOpen4 
-                        ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 border-amber-550 font-bold' 
-                        : 'bg-zinc-900/90 text-zinc-300 border-zinc-800 hover:text-white hover:border-zinc-700 hover:bg-zinc-850'
-                    }`}
-                  >
-                    <Settings className={`w-3.5 h-3.5 ${isConsoleOpen4 ? 'animate-spin' : ''}`} />
-                    <span>{isConsoleOpen4 ? "HIDE CONSOLE / 隐藏控制台" : "CARD CONSOLE / 打开控制台"}</span>
-                  </button>
-                </div>
+                {import.meta.env.DEV && (
+                  <div className="absolute top-20 right-6 lg:top-6 lg:right-44 z-50 pointer-events-auto flex items-center gap-3">
+                    <button
+                      onClick={() => setIsConsoleOpen4(!isConsoleOpen4)}
+                      className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[11px] font-mono tracking-widest uppercase transition-all duration-300 shadow-lg cursor-pointer backdrop-blur-md ${
+                        isConsoleOpen4 
+                          ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 border-amber-550 font-bold' 
+                          : 'bg-zinc-900/90 text-zinc-300 border-zinc-800 hover:text-white hover:border-zinc-700 hover:bg-zinc-850'
+                      }`}
+                    >
+                      <Settings className={`w-3.5 h-3.5 ${isConsoleOpen4 ? 'animate-spin' : ''}`} />
+                      <span>{isConsoleOpen4 ? "HIDE CONSOLE / 隐藏控制台" : "CARD CONSOLE / 打开控制台"}</span>
+                    </button>
+                  </div>
+                )}
 
                 <div className="absolute inset-0 w-full h-full pointer-events-auto">
                   <InfiniteMenu
@@ -1574,19 +1619,21 @@ const App: React.FC = () => {
                 className="snap-start lg:snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-zinc-950"
               >
                 {/* Floating controls specifically for Screen 6 to toggle the dome drawer */}
-                <div className="absolute top-24 right-6 lg:top-6 lg:right-6 z-50 pointer-events-auto flex items-center gap-3">
-                  <button
-                    onClick={() => setIsConsoleOpen6(!isConsoleOpen6)}
-                    className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[11px] font-mono tracking-widest uppercase transition-all duration-300 shadow-lg cursor-pointer backdrop-blur-md ${
-                      isConsoleOpen6 
-                        ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 border-amber-550 font-bold' 
-                        : 'bg-zinc-900/90 text-zinc-300 border-zinc-800 hover:text-white hover:border-zinc-700 hover:bg-zinc-850'
-                    }`}
-                  >
-                    <Settings className={`w-3.5 h-3.5 ${isConsoleOpen6 ? 'animate-spin' : ''}`} />
-                    <span>{isConsoleOpen6 ? "HIDE CONSOLE / 隐藏控制台" : "DOME CONSOLE / 打开画廊控制台"}</span>
-                  </button>
-                </div>
+                {import.meta.env.DEV && (
+                  <div className="absolute top-24 right-6 lg:top-6 lg:right-6 z-50 pointer-events-auto flex items-center gap-3">
+                    <button
+                      onClick={() => setIsConsoleOpen6(!isConsoleOpen6)}
+                      className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[11px] font-mono tracking-widest uppercase transition-all duration-300 shadow-lg cursor-pointer backdrop-blur-md ${
+                        isConsoleOpen6 
+                          ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 border-amber-550 font-bold' 
+                          : 'bg-zinc-900/90 text-zinc-300 border-zinc-800 hover:text-white hover:border-zinc-700 hover:bg-zinc-850'
+                      }`}
+                    >
+                      <Settings className={`w-3.5 h-3.5 ${isConsoleOpen6 ? 'animate-spin' : ''}`} />
+                      <span>{isConsoleOpen6 ? "HIDE CONSOLE / 隐藏控制台" : "DOME CONSOLE / 打开画廊控制台"}</span>
+                    </button>
+                  </div>
+                )}
 
                 <div className="absolute inset-0 w-full h-full pointer-events-auto">
                   <DomeGallery
@@ -1612,7 +1659,286 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Reusable Dome Console drawer */}
-                {renderDomeConsole()}
+                {renderDomeConsole(isConsoleOpen6, setIsConsoleOpen6, "Configure 3D Dome Gallery and cards metadata on Screen 6")}
+              </section>
+            );
+          }
+
+          if (s.id === 10) {
+            return (
+              <section 
+                key={s.id}
+                id={`screen-${s.id}`}
+                className="snap-start lg:snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-zinc-950"
+              >
+                {/* Floating controls specifically for Screen 10 to toggle the console drawer */}
+                {import.meta.env.DEV && (
+                  <div className="absolute top-24 right-6 lg:top-6 lg:right-6 z-50 pointer-events-auto flex items-center gap-3">
+                    <button
+                      onClick={() => setIsConsoleOpen10(!isConsoleOpen10)}
+                      className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[11px] font-mono tracking-widest uppercase transition-all duration-300 shadow-lg cursor-pointer backdrop-blur-md ${
+                        isConsoleOpen10 
+                          ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 border-amber-550 font-bold' 
+                          : 'bg-zinc-900/90 text-zinc-300 border-zinc-800 hover:text-white hover:border-zinc-700 hover:bg-zinc-850'
+                      }`}
+                    >
+                      <Settings className={`w-3.5 h-3.5 ${isConsoleOpen10 ? 'animate-spin' : ''}`} />
+                      <span>{isConsoleOpen10 ? "HIDE CONSOLE / 隐藏控制台" : "CARD CONSOLE / 打开卡片控制台"}</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Main Content Area */}
+                <div className="relative z-10 w-full h-full max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 flex flex-col justify-center text-white pointer-events-auto">
+                  <AnimatePresence mode="wait">
+                    {!selectedCard6 ? (
+                      // State 1: Horizontal Sliding Marquee List of Cards (From Right to Left)
+                      <motion.div
+                        key="marquee-list"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.5 }}
+                        className="w-full flex flex-col gap-6"
+                      >
+                        {/* Title and Instruction Header */}
+                        <div className="text-center space-y-2 mb-4">
+                          <span className="px-3 py-1 bg-amber-500/10 text-amber-500 rounded-full text-[10px] font-mono tracking-widest uppercase font-semibold border border-amber-500/20">
+                            INTERACTIVE TRIAL DECK / 纠错算法看板
+                          </span>
+                          <h2 className="text-2xl md:text-4xl font-display font-bold tracking-tight text-white uppercase">
+                            Sycamore Syndrome Diagnostic Suite
+                          </h2>
+                          <p className="text-xs md:text-sm text-zinc-400 max-w-2xl mx-auto font-sans leading-relaxed">
+                            Click any card in the continuous right-to-left feed to lock onto the signal, analyze real-time spatial error patterns, and review physical latency metrics.
+                          </p>
+                        </div>
+
+                        {/* Infinite Right-to-Left Scrolling Track */}
+                        <div className="relative w-full overflow-hidden py-10 select-none bg-zinc-900/20 rounded-3xl border border-zinc-900 backdrop-blur-sm">
+                          {/* Left & Right fading shadow masks */}
+                          <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-zinc-950 to-transparent z-10 pointer-events-none" />
+                          <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-zinc-950 to-transparent z-10 pointer-events-none" />
+
+                          {/* Horizontal flex track with animation */}
+                          <div className="flex gap-6 overflow-hidden">
+                            <div 
+                              className="flex gap-6 animate-marquee-forward"
+                              style={{
+                                animationPlayState: !domeAutoRotate ? 'paused' : undefined,
+                                animationDuration: `${35 / (domeAutoRotateSpeed * 6 || 1)}s`
+                              }}
+                            >
+                              {/* Quadruple clone for seamless looping of any cards amount */}
+                              {[...sphereCards, ...sphereCards, ...sphereCards, ...sphereCards].map((card, idx) => {
+                                const defaultImage = [
+                                  "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop", // Qubit Topology
+                                  "https://images.unsplash.com/photo-1507668077129-56e32842fceb?q=80&w=600&auto=format&fit=crop", // Primal Syndrome
+                                  "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=600&auto=format&fit=crop", // Stabilizer Parity
+                                  "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=600&auto=format&fit=crop", // Decoder Mesh
+                                  "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=600&auto=format&fit=crop", // Cosmic Ray Shield
+                                  "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=600&auto=format&fit=crop", // Synergy Routing
+                                  "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop", // Coherent Decay
+                                  "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=600&auto=format&fit=crop", // MWPM Solver
+                                  "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=600&auto=format&fit=crop", // Decoder Latency
+                                  "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=600&auto=format&fit=crop"  // Weight Distribution
+                                ][(card.id - 1) % 10];
+                                
+                                const glowColors: Record<string, string> = {
+                                  indigo: 'rgba(99, 102, 241, 0.65)',
+                                  teal: 'rgba(20, 184, 166, 0.65)',
+                                  amber: 'rgba(245, 158, 11, 0.65)',
+                                  rose: 'rgba(244, 63, 94, 0.65)',
+                                  purple: 'rgba(168, 85, 247, 0.65)',
+                                  emerald: 'rgba(16, 185, 129, 0.65)',
+                                  pink: 'rgba(236, 72, 153, 0.65)',
+                                  sky: 'rgba(14, 165, 233, 0.65)',
+                                  fuchsia: 'rgba(217, 70, 239, 0.65)'
+                                };
+                                const glowColor = glowColors[card.colorType || ''] || 'rgba(59, 130, 246, 0.65)';
+
+                                return (
+                                  <div
+                                    key={`clone-${card.id}-${idx}`}
+                                    className="flex-shrink-0 cursor-pointer pointer-events-auto"
+                                    style={{ width: '272px' }}
+                                  >
+                                    <ProfileCard
+                                      name={card.title}
+                                      title={card.desc}
+                                      handle={card.cat || "TELEMETRY"}
+                                      status="DIAGNOSTIC ACTIVE"
+                                      contactText="Analyze / 诊断"
+                                      avatarUrl={card.image || defaultImage}
+                                      showUserInfo={true}
+                                      enableTilt={false}
+                                      behindGlowEnabled={false}
+                                      behindGlowColor={glowColor}
+                                      onContactClick={() => setSelectedCard6(card)}
+                                      onClick={() => setSelectedCard6(card)}
+                                    />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ) : (
+                      // State 2: Split Detailed View (Card moves to Left, text displays on the Right)
+                      <motion.div
+                        key="split-detail"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        className="w-full flex flex-col justify-center h-full max-h-[85vh]"
+                      >
+                        {/* Go back Button at Top Left */}
+                        <div className="mb-6 flex">
+                          <button
+                            onClick={() => setSelectedCard6(null)}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 rounded-xl text-xs font-mono tracking-widest text-zinc-300 hover:text-white transition-all cursor-pointer shadow-lg"
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                            <span>BACK TO DECK / 返回卡片组</span>
+                          </button>
+                        </div>
+
+                        {/* Split columns layout */}
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-center">
+                          {/* Left Column: The clicked card itself with floating presentation */}
+                          <div className="lg:col-span-5 flex justify-center lg:justify-end pr-0 lg:pr-8">
+                            <motion.div
+                              initial={{ x: 100, opacity: 0 }}
+                              animate={{ x: 0, opacity: 1 }}
+                              transition={{ type: "spring", damping: 20 }}
+                              className="relative w-80 h-[430px] rounded-2xl overflow-hidden border border-zinc-700/60 bg-zinc-950 p-6 flex flex-col justify-between shadow-2xl"
+                            >
+                              {/* Accent top glow */}
+                              <div className={`absolute top-0 left-0 right-0 h-[4px] bg-gradient-to-r ${getCardColorAndIcon(selectedCard6.colorType).glow}`} />
+
+                              {/* Background Image */}
+                              <div className="absolute inset-0 z-0 opacity-40">
+                                <img
+                                  src={selectedCard6.image || [
+                                    "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop", // Qubit Topology
+                                    "https://images.unsplash.com/photo-1507668077129-56e32842fceb?q=80&w=600&auto=format&fit=crop", // Primal Syndrome
+                                    "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=600&auto=format&fit=crop", // Stabilizer Parity
+                                    "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=600&auto=format&fit=crop", // Decoder Mesh
+                                    "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=600&auto=format&fit=crop", // Cosmic Ray Shield
+                                    "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=600&auto=format&fit=crop", // Synergy Routing
+                                    "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop", // Coherent Decay
+                                    "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=600&auto=format&fit=crop", // MWPM Solver
+                                    "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=600&auto=format&fit=crop", // Decoder Latency
+                                    "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=600&auto=format&fit=crop"  // Weight Distribution
+                                  ][(selectedCard6.id - 1) % 10]}
+                                  alt={selectedCard6.title}
+                                  referrerPolicy="no-referrer"
+                                  className="w-full h-full object-cover scale-105"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/30 via-zinc-950/60 to-zinc-950" />
+                              </div>
+
+                              {/* Top */}
+                              <div className="relative z-10 flex items-center justify-between">
+                                <span className="px-2.5 py-0.5 rounded-md bg-zinc-900/90 text-zinc-400 text-[10px] font-mono tracking-widest border border-zinc-800">
+                                  {selectedCard6.cat || "DIAGNOSTIC CARD"}
+                                </span>
+                                <div className={`p-1.5 rounded-lg border ${getCardColorAndIcon(selectedCard6.colorType).style}`}>
+                                  {React.createElement(getCardColorAndIcon(selectedCard6.colorType).icon || Sparkles, { className: "w-4 h-4" })}
+                                </div>
+                              </div>
+
+                              {/* Bottom */}
+                              <div className="relative z-10 space-y-3">
+                                <span className="text-[10px] font-mono text-amber-500 font-bold block tracking-widest">ACTIVE DIAGNOSTIC SLOT</span>
+                                <h3 className="text-xl font-display font-bold text-white tracking-tight">
+                                  {selectedCard6.title}
+                                </h3>
+                                <p className="text-xs text-zinc-300 font-sans leading-relaxed">
+                                  {selectedCard6.desc}
+                                </p>
+                                <div className="pt-2 flex items-center justify-between border-t border-zinc-900/80 text-[10px] font-mono text-zinc-500">
+                                  <span>SYS ID: {selectedCard6.id.toString().padStart(4, '0')}</span>
+                                  <span className="text-emerald-500 animate-pulse">● SIGNAL ESTABLISHED</span>
+                                </div>
+                              </div>
+                            </motion.div>
+                          </div>
+
+                          {/* Right Column: Detailed narrative & Text info */}
+                          <div className="lg:col-span-7 space-y-6">
+                            <motion.div
+                              initial={{ x: -50, opacity: 0 }}
+                              animate={{ x: 0, opacity: 1 }}
+                              transition={{ type: "spring", damping: 20, delay: 0.1 }}
+                              className="space-y-5"
+                            >
+                              <div className="space-y-2">
+                                <span className="px-3 py-1 bg-zinc-900 border border-zinc-800 text-zinc-400 rounded-md text-[10px] font-mono tracking-widest uppercase">
+                                  MODULE CONFIG: {selectedCard6.cat || "GENERAL PROTOCOL"}
+                                </span>
+                                <h1 className="text-3xl md:text-5xl font-display font-bold tracking-tight text-white uppercase leading-none">
+                                  {selectedCard6.title}
+                                </h1>
+                              </div>
+
+                              <div className="p-5 bg-zinc-900/30 border border-zinc-900 backdrop-blur-md rounded-2xl space-y-3">
+                                <h4 className="text-xs font-mono font-bold tracking-widest text-zinc-500 uppercase">
+                                  ANALYSIS SUMMARY / 诊断摘要
+                                </h4>
+                                <p className="text-sm text-zinc-300 font-sans leading-relaxed">
+                                  {selectedCard6.desc} This quantum module represents a core logical structure within AlphaQubit's decoders. Physical calibration data demonstrates optimized microwave parameters and high coherence maintenance.
+                                </p>
+                              </div>
+
+                              {/* Realistic Telemetry Subgrid to make it look exceptionally polished */}
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <div className="p-4 bg-zinc-950 border border-zinc-900 rounded-xl space-y-1">
+                                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Syndrome Rate</span>
+                                  <span className="text-sm font-mono text-white font-bold block">12.44 KHz</span>
+                                </div>
+                                <div className="p-4 bg-zinc-950 border border-zinc-900 rounded-xl space-y-1">
+                                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Active Qubits</span>
+                                  <span className="text-sm font-mono text-amber-500 font-bold block">72 Physical</span>
+                                </div>
+                                <div className="p-4 bg-zinc-950 border border-zinc-900 rounded-xl space-y-1 col-span-2 md:col-span-1">
+                                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Calculated Latency</span>
+                                  <span className="text-sm font-mono text-emerald-400 font-bold block">2.34 ms</span>
+                                </div>
+                              </div>
+
+                              {/* Interactive Actions */}
+                              <div className="flex flex-wrap items-center gap-4 pt-4">
+                                {selectedCard6.url && (
+                                  <a
+                                    href={selectedCard6.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-bold rounded-xl text-xs font-mono tracking-widest uppercase transition-all shadow-lg cursor-pointer"
+                                  >
+                                    <ExternalLink className="w-4 h-4" />
+                                    <span>LAUNCH DIAGNOSTIC / 运行诊断</span>
+                                  </a>
+                                )}
+                                <button
+                                  onClick={() => setSelectedCard6(null)}
+                                  className="px-5 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white rounded-xl text-xs font-mono tracking-widest uppercase transition-all cursor-pointer"
+                                >
+                                  CLOSE ANALYSIS / 关闭
+                                </button>
+                              </div>
+                            </motion.div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Reusable Dome Console drawer */}
+                {renderDomeConsole(isConsoleOpen10, setIsConsoleOpen10, "Configure sliding diagnostic cards and metadata on Screen 10")}
               </section>
             );
           }
@@ -1650,20 +1976,22 @@ const App: React.FC = () => {
                       </motion.div>
 
                       {/* Controls Toggle Trigger (Visible only on this screen, fulfilling user's '控制台只在该页显示') */}
-                      <div className="flex items-center gap-3">
-                        <button
-                          id="console-toggle-btn"
-                          onClick={() => setIsConsoleOpen3(!isConsoleOpen3)}
-                          className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[11px] font-mono tracking-widest uppercase transition-all duration-300 shadow-md cursor-pointer ${
-                            isConsoleOpen3 
-                              ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 border-amber-550 font-bold' 
-                              : 'bg-zinc-900/90 text-zinc-300 border-zinc-800 hover:text-white hover:border-zinc-700 hover:bg-zinc-850'
-                          }`}
-                        >
-                          <Settings className={`w-3.5 h-3.5 ${isConsoleOpen3 ? 'animate-spin' : ''}`} />
-                          <span>{isConsoleOpen3 ? "HIDE CONSOLE / 隐藏控制台" : "CARD CONSOLE / 打开控制台"}</span>
-                        </button>
-                      </div>
+                      {import.meta.env.DEV && (
+                        <div className="flex items-center gap-3">
+                          <button
+                            id="console-toggle-btn"
+                            onClick={() => setIsConsoleOpen3(!isConsoleOpen3)}
+                            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[11px] font-mono tracking-widest uppercase transition-all duration-300 shadow-md cursor-pointer ${
+                              isConsoleOpen3 
+                                ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 border-amber-550 font-bold' 
+                                : 'bg-zinc-900/90 text-zinc-300 border-zinc-800 hover:text-white hover:border-zinc-700 hover:bg-zinc-850'
+                            }`}
+                          >
+                            <Settings className={`w-3.5 h-3.5 ${isConsoleOpen3 ? 'animate-spin' : ''}`} />
+                            <span>{isConsoleOpen3 ? "HIDE CONSOLE / 隐藏控制台" : "CARD CONSOLE / 打开控制台"}</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Infinite Marquee Left to Right Container */}
@@ -2699,14 +3027,7 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Floating status display on bottom left */}
-      <div className="fixed bottom-6 left-6 z-30 pointer-events-none p-2 px-3 bg-zinc-950/75 border border-zinc-850/50 rounded-xl backdrop-blur text-[10px] text-zinc-500 font-mono flex items-center gap-2.5 select-none">
-        <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
-          <span className="font-bold text-zinc-300">SYSTEM DISPLAY STAGE ACTIVE</span>
-        </div>
-        <span>CONTAINER WIDTH: 1700PX MAX</span>
-      </div>
+
 
       {/* Copy JSON Fallback Overlay / 复制代码弹窗 */}
       <AnimatePresence>

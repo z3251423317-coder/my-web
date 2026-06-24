@@ -93,3 +93,19 @@ body {
   animation-play-state: paused;
 }
 
+/* 10-Card infinite marquee moving Right to Left, pausing on hover */
+@keyframes marquee-forward {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee-forward {
+  display: flex;
+  width: max-content;
+  animation: marquee-forward 35s linear infinite;
+}
+
+.animate-marquee-forward:hover {
+  animation-play-state: paused;
+}
+
