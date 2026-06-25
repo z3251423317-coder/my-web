@@ -10,9 +10,9 @@ import { SurfaceCodeDiagram, TransformerDecoderDiagram, PerformanceMetricDiagram
 import { 
   ArrowDown, Menu, X, BookOpen, Settings, Layers, Eye, EyeOff, RotateCcw, 
   HelpCircle, Monitor, Compass, LayoutGrid, Check, Image as ImageIcon, 
-  Video as VideoIcon, Sparkles, ChevronRight, ChevronLeft, Send, MapPin, 
+  Video as VideoIcon, Sparkles, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, Send, MapPin, 
   Phone, Globe, Copy, RefreshCw, Palette, UploadCloud, AlertTriangle, CheckCircle,
-  Trash2, Plus, Minus, ExternalLink, Code
+  Trash2, Plus, Minus, ExternalLink, Code, GripVertical
 } from 'lucide-react';
 import { ScreenData, BackgroundType } from './types';
 import PillNav, { PillNavItem } from './components/PillNav';
@@ -69,17 +69,17 @@ const DEFAULT_SCREENS: ScreenData[] = [
     title: "塑造",
     subtitle: "我不在执迷寻找\n我是谁由我自己塑造",
     description: "A state-of-the-art recurrent, transformer-based neural network model that learns to decode surface code errors with unprecedented reliability on real quantum processors.",
-    bgType: "gradient",
-    bgUrl: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #020617 100%)",
-    overlayOpacity: 35,
-    overlayBlur: 2,
+    bgType: "image",
+    bgUrl: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2000&auto=format&fit=crop",
+    overlayOpacity: 45,
+    overlayBlur: 0,
     tintColor: "slate",
     align: "left",
     ctaText: "Discover the Science",
-    ctaUrl: "#screen-3"
+    ctaUrl: "#screen-2"
   },
   {
-    id: 3,
+    id: 2,
     label: "02. Syndrome Map",
     title: "Interactive Syndrome Logic",
     subtitle: "Real-time Parity Checks Across Qubit Grids",
@@ -91,67 +91,67 @@ const DEFAULT_SCREENS: ScreenData[] = [
     tintColor: "none",
     align: "left",
     ctaText: "Trigger Error Cycles",
-    ctaUrl: "#screen-4"
+    ctaUrl: "#screen-3"
   },
   {
-    id: 4,
+    id: 3,
     label: "03. Recursive Brain",
     title: "Multi-Head Attention Network",
     subtitle: "Parsing complex spatial & temporal error clusters",
     description: "Our neural architecture models decoding as a sequence-prediction problem. This allows the transformer core to track historical correlations, handling complex noise phenomena such as hardware cross-talk, cosmic rays, and physical qubit leakage.",
-    bgType: "video",
-    bgUrl: "https://assets.mixkit.co/videos/preview/mixkit-digital-particles-and-glowing-nodes-43031-large.mp4",
+    bgType: "image",
+    bgUrl: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=2000&auto=format&fit=crop",
     overlayOpacity: 70,
     overlayBlur: 3,
     tintColor: "indigo",
     align: "right",
     ctaText: "Explore Architecture",
-    ctaUrl: "#screen-5"
+    ctaUrl: "#screen-4"
   },
   {
-    id: 5,
+    id: 4,
     label: "04. Benchmarks",
     title: "Empirical Precision Gains",
     subtitle: "Lower logical error rates across code distances",
     description: "AlphaQubit outscores modern industry-standard algorithms, like Minimum-Weight Perfect Matching (MWPM), on all standard scales. Click the dynamic distances (3, 5, or 11) to study absolute error decay.",
-    bgType: "gradient",
-    bgUrl: "linear-gradient(135deg, #18181b 0%, #27272a 100%)",
-    overlayOpacity: 10,
+    bgType: "image",
+    bgUrl: "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=2000&auto=format&fit=crop",
+    overlayOpacity: 40,
     overlayBlur: 0,
     tintColor: "none",
     align: "center",
     ctaText: "See Live Data Sheets",
-    ctaUrl: "#"
+    ctaUrl: "#screen-5"
   },
   {
-    id: 6,
+    id: 5,
     label: "05. Hardware Lab",
     title: "Deep In-Processor Trial",
     subtitle: "Sycamore Superconducting Processor Deployment",
     description: "We validate our model against real physical data generated directly on Google's Sycamore quantum computer, yielding pristine predictions even on highly complex, asymmetric error signals.",
-    bgType: "gradient",
-    bgUrl: "linear-gradient(to bottom, #111827, #030712)",
-    overlayOpacity: 30,
+    bgType: "image",
+    bgUrl: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=2000&auto=format&fit=crop",
+    overlayOpacity: 50,
     overlayBlur: 0,
     tintColor: "none",
     align: "left",
     ctaText: "Hardware Specs",
-    ctaUrl: "#"
+    ctaUrl: "#screen-6"
   },
   {
-    id: 10,
+    id: 6,
     label: "06. Interactive Trial Deck",
     title: "Sycamore Syndrome Diagnostic Suite",
     subtitle: "Real-time spatial error patterns and physical latency metrics",
     description: "Click any card in the continuous right-to-left feed to lock onto the signal, analyze real-time spatial error patterns, and review physical latency metrics.",
-    bgType: "gradient",
-    bgUrl: "linear-gradient(to bottom, #090d16, #020408)",
+    bgType: "image",
+    bgUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=2000",
     overlayOpacity: 30,
     overlayBlur: 0,
     tintColor: "none",
     align: "center",
     ctaText: "Launch Diagnostics",
-    ctaUrl: "#"
+    ctaUrl: "#screen-7"
   },
   {
     id: 7,
@@ -166,7 +166,7 @@ const DEFAULT_SCREENS: ScreenData[] = [
     tintColor: "slate",
     align: "center",
     ctaText: "Join Team Pathway",
-    ctaUrl: "#"
+    ctaUrl: "#screen-8"
   },
   {
     id: 8,
@@ -175,13 +175,13 @@ const DEFAULT_SCREENS: ScreenData[] = [
     subtitle: "The word from our leadership team",
     description: "By utilizing direct machine-learned patterns over simulated templates, we break past theoretical algorithm boundaries, making physical quantum computers appear substantially cleaner than their physical components indicate.",
     bgType: "image",
-    bgUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2000",
+    bgUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2000&auto=format&fit=crop",
     overlayOpacity: 80,
     overlayBlur: 2,
     tintColor: "gold",
     align: "left",
     ctaText: "Read Joint Publication",
-    ctaUrl: "https://doi.org/10.1030/s41586-024-08148-8"
+    ctaUrl: "#screen-9"
   },
   {
     id: 9,
@@ -283,12 +283,12 @@ const PRESET_BG_VIDEOS = [
 
 const App: React.FC = () => {
   const [screens, setScreens] = useState<ScreenData[]>(() => {
-    const saved = localStorage.getItem("alphaqubit_custom_screens_v3");
+    const saved = localStorage.getItem("alphaqubit_custom_screens_v10");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (!parsed.some((s: any) => s.id === 10)) {
-          localStorage.removeItem("alphaqubit_custom_screens_v3");
+        if (!parsed.some((s: any) => s.id === 9)) {
+          localStorage.removeItem("alphaqubit_custom_screens_v10");
           return DEFAULT_SCREENS;
         }
         return parsed;
@@ -300,12 +300,12 @@ const App: React.FC = () => {
   const [activeId, setActiveId] = useState<number>(1);
 
   const [pillNavItems, setPillNavItems] = useState<PillNavItem[]>(() => {
-    const saved = localStorage.getItem("alphaqubit_pill_nav_items_v3");
+    const saved = localStorage.getItem("alphaqubit_pill_nav_items_v4");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (!parsed.some((item: any) => item.href === "#screen-10")) {
-          localStorage.removeItem("alphaqubit_pill_nav_items_v3");
+        if (!parsed.some((item: any) => item.href === "#screen-6")) {
+          localStorage.removeItem("alphaqubit_pill_nav_items_v4");
           // return default below
         } else {
           return parsed;
@@ -314,16 +314,16 @@ const App: React.FC = () => {
     }
     return [
       { label: "Home", href: "#screen-1" },
-      { label: "Decoder", href: "#screen-4" },
-      { label: "Gallery", href: "#screen-6" },
-      { label: "Trial Deck", href: "#screen-10" },
+      { label: "Decoder", href: "#screen-3" },
+      { label: "Gallery", href: "#screen-5" },
+      { label: "Trial Deck", href: "#screen-6" },
       { label: "Roadmap", href: "#screen-7" },
     ];
   });
 
   const savePillNavItemsToStorage = (updated: PillNavItem[]) => {
     setPillNavItems(updated);
-    localStorage.setItem("alphaqubit_pill_nav_items_v3", JSON.stringify(updated));
+    localStorage.setItem("alphaqubit_pill_nav_items_v4", JSON.stringify(updated));
   };
   const [scrolled, setScrolled] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<string>("07:15:42");
@@ -421,6 +421,7 @@ const App: React.FC = () => {
   const [activeCardDetail, setActiveCardDetail] = useState<MarqueeCard | null>(null);
   const [selectedCard6, setSelectedCard6] = useState<MarqueeCard | null>(null);
   const [copyToast, setCopyToast] = useState<string | null>(null);
+  const [activeBgConsoleId, setActiveBgConsoleId] = useState<number | null>(null);
 
   useEffect(() => {
     if (copyToast) {
@@ -647,13 +648,13 @@ const App: React.FC = () => {
   // Save changes to localStorage
   const saveToStorage = (updated: ScreenData[]) => {
     setScreens(updated);
-    localStorage.setItem("alphaqubit_custom_screens_v3", JSON.stringify(updated));
+    localStorage.setItem("alphaqubit_custom_screens_v10", JSON.stringify(updated));
   };
 
   const updateScreenField = (field: keyof ScreenData, value: any) => {
     setScreens(prev => {
       const updated = prev.map(s => s.id === activeId ? { ...s, [field]: value } : s);
-      localStorage.setItem("alphaqubit_custom_screens_v3", JSON.stringify(updated));
+      localStorage.setItem("alphaqubit_custom_screens_v10", JSON.stringify(updated));
       return updated;
     });
   };
@@ -661,7 +662,7 @@ const App: React.FC = () => {
   const updateScreenFields = (fields: Partial<ScreenData>) => {
     setScreens(prev => {
       const updated = prev.map(s => s.id === activeId ? { ...s, ...fields } : s);
-      localStorage.setItem("alphaqubit_custom_screens_v3", JSON.stringify(updated));
+      localStorage.setItem("alphaqubit_custom_screens_v10", JSON.stringify(updated));
       return updated;
     });
   };
@@ -669,11 +670,12 @@ const App: React.FC = () => {
   const handleResetToDefault = () => {
     if (window.confirm("确定要重置当前的所有自定义文案、图片、视频背景以及导航选项吗？")) {
       saveToStorage(DEFAULT_SCREENS);
-      localStorage.removeItem("alphaqubit_pill_nav_items_v3");
+      localStorage.removeItem("alphaqubit_pill_nav_items_v4");
       setPillNavItems([
         { label: "Home", href: "#screen-1" },
-        { label: "Decoder", href: "#screen-4" },
-        { label: "Results", href: "#screen-6" },
+        { label: "Decoder", href: "#screen-3" },
+        { label: "Gallery", href: "#screen-5" },
+        { label: "Trial Deck", href: "#screen-6" },
         { label: "Roadmap", href: "#screen-7" },
       ]);
       setActiveId(1);
@@ -1213,13 +1215,14 @@ const App: React.FC = () => {
     setIsOpen: (open: boolean) => void, 
     consoleTitle: string,
     screenLabel: string,
-    cards: MarqueeCard[],
-    saveCards: (updated: MarqueeCard[]) => void,
+    cards: MarqueeCard[] | null,
+    saveCards: ((updated: MarqueeCard[]) => void) | null,
     showRotateControls: boolean,
     currentScreen: ScreenData,
     onUpdateScreen: (updated: ScreenData) => void
   ) => {
     const addCard = () => {
+      if (!cards || !saveCards) return;
       const nextId = cards.length > 0 ? Math.max(...cards.map(c => c.id)) + 1 : 1;
       const defaultTemplates = [
         { title: "Fault-Tolerant Decoder", cat: "CORE SYSTEM", desc: "Predicts noise errors dynamically using neural inference thresholds.", colorType: "teal" },
@@ -1240,12 +1243,14 @@ const App: React.FC = () => {
     };
 
     const removeLastCard = () => {
+      if (!cards || !saveCards) return;
       if (cards.length > 1) {
         saveCards(cards.slice(0, -1));
       }
     };
 
     const deleteCard = (id: number) => {
+      if (!cards || !saveCards) return;
       if (cards.length > 1) {
         saveCards(cards.filter(c => c.id !== id));
       } else {
@@ -1254,11 +1259,13 @@ const App: React.FC = () => {
     };
 
     const updateCard = (id: number, fields: Partial<MarqueeCard>) => {
+      if (!cards || !saveCards) return;
       const updated = cards.map(c => c.id === id ? { ...c, ...fields } : c);
       saveCards(updated);
     };
 
     const resetCards = () => {
+      if (!saveCards) return;
       if (window.confirm("Reset card matrices to Google default setup?")) {
         saveCards(DEFAULT_MARQUEE_CARDS);
       }
@@ -1319,58 +1326,63 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Background Control Panel */}
-            <div className="p-4 border-b border-zinc-800 bg-zinc-900/40 space-y-3">
-              <div className="flex items-center justify-between">
-                 <h3 className="text-xs font-mono font-bold text-zinc-300 uppercase tracking-widest">Background / 背景管理</h3>
-                 <span className="text-[10px] bg-zinc-800 px-2 py-0.5 rounded text-zinc-400">{currentScreen.bgType}</span>
-              </div>
-              <div className="flex gap-2">
-                 <input 
-                    type="text" 
-                    value={currentScreen.bgUrl}
-                    onChange={(e) => onUpdateScreen({...currentScreen, bgUrl: e.target.value})}
-                    placeholder="Enter image/video URL"
-                    className="flex-1 px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs"
-                 />
-                 <label className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg cursor-pointer text-xs">
-                    <UploadCloud className="w-3 h-3" />
-                    <span>Upload</span>
-                    <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileChange(e, false)} />
-                 </label>
-              </div>
-            </div>
+            {/* Background & Temperature Control Panels (Only in BG Settings Console) */}
+            {consoleTitle.startsWith("BACKGROUND & TEMP SETTINGS") && (
+              <>
+                <div className="p-4 border-b border-zinc-800 bg-zinc-900/40 space-y-3">
+                  <div className="flex items-center justify-between">
+                     <h3 className="text-xs font-mono font-bold text-zinc-300 uppercase tracking-widest">Background / 背景管理</h3>
+                     <span className="text-[10px] bg-zinc-800 px-2 py-0.5 rounded text-zinc-400">{currentScreen.bgType}</span>
+                  </div>
+                  <div className="flex gap-2">
+                     <input 
+                        type="text" 
+                        value={currentScreen.bgUrl}
+                        onChange={(e) => onUpdateScreen({...currentScreen, bgUrl: e.target.value})}
+                        placeholder="Enter image/video URL"
+                        className="flex-1 px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs"
+                     />
+                     <label className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg cursor-pointer text-xs">
+                        <UploadCloud className="w-3 h-3" />
+                        <span>Upload</span>
+                        <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileChange(e, false)} />
+                     </label>
+                  </div>
+                </div>
 
-            {/* Temperature Control Panel */}
-            <div className="p-4 border-b border-zinc-800 bg-zinc-900/40 space-y-3">
-              <div className="flex items-center justify-between">
-                 <h3 className="text-xs font-mono font-bold text-zinc-300 uppercase tracking-widest">Temperature / 温度控制</h3>
-                 <span className="text-xs font-mono font-bold text-amber-400">{currentScreen.temperature || 25}°C</span>
-              </div>
-              <input 
-                type="range" 
-                min="0" 
-                max="100" 
-                value={currentScreen.temperature || 25}
-                onChange={(e) => onUpdateScreen({...currentScreen, temperature: parseInt(e.target.value)})}
-                className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer"
-              />
-              <div className="flex gap-2">
-                 <input 
-                    type="text" 
-                    value={currentScreen.tempBgUrl || ''}
-                    onChange={(e) => onUpdateScreen({...currentScreen, tempBgUrl: e.target.value})}
-                    placeholder="Enter temp background URL"
-                    className="flex-1 px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs"
-                 />
-                 <label className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg cursor-pointer text-xs">
-                    <UploadCloud className="w-3 h-3" />
-                    <span>Upload BG</span>
-                    <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileChange(e, true)} />
-                 </label>
-              </div>
-            </div>
+                <div className="p-4 border-b border-zinc-800 bg-zinc-900/40 space-y-3">
+                  <div className="flex items-center justify-between">
+                     <h3 className="text-xs font-mono font-bold text-zinc-300 uppercase tracking-widest">Temperature / 温度控制</h3>
+                     <span className="text-xs font-mono font-bold text-amber-400">{currentScreen.temperature || 25}°C</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="100" 
+                    value={currentScreen.temperature || 25}
+                    onChange={(e) => onUpdateScreen({...currentScreen, temperature: parseInt(e.target.value)})}
+                    className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <div className="flex gap-2">
+                     <input 
+                        type="text" 
+                        value={currentScreen.tempBgUrl || ''}
+                        onChange={(e) => onUpdateScreen({...currentScreen, tempBgUrl: e.target.value})}
+                        placeholder="Enter temp background URL"
+                        className="flex-1 px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs"
+                     />
+                     <label className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg cursor-pointer text-xs">
+                        <UploadCloud className="w-3 h-3" />
+                        <span>Upload BG</span>
+                        <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileChange(e, true)} />
+                     </label>
+                  </div>
+                </div>
+              </>
+            )}
 
+            {cards && saveCards && (
+              <>
             {/* Console Quick Toolbar Actions */}
             <div className="p-4 bg-zinc-900/30 border-b border-zinc-850/80 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
@@ -1599,6 +1611,8 @@ const App: React.FC = () => {
                 );
               })}
             </div>
+              </>
+            )}
 
           </motion.div>
         )}
@@ -1643,13 +1657,114 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Floating Controls (Top Right) */}
-      <div className="fixed top-6 right-6 z-40 flex items-center gap-2.5">
+      {/* Elegant, Minimalist Page-Level Navigation Suite (Fixed on Display Page) */}
+      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2 pointer-events-auto">
+        {/* Screen Counter Badge */}
+        <div className="px-2.5 py-1 bg-zinc-950/80 border border-zinc-800/80 rounded-full font-mono text-[9px] tracking-widest text-zinc-400 font-bold backdrop-blur-md shadow-lg select-none">
+          {activeId.toString().padStart(2, '0')} / {screens.length.toString().padStart(2, '0')}
+        </div>
+
+        {/* Up/Prev Button */}
+        <button 
+          onClick={() => {
+            const currentIndex = screens.findIndex(s => s.id === activeId);
+            if (currentIndex > 0) {
+              const prevId = screens[currentIndex - 1].id;
+              scrollToScreen(prevId);
+            }
+          }}
+          disabled={activeId === screens[0]?.id}
+          title="Previous Screen / 上一屏"
+          className="p-2.5 bg-zinc-950/80 border border-zinc-800/80 hover:border-zinc-700 hover:bg-zinc-900 rounded-full backdrop-blur-md text-zinc-400 hover:text-white transition-all cursor-pointer shadow-lg disabled:opacity-30 disabled:pointer-events-none active:scale-90"
+        >
+          <ChevronUp className="w-4 h-4" />
+        </button>
+
+        {/* Down/Next Button */}
+        <button 
+          onClick={() => {
+            const currentIndex = screens.findIndex(s => s.id === activeId);
+            if (currentIndex < screens.length - 1) {
+              const nextId = screens[currentIndex + 1].id;
+              scrollToScreen(nextId);
+            }
+          }}
+          disabled={activeId === screens[screens.length - 1]?.id}
+          title="Next Screen / 下一屏"
+          className="p-2.5 bg-zinc-950/80 border border-zinc-800/80 hover:border-zinc-700 hover:bg-zinc-900 rounded-full backdrop-blur-md text-zinc-400 hover:text-white transition-all cursor-pointer shadow-lg disabled:opacity-30 disabled:pointer-events-none active:scale-90"
+        >
+          <ChevronDown className="w-4 h-4" />
+        </button>
       </div>
+
+      {/* Developer Settings Control Panel (Only visible in DEV, draggable, clean and elegant) */}
+      {import.meta.env.DEV && (
+        <motion.div 
+          drag
+          dragMomentum={false}
+          dragElastic={0.1}
+          className="fixed top-6 right-6 z-50 flex items-center gap-2 p-1.5 bg-zinc-950/90 border border-zinc-800/85 rounded-2xl shadow-2xl backdrop-blur-md pointer-events-auto select-none"
+        >
+          {/* Grab/Drag Handle */}
+          <div className="pl-1.5 pr-0.5 text-zinc-500 hover:text-zinc-300 cursor-grab active:cursor-grabbing flex items-center justify-center" title="Drag me anywhere! / 拖动我到任意位置">
+            <GripVertical className="w-3.5 h-3.5" />
+          </div>
+
+          {/* BG settings controller trigger */}
+          <button
+            onClick={() => setActiveBgConsoleId(activeBgConsoleId === activeId ? null : activeId)}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[10px] font-mono tracking-widest uppercase transition-all shadow-md cursor-pointer ${
+              activeBgConsoleId !== null
+                ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 border-amber-550 font-bold' 
+                : 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:text-white hover:border-zinc-700 hover:bg-zinc-850'
+            }`}
+          >
+            <Settings className={`w-3.5 h-3.5 ${activeBgConsoleId !== null ? 'animate-spin' : ''}`} />
+            <span>{activeBgConsoleId !== null ? 'HIDE BG SETTINGS' : 'BG SETTINGS'}</span>
+          </button>
+
+          {/* Deploy to Git */}
+          <button
+            onClick={() => {
+              const appState = {
+                screens,
+                marqueeCards,
+                sphereCards,
+                domeCards,
+                trialCards
+              };
+              const codeStr = JSON.stringify(appState, null, 2);
+              const prompt = `Please deploy my app to Git. Here is my current application state:\n\n${codeStr}\n\nPlease apply this configuration to the app and deploy.`;
+              if (navigator.clipboard) {
+                navigator.clipboard.writeText(prompt).then(() => {
+                  alert("App state copied! Paste it in the chat for the AI to deploy to git.");
+                });
+              }
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl border border-emerald-500/50 text-[10px] font-mono tracking-widest uppercase transition-all shadow-md cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <Code className="w-3.5 h-3.5" />
+            <span>DEPLOY TO GIT</span>
+          </button>
+        </motion.div>
+      )}
+
+      {/* Global Background Settings Console */}
+      {renderGenericConsole(
+        activeBgConsoleId !== null,
+        (open) => setActiveBgConsoleId(open ? activeId : null),
+        `BACKGROUND & TEMP SETTINGS (SCREEN ${activeBgConsoleId || activeId} / 第 ${activeBgConsoleId || activeId} 屏)`,
+        `Configure background layers and ambient temperature for Screen ${activeBgConsoleId || activeId}`,
+        null,
+        null,
+        false,
+        screens.find(s => s.id === (activeBgConsoleId || activeId)) || screens[0],
+        (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s))
+      )}
 
       {/* Global Animated Background Container */}
       <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden">
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence>
           <motion.div
             key={`global-bg-${activeScreen.id}-${activeScreen.bgUrl}-${activeScreen.bgType}-${activeScreen.tintColor}`}
             initial={{ opacity: 0 }}
@@ -1685,9 +1800,32 @@ const App: React.FC = () => {
 
             {activeScreen.bgType === 'gradient' && (
               <div 
-                className="absolute inset-0 w-full h-full filter brightness-90 animate-mesh-slow" 
+                className="absolute inset-0 w-full h-full filter brightness-90" 
                 style={{ background: activeScreen.bgUrl }}
               />
+            )}
+
+            {/* Temperature-controlled secondary background layer */}
+            {activeScreen.tempBgUrl && activeScreen.tempBgType === 'image' && (
+              <img 
+                src={activeScreen.tempBgUrl} 
+                alt={`temp-bg-${activeScreen.id}`} 
+                className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none transition-opacity duration-300 mix-blend-screen"
+                style={{ opacity: (activeScreen.temperature ?? 25) / 100 }}
+              />
+            )}
+            {activeScreen.tempBgUrl && activeScreen.tempBgType === 'video' && (
+              <video 
+                autoPlay 
+                loop 
+                muted 
+                playsInline 
+                key={`temp-vid-${activeScreen.tempBgUrl}`}
+                className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 mix-blend-screen"
+                style={{ opacity: (activeScreen.temperature ?? 25) / 100 }}
+              >
+                <source src={activeScreen.tempBgUrl} type="video/mp4" />
+              </video>
             )}
 
             {/* Customizable blur backdrop and color mask overlay */}
@@ -1710,14 +1848,14 @@ const App: React.FC = () => {
         {screens.map((s, idx) => {
           const isSelected = s.id === activeId;
           
-          if (s.id === 5) {
+          if (s.id === 4) {
             return (
               <section 
                 key={s.id}
                 id={`screen-${s.id}`}
-                className="snap-start lg:snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-zinc-950"
+                className="snap-start lg:snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
               >
-                {/* Floating controls specifically for Screen 5 to toggle the drawer */}
+                {/* Floating controls specifically for Screen 4 to toggle the drawer */}
                 {import.meta.env.DEV && (
                   <div className="absolute top-20 right-6 lg:top-6 lg:right-44 z-50 pointer-events-auto flex items-center gap-3">
                     <button
@@ -1769,19 +1907,19 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Reusable Syndrome Deck Console drawer */}
-                {renderGenericConsole(isConsoleOpen4, setIsConsoleOpen4, "3D SPHERE CONSOLE / 3D球形卡片控制台", "Configure spherical noise matrices on Screen 5 (Fifth Slide)", sphereCards, saveSphereCards, false, screens.find(s => s.id === 4) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
+                {renderGenericConsole(isConsoleOpen4, setIsConsoleOpen4, "3D SPHERE CONSOLE (SCREEN 4) / 3D球形控制台 (第4屏)", "Configure spherical noise matrices on Screen 4 (Fourth Slide)", sphereCards, saveSphereCards, false, screens.find(s => s.id === 4) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
               </section>
             );
           }
 
-          if (s.id === 6) {
+          if (s.id === 5) {
             return (
               <section 
                 key={s.id}
                 id={`screen-${s.id}`}
-                className="snap-start lg:snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-zinc-950"
+                className="snap-start lg:snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
               >
-                {/* Floating controls specifically for Screen 6 to toggle the dome drawer */}
+                {/* Floating controls specifically for Screen 5 to toggle the dome drawer */}
                 {import.meta.env.DEV && (
                   <div className="absolute top-24 right-6 lg:top-6 lg:right-6 z-50 pointer-events-auto flex items-center gap-3">
                     <button
@@ -1822,19 +1960,19 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Reusable Dome Console drawer */}
-                {renderGenericConsole(isConsoleOpen6, setIsConsoleOpen6, "SLIDER CARD CONSOLE / 移动卡片控制台", "Configure 3D Dome Gallery and cards metadata on Screen 6", domeCards, saveDomeCards, true, screens.find(s => s.id === 6) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
+                {renderGenericConsole(isConsoleOpen6, setIsConsoleOpen6, "3D DOME GALLERY CONSOLE (SCREEN 5) / 穹顶画廊控制台 (第5屏)", "Configure 3D Dome Gallery and cards metadata on Screen 5", domeCards, saveDomeCards, true, screens.find(s => s.id === 5) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
               </section>
             );
           }
 
-          if (s.id === 10) {
+          if (s.id === 6) {
             return (
               <section 
                 key={s.id}
                 id={`screen-${s.id}`}
-                className="snap-start lg:snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-zinc-950"
+                className="snap-start lg:snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
               >
-                {/* Floating controls specifically for Screen 10 to toggle the console drawer */}
+                {/* Floating controls specifically for Screen 6 to toggle the console drawer */}
                 {import.meta.env.DEV && (
                   <div className="absolute top-24 right-6 lg:top-6 lg:right-6 z-50 pointer-events-auto flex items-center gap-3">
                     <button
@@ -2101,7 +2239,7 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Reusable Dome Console drawer */}
-                {renderGenericConsole(isConsoleOpen10, setIsConsoleOpen10, "SLIDER CARD CONSOLE / 移动卡片控制台", "Configure sliding diagnostic cards and metadata on Screen 10", trialCards, saveTrialCards, false, screens.find(s => s.id === 10) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
+                {renderGenericConsole(isConsoleOpen10, setIsConsoleOpen10, "SLIDER CARD CONSOLE (SCREEN 6) / 移动卡片控制台 (第6屏)", "Configure sliding diagnostic cards and metadata on Screen 6", trialCards, saveTrialCards, false, screens.find(s => s.id === 6) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
               </section>
             );
           }
@@ -2114,8 +2252,8 @@ const App: React.FC = () => {
             >
               {/* 1700px Content Core ("版心控制在 1700px 左右") */}
               <div className="relative z-10 w-full h-auto lg:h-full max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 flex flex-col justify-center text-white pointer-events-auto">
-                {s.id === 4 ? (
-                  /* Screen 4: Dynamic cards count, hover to pause, click to simulate / transition */
+                {s.id === 3 ? (
+                  /* Disabled Marquee Screen */
                   <div className="relative w-full py-12 flex flex-col justify-between h-auto min-h-[500px]">
                     
                     {/* Header Info + Controls Button */}
@@ -2244,13 +2382,13 @@ const App: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* ⚙️ Interactive Card Syndrome Console (Only visible on Screen 4, slide-over layout) */}
-                    {renderGenericConsole(isConsoleOpen3, setIsConsoleOpen3, "MARQUEE CONSOLE / 走马灯卡片控制台", "Configure sliding noise matrices on Screen 3 (Third Slide)", marqueeCards, saveMarqueeCards, false, screens.find(s => s.id === 3) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
+                    {/* ⚙️ Interactive Card Syndrome Console (Only visible on Screen 3, slide-over layout) */}
+                    {renderGenericConsole(isConsoleOpen3, setIsConsoleOpen3, "MARQUEE CONSOLE (SCREEN 3) / 走马灯控制台 (第3屏)", "Configure sliding noise matrices on Screen 3 (Third Slide)", marqueeCards, saveMarqueeCards, false, screens.find(s => s.id === 3) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
 
                   </div>
                 ) : (
                   <div className={`w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center py-12 ${
-                    s.align === 'center' ? 'text-center' : s.align === 'right' ? 'text-right' : 'text-left'
+                    (s.align === 'center' && s.id !== 9) ? 'text-center' : s.align === 'right' ? 'text-right' : 'text-left'
                   }`}>
                     
                     {/* Left Column Content - Standard Layouts */}
@@ -2260,7 +2398,7 @@ const App: React.FC = () => {
                     viewport={{ once: false, amount: 0.15 }}
                     transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
                     className={`${
-                      s.align === 'center' 
+                      s.align === 'center' && s.id !== 9
                         ? 'lg:col-span-12 max-w-5xl mx-auto' 
                         : s.align === 'right' 
                           ? 'lg:col-span-7 lg:col-start-6 order-1' 
@@ -2285,7 +2423,7 @@ const App: React.FC = () => {
                     {/* Core narrative description paragraph */}
                     {s.description && (
                       <p className={`text-zinc-300 text-sm md:text-base leading-relaxed font-sans font-light max-w-3xl ${
-                        s.align === 'center' ? 'mx-auto' : s.align === 'right' ? 'ml-auto text-right' : 'text-left'
+                        (s.align === 'center' && s.id !== 9) ? 'mx-auto' : s.align === 'right' ? 'ml-auto text-right' : 'text-left'
                       }`}>
                         {s.description}
                       </p>
@@ -2363,7 +2501,7 @@ const App: React.FC = () => {
 
                     {/* Primary Button */}
                     {s.ctaText && (
-                      <div className={`flex ${s.align === 'center' ? 'justify-center' : s.align === 'right' ? 'justify-end' : 'justify-start'} pt-3`}>
+                      <div className={`flex ${(s.align === 'center' && s.id !== 9) ? 'justify-center' : s.align === 'right' ? 'justify-end' : 'justify-start'} pt-3`}>
                         <a 
                           href={s.ctaUrl || "#"}
                           onClick={(e) => {
@@ -2390,55 +2528,41 @@ const App: React.FC = () => {
                     viewport={{ once: false, amount: 0.15 }}
                     transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
                     className={`${
-                      s.align === 'center' 
+                      s.align === 'center' && s.id !== 9
                         ? 'hidden' 
                         : s.align === 'right' 
                           ? 'lg:col-span-5 order-2 lg:order-1 z-30' 
                           : s.id === 1 
                             ? 'lg:col-span-5 order-2 lg:order-2 z-40' 
-                            : 'lg:col-span-5 order-2 lg:order-2 z-30'
-                    } w-full flex justify-center py-4 relative`}
+                            : 'lg:col-span-5 order-2 lg:order-2 z-50'
+                    } w-full flex justify-center py-4 relative pointer-events-auto`}
                   >
                     
                     {/* Render unique live visualizations on selected sections */}
 
-                    {/* Screen 2: Logo Loop */}
-                    {s.id === 2 && s.logoLoopLogos && s.logoLoopLogos.length > 0 && (
-                      <div className="w-full h-[60px] relative overflow-hidden bg-zinc-900/40 rounded-xl border border-zinc-800/60 backdrop-blur-sm">
-                        <LogoLoop
-                          logos={s.logoLoopLogos}
-                          speed={80}
-                          direction="left"
-                          logoHeight={40}
-                          gap={30}
-                          fadeOut
-                        />
-                      </div>
-                    )}
-                    
-                    {/* Screen 3: Embed SurfaceCodeDiagram inside the grid */}
-                    {s.id === 3 && (
+                    {/* Screen 2: Embed SurfaceCodeDiagram inside the grid */}
+                    {s.id === 2 && (
                       <div className="w-full max-w-md scale-[1.02] transition-transform duration-300">
                         <SurfaceCodeDiagram />
                       </div>
                     )}
 
-                    {/* Screen 4: Embed TransformerDecoderDiagram */}
-                    {s.id === 4 && (
+                    {/* Screen 3: Embed TransformerDecoderDiagram */}
+                    {s.id === 3 && (
                       <div className="w-full max-w-md scale-[1.02] transition-transform duration-300 text-zinc-900">
                         <TransformerDecoderDiagram />
                       </div>
                     )}
 
-                    {/* Screen 5: Embed PerformanceMetricDiagram */}
-                    {s.id === 5 && (
+                    {/* Screen 4: Embed PerformanceMetricDiagram */}
+                    {s.id === 4 && (
                       <div className="w-full max-w-md scale-[1.02] transition-transform duration-300">
                         <PerformanceMetricDiagram />
                       </div>
                     )}
 
-                    {/* Screen 6: Embed QuantumComputerScene */}
-                    {s.id === 6 && (
+                    {/* Screen 5: Embed QuantumComputerScene */}
+                    {s.id === 5 && (
                       <div className="w-full max-w-md aspect-square bg-[#101424]/30 border border-zinc-800/80 rounded-2xl shadow-inner p-4 relative overflow-hidden group flex items-center justify-center">
                         {isSelected ? (
                           <QuantumComputerScene />

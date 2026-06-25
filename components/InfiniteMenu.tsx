@@ -885,10 +885,27 @@ class InfiniteGridMenu {
     Promise.all(
       this.items.map(
         item =>
-          new Promise<HTMLImageElement>(resolve => {
+          new Promise<HTMLImageElement | HTMLCanvasElement>(resolve => {
             const img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = () => resolve(img);
+            img.onerror = () => {
+              // Create a colored fallback canvas on load failure to prevent Promise.all hang
+              const fallbackCanvas = document.createElement('canvas');
+              fallbackCanvas.width = 512;
+              fallbackCanvas.height = 512;
+              const fctx = fallbackCanvas.getContext('2d');
+              if (fctx) {
+                fctx.fillStyle = '#1e293b';
+                fctx.fillRect(0, 0, 512, 512);
+                fctx.fillStyle = '#f59e0b';
+                fctx.font = 'bold 32px sans-serif';
+                fctx.textAlign = 'center';
+                fctx.textBaseline = 'middle';
+                fctx.fillText('NO IMAGE', 256, 256);
+              }
+              resolve(fallbackCanvas);
+            };
             img.src = item.image;
           })
       )
@@ -1171,7 +1188,7 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick }: I
   };
 
   return (
-    <div className="relative w-full h-full min-h-screen flex items-center justify-center select-none overflow-hidden bg-zinc-950">
+    <div className="relative w-full h-full min-h-screen flex items-center justify-center select-none overflow-hidden bg-transparent">
       <canvas id="infinite-grid-menu-canvas" ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
       {activeItem && (
