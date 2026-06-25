@@ -326,6 +326,9 @@ const App: React.FC = () => {
     localStorage.setItem("alphaqubit_pill_nav_items_v4", JSON.stringify(updated));
   };
   const [scrolled, setScrolled] = useState<boolean>(false);
+  const [scrollingTo, setScrollingTo] = useState<number | null>(null);
+  const scrollingToRef = useRef<number | null>(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [currentTime, setCurrentTime] = useState<string>("07:15:42");
 
   // Newsletter State
@@ -695,10 +698,22 @@ const App: React.FC = () => {
   // Helper code to smooth scroll to screen id
   const scrollToScreen = (id: number) => {
     setActiveId(id);
+    setScrollingTo(id);
+    scrollingToRef.current = id;
+
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
     const elem = document.getElementById(`screen-${id}`);
     if (elem) {
       elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+
+    scrollTimeoutRef.current = setTimeout(() => {
+      setScrollingTo(null);
+      scrollingToRef.current = null;
+    }, 1000); // 1 second safe fallback to release scroll state locks
   };
 
   // Sync scroll detection for header logo
@@ -715,6 +730,16 @@ const App: React.FC = () => {
         }
         const clampedIndex = Math.max(0, Math.min(screens.length - 1, index));
         const currentScreen = screens[clampedIndex];
+
+        // If programmatically scrolling to a specific slide, lock out manual intermediate triggers
+        if (scrollingToRef.current !== null) {
+          if (currentScreen && currentScreen.id === scrollingToRef.current) {
+            setScrollingTo(null);
+            scrollingToRef.current = null;
+          }
+          return;
+        }
+
         if (currentScreen && currentScreen.id !== activeId) {
           setActiveId(currentScreen.id);
         }
@@ -725,6 +750,7 @@ const App: React.FC = () => {
     }
     return () => {
       if (container) container.removeEventListener('scroll', handleScroll);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
     };
   }, [activeId, screens]);
 
@@ -1667,13 +1693,14 @@ const App: React.FC = () => {
         {/* Up/Prev Button */}
         <button 
           onClick={() => {
+            if (scrollingTo !== null) return;
             const currentIndex = screens.findIndex(s => s.id === activeId);
             if (currentIndex > 0) {
               const prevId = screens[currentIndex - 1].id;
               scrollToScreen(prevId);
             }
           }}
-          disabled={activeId === screens[0]?.id}
+          disabled={activeId === screens[0]?.id || scrollingTo !== null}
           title="Previous Screen / 上一屏"
           className="p-2.5 bg-zinc-950/80 border border-zinc-800/80 hover:border-zinc-700 hover:bg-zinc-900 rounded-full backdrop-blur-md text-zinc-400 hover:text-white transition-all cursor-pointer shadow-lg disabled:opacity-30 disabled:pointer-events-none active:scale-90"
         >
@@ -1683,13 +1710,14 @@ const App: React.FC = () => {
         {/* Down/Next Button */}
         <button 
           onClick={() => {
+            if (scrollingTo !== null) return;
             const currentIndex = screens.findIndex(s => s.id === activeId);
             if (currentIndex < screens.length - 1) {
               const nextId = screens[currentIndex + 1].id;
               scrollToScreen(nextId);
             }
           }}
-          disabled={activeId === screens[screens.length - 1]?.id}
+          disabled={activeId === screens[screens.length - 1]?.id || scrollingTo !== null}
           title="Next Screen / 下一屏"
           className="p-2.5 bg-zinc-950/80 border border-zinc-800/80 hover:border-zinc-700 hover:bg-zinc-900 rounded-full backdrop-blur-md text-zinc-400 hover:text-white transition-all cursor-pointer shadow-lg disabled:opacity-30 disabled:pointer-events-none active:scale-90"
         >
