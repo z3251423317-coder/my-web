@@ -620,6 +620,155 @@ interface InfiniteMenuItem {
   link?: string;
   title: string;
   description: string;
+  category?: string;
+}
+
+function createProceduralQuantumCanvas(title: string, category: string, index: number): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return canvas;
+
+  // 1. Futuristic background radial gradient
+  const grad = ctx.createRadialGradient(256, 256, 40, 256, 256, 280);
+  const colors = [
+    { start: '#091326', end: '#02050e', accent: '#3b82f6' }, // Space Blue
+    { start: '#081c22', end: '#01070a', accent: '#14b8a6' }, // Neon Teal
+    { start: '#1d120a', end: '#080402', accent: '#f59e0b' }, // Quantum Amber
+    { start: '#220b18', end: '#090206', accent: '#ec4899' }, // Parity Rose
+    { start: '#160b29', end: '#05020c', accent: '#a855f7' }, // Syndrome Purple
+    { start: '#0b1f13', end: '#020904', accent: '#10b981' }, // Lattice Emerald
+    { start: '#091c2b', end: '#02070e', accent: '#0ea5e9' }, // Cryo Sky
+  ];
+  const theme = colors[index % colors.length];
+  grad.addColorStop(0, theme.start);
+  grad.addColorStop(1, theme.end);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 512, 512);
+
+  // 2. High-tech Grid Overlay with glowing lines
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+  ctx.lineWidth = 1;
+  const gridSize = 32;
+  for (let x = 0; x < 512; x += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, 512);
+    ctx.stroke();
+  }
+  for (let y = 0; y < 512; y += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(512, y);
+    ctx.stroke();
+  }
+
+  // Draw cybernetic crosshairs & circles
+  ctx.strokeStyle = theme.accent + '22';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(256, 256, 180, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.setLineDash([4, 10]);
+  ctx.strokeStyle = theme.accent + '44';
+  ctx.beginPath();
+  ctx.arc(256, 256, 150, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Crosshair ticks
+  ctx.strokeStyle = theme.accent + '88';
+  ctx.lineWidth = 2;
+  const angles = [0, Math.PI/2, Math.PI, Math.PI*1.5];
+  angles.forEach(ang => {
+    ctx.beginPath();
+    ctx.moveTo(256 + Math.cos(ang) * 170, 256 + Math.sin(ang) * 170);
+    ctx.lineTo(256 + Math.cos(ang) * 190, 256 + Math.sin(ang) * 190);
+    ctx.stroke();
+  });
+
+  // 3. Draw Qubit Grid Network (Nodes & Edges)
+  const nodes = [
+    { x: 256, y: 140, active: true },
+    { x: 150, y: 220, active: false },
+    { x: 362, y: 220, active: true },
+    { x: 190, y: 320, active: true },
+    { x: 322, y: 320, active: false },
+    { x: 256, y: 256, active: true }
+  ];
+
+  ctx.strokeStyle = theme.accent + '33';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(nodes[0].x, nodes[0].y);
+  ctx.lineTo(nodes[1].x, nodes[1].y);
+  ctx.lineTo(nodes[3].x, nodes[3].y);
+  ctx.lineTo(nodes[5].x, nodes[5].y);
+  ctx.lineTo(nodes[0].x, nodes[0].y);
+  ctx.moveTo(nodes[0].x, nodes[0].y);
+  ctx.lineTo(nodes[2].x, nodes[2].y);
+  ctx.lineTo(nodes[4].x, nodes[4].y);
+  ctx.lineTo(nodes[5].x, nodes[5].y);
+  ctx.stroke();
+
+  nodes.forEach(n => {
+    // Glowing aura
+    const aura = ctx.createRadialGradient(n.x, n.y, 1, n.x, n.y, 18);
+    aura.addColorStop(0, n.active ? theme.accent : 'rgba(71, 85, 105, 0.6)');
+    aura.addColorStop(1, 'transparent');
+    ctx.fillStyle = aura;
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, 18, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = n.active ? '#ffffff' : '#475569';
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // 4. Texts & Label Pairings
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 22px "Space Grotesk", "Inter", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  
+  // Clean titles
+  const formattedTitle = title.toUpperCase();
+  if (formattedTitle.length > 22) {
+    const half = Math.floor(formattedTitle.length / 2);
+    const spaceIndex = formattedTitle.indexOf(' ', half);
+    if (spaceIndex !== -1) {
+      ctx.fillText(formattedTitle.substring(0, spaceIndex), 256, 405);
+      ctx.fillText(formattedTitle.substring(spaceIndex + 1), 256, 435);
+    } else {
+      ctx.fillText(formattedTitle, 256, 420);
+    }
+  } else {
+    ctx.fillText(formattedTitle, 256, 420);
+  }
+
+  // Category Badge Label
+  ctx.fillStyle = theme.accent;
+  ctx.font = 'bold 11px "JetBrains Mono", "Fira Code", monospace';
+  ctx.fillText(`[ ${category || 'DECODER_NODE'} ]`, 256, 370);
+
+  // Digital readout dashboard
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+  ctx.font = '9px "JetBrains Mono", monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText(`SYS_STATE: ACTIVE`, 40, 45);
+  ctx.fillText(`CRYOGENIC: ${(Math.random() * 0.12).toFixed(4)} K`, 40, 60);
+  ctx.fillText(`FIDELITY: 99.${(95 + Math.random() * 4).toFixed(3)}%`, 40, 75);
+
+  ctx.textAlign = 'right';
+  ctx.fillText(`CELL_ID: α-${200 + index}`, 472, 45);
+  ctx.fillText(`CROSSTALK: ${(0.01 + Math.random() * 0.05).toFixed(3)}%`, 472, 60);
+  ctx.fillText(`GRID_POS: [${index},${(index * 7) % 12}]`, 472, 75);
+
+  return canvas;
 }
 
 class InfiniteGridMenu {
@@ -884,27 +1033,18 @@ class InfiniteGridMenu {
 
     Promise.all(
       this.items.map(
-        item =>
+        (item, idx) =>
           new Promise<HTMLImageElement | HTMLCanvasElement>(resolve => {
+            if (!item.image || item.image.includes('placeholder') || item.image.trim() === '') {
+              resolve(createProceduralQuantumCanvas(item.title, item.category || 'QUANTUM_NODE', idx));
+              return;
+            }
             const img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = () => resolve(img);
             img.onerror = () => {
-              // Create a colored fallback canvas on load failure to prevent Promise.all hang
-              const fallbackCanvas = document.createElement('canvas');
-              fallbackCanvas.width = 512;
-              fallbackCanvas.height = 512;
-              const fctx = fallbackCanvas.getContext('2d');
-              if (fctx) {
-                fctx.fillStyle = '#1e293b';
-                fctx.fillRect(0, 0, 512, 512);
-                fctx.fillStyle = '#f59e0b';
-                fctx.font = 'bold 32px sans-serif';
-                fctx.textAlign = 'center';
-                fctx.textBaseline = 'middle';
-                fctx.fillText('NO IMAGE', 256, 256);
-              }
-              resolve(fallbackCanvas);
+              // Fall back to a beautiful procedural cyberpunk matrix node instead of an empty/error box
+              resolve(createProceduralQuantumCanvas(item.title, item.category || 'QUANTUM_NODE', idx));
             };
             img.src = item.image;
           })
@@ -955,7 +1095,7 @@ class InfiniteGridMenu {
     this.control.update(deltaTime, this.TARGET_FRAME_DURATION);
 
     let positions = this.instancePositions.map(p => vec3.transformQuat(vec3.create(), p, this.control.orientation));
-    const scale = 0.25;
+    const scale = 0.16;
     const SCALE_INTENSITY = 0.6;
     positions.forEach((p, ndx) => {
       const s = (Math.abs(p[2]) / this.SPHERE_RADIUS) * SCALE_INTENSITY + (1 - SCALE_INTENSITY);

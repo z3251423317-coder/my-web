@@ -21,6 +21,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import InfiniteMenu from './components/InfiniteMenu';
 import DomeGallery from './components/DomeGallery';
 import ProfileCard from './components/ProfileCard';
+import { PdfDecoderPage } from './components/PdfDecoderPage';
 
 export interface MarqueeCard {
   id: number;
@@ -33,7 +34,7 @@ export interface MarqueeCard {
 }
 
 const DEFAULT_MARQUEE_CARDS: MarqueeCard[] = [
-  { id: 1, title: "Qubit Topology", cat: "HARDWARE", desc: "Distance-3 Sycamore array tracking physical operations.", url: "https://quantumai.google/sycamore", colorType: "indigo", image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop" },
+  { id: 1, title: "精彩的人生是奋斗出来的，但幸福的人生不是", cat: "生活哲学", desc: "阿斯兰还v哈落地v哈定律ID死哦急急急急急急急急急急急急急急急急急急急急急急急急急急急斤斤计较急急急急急急急急急急急急急急急急急急急急急急阿斯兰还v哈落地v哈定律ID死哦急急急急急急急急急急急急急急急急急急急急急急急急急急急斤斤计较急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急积极斤斤计较急急急急急急急急急急急急嘿嘿嘿嘿阿斯兰还v哈落地v哈定律ID死哦急急急急急急急急急急急急急急急急急急急急急急急急急急急斤斤计较急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急积极斤斤计较急急急急急急急急急急急急嘿嘿嘿嘿阿斯兰还v哈落地v哈定律ID死哦急急急急急急急急急急急急急急急急急急急急急急急急急急急斤斤计较急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急积极斤斤计较急急急急急急急急急急急急嘿嘿嘿嘿阿斯兰还v哈落地v哈定律ID死哦急急急急急急急急急急急急急急急急急急急急急急急急急急急斤斤计较急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急积极斤斤计较急急急急急急急急急急急急嘿嘿嘿嘿急急急急急急急急急急急急急急急急急急急急急急急急急急积极斤斤计较急急急急急急急急急急急急嘿嘿嘿嘿阿斯兰还v哈落地v哈定律ID死哦急急急急急急急急急急急急急急急急急急急急急急急急急急急斤斤计较急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急积极斤斤计较急急急急急急急急急急急急嘿嘿嘿嘿", url: "https://huaban.com/discovery", colorType: "teal", image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=2000&auto=format&fit=crop" },
   { id: 2, title: "Primal Syndrome", cat: "DECODER GATE", desc: "Dynamic error location extraction pipelines in real-time.", url: "", colorType: "teal", image: "https://images.unsplash.com/photo-1507668077129-56e32842fceb?q=80&w=600&auto=format&fit=crop" },
   { id: 3, title: "Stabilizer Parity", cat: "X-Z MEASURE", desc: "Continuous quantum parity watchdog capturing local leakage.", url: "", colorType: "amber", image: "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=600&auto=format&fit=crop" },
   { id: 4, title: "Decoder Mesh", cat: "TRANSFORMER", desc: "High-throughput neural block predicting complex noise.", url: "", colorType: "rose", image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=600&auto=format&fit=crop" },
@@ -96,9 +97,9 @@ const DEFAULT_SCREENS: ScreenData[] = [
   {
     id: 3,
     label: "03. Recursive Brain",
-    title: "Multi-Head Attention Network",
+    title: "无限进步",
     subtitle: "Parsing complex spatial & temporal error clusters",
-    description: "Our neural architecture models decoding as a sequence-prediction problem. This allows the transformer core to track historical correlations, handling complex noise phenomena such as hardware cross-talk, cosmic rays, and physical qubit leakage.",
+    description: "以矛盾观审视生活，用实践完成自我迭代",
     bgType: "image",
     bgUrl: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=2000&auto=format&fit=crop",
     overlayOpacity: 70,
@@ -291,7 +292,18 @@ const App: React.FC = () => {
           localStorage.removeItem("alphaqubit_custom_screens_v10");
           return DEFAULT_SCREENS;
         }
-        return parsed;
+        // Force update screen 3 to new values
+        const migrated = parsed.map((s: any) => {
+          if (s.id === 3) {
+            return {
+              ...s,
+              title: "无限进步",
+              description: "以矛盾观审视生活，用实践完成自我迭代"
+            };
+          }
+          return s;
+        });
+        return migrated;
       } catch (e) { console.error(e); }
     }
     return DEFAULT_SCREENS;
@@ -338,13 +350,18 @@ const App: React.FC = () => {
   // Interactive Timeline state on Screen 7
   const [activeTimelinePhase, setActiveTimelinePhase] = useState<number>(1);
 
+  // PDF Secondary Page Interactive State
+  const [isPdfSecondaryPageOpen, setIsPdfSecondaryPageOpen] = useState<boolean>(false);
+
   // Dynamic Marquee Cards State for Screen 4 (which is the 3rd screen, index 2)
   const [marqueeCards, setMarqueeCards] = useState<MarqueeCard[]>(() => {
     const saved = localStorage.getItem("alphaqubit_marquee_cards");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((c: any) => c.id === 1 ? DEFAULT_MARQUEE_CARDS[0] : c);
+        }
       } catch (e) {
         console.error("Failed to parse saved marquee cards", e);
       }
@@ -363,7 +380,9 @@ const App: React.FC = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((c: any) => c.id === 1 ? DEFAULT_MARQUEE_CARDS[0] : c);
+        }
       } catch (e) {
         console.error("Failed to parse saved sphere cards", e);
       }
@@ -383,7 +402,9 @@ const App: React.FC = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((c: any) => c.id === 1 ? DEFAULT_MARQUEE_CARDS[0] : c);
+        }
       } catch (e) {
         console.error("Failed to parse saved dome cards", e);
       }
@@ -402,7 +423,9 @@ const App: React.FC = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((c: any) => c.id === 1 ? DEFAULT_MARQUEE_CARDS[0] : c);
+        }
       } catch (e) {
         console.error("Failed to parse saved trial cards", e);
       }
@@ -722,26 +745,37 @@ const App: React.FC = () => {
     const handleScroll = () => {
       if (container && screens.length > 0) {
         setScrolled(container.scrollTop > 40);
-        // Track which section is currently mostly visible
-        const viewH = container.clientHeight || window.innerHeight || 800;
-        let index = Math.round(container.scrollTop / viewH);
-        if (isNaN(index) || !isFinite(index)) {
-          index = 0;
+        
+        // Compute which screen occupies the most visible area in the scroll container viewport
+        const containerRect = container.getBoundingClientRect();
+        let bestScreenId = activeId;
+        let maxVisibleHeight = -1;
+
+        for (const s of screens) {
+          const el = document.getElementById(`screen-${s.id}`);
+          if (el) {
+            const rect = el.getBoundingClientRect();
+            const visibleTop = Math.max(containerRect.top, rect.top);
+            const visibleBottom = Math.min(containerRect.bottom, rect.bottom);
+            const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+            if (visibleHeight > maxVisibleHeight) {
+              maxVisibleHeight = visibleHeight;
+              bestScreenId = s.id;
+            }
+          }
         }
-        const clampedIndex = Math.max(0, Math.min(screens.length - 1, index));
-        const currentScreen = screens[clampedIndex];
 
         // If programmatically scrolling to a specific slide, lock out manual intermediate triggers
         if (scrollingToRef.current !== null) {
-          if (currentScreen && currentScreen.id === scrollingToRef.current) {
+          if (bestScreenId === scrollingToRef.current) {
             setScrollingTo(null);
             scrollingToRef.current = null;
           }
           return;
         }
 
-        if (currentScreen && currentScreen.id !== activeId) {
-          setActiveId(currentScreen.id);
+        if (bestScreenId !== activeId) {
+          setActiveId(bestScreenId);
         }
       }
     };
@@ -1919,7 +1953,8 @@ const App: React.FC = () => {
                       ][idx % 10],
                       title: card.title,
                       description: card.desc,
-                      link: card.url
+                      link: card.url,
+                      category: card.cat
                     }))}
                     onItemClick={(item) => {
                       const originalCard = sphereCards.find(c => c.id === item.id);
@@ -1994,6 +2029,7 @@ const App: React.FC = () => {
           }
 
           if (s.id === 6) {
+            const activeCard6 = selectedCard6 ? (trialCards.find(c => c.id === selectedCard6.id) || selectedCard6) : null;
             return (
               <section 
                 key={s.id}
@@ -2050,67 +2086,81 @@ const App: React.FC = () => {
                           <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-zinc-950 to-transparent z-10 pointer-events-none" />
 
                           {/* Horizontal flex track with animation */}
-                          <div className="flex gap-6 overflow-hidden">
-                            <div 
-                              className="flex gap-6 animate-marquee-forward"
-                              style={{
-                                animationPlayState: !domeAutoRotate ? 'paused' : undefined,
-                                animationDuration: `${35 / (domeAutoRotateSpeed * 6 || 1)}s`
-                              }}
-                            >
-                              {/* Quadruple clone for seamless looping of any cards amount */}
-                              {[...trialCards, ...trialCards, ...trialCards, ...trialCards].map((card, idx) => {
-                                const defaultImage = [
-                                  "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop", // Qubit Topology
-                                  "https://images.unsplash.com/photo-1507668077129-56e32842fceb?q=80&w=600&auto=format&fit=crop", // Primal Syndrome
-                                  "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=600&auto=format&fit=crop", // Stabilizer Parity
-                                  "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=600&auto=format&fit=crop", // Decoder Mesh
-                                  "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=600&auto=format&fit=crop", // Cosmic Ray Shield
-                                  "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=600&auto=format&fit=crop", // Synergy Routing
-                                  "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop", // Coherent Decay
-                                  "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=600&auto=format&fit=crop", // MWPM Solver
-                                  "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=600&auto=format&fit=crop", // Decoder Latency
-                                  "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=600&auto=format&fit=crop"  // Weight Distribution
-                                ][(card.id - 1) % 10];
-                                
-                                const glowColors: Record<string, string> = {
-                                  indigo: 'rgba(99, 102, 241, 0.65)',
-                                  teal: 'rgba(20, 184, 166, 0.65)',
-                                  amber: 'rgba(245, 158, 11, 0.65)',
-                                  rose: 'rgba(244, 63, 94, 0.65)',
-                                  purple: 'rgba(168, 85, 247, 0.65)',
-                                  emerald: 'rgba(16, 185, 129, 0.65)',
-                                  pink: 'rgba(236, 72, 153, 0.65)',
-                                  sky: 'rgba(14, 165, 233, 0.65)',
-                                  fuchsia: 'rgba(217, 70, 239, 0.65)'
-                                };
-                                const glowColor = glowColors[card.colorType || ''] || 'rgba(59, 130, 246, 0.65)';
+                          {(() => {
+                            const minCardsRequired6 = 12;
+                            const repeats6 = Math.ceil(minCardsRequired6 / Math.max(1, trialCards.length));
+                            const singleGroupCards6: typeof trialCards = [];
+                            for (let r = 0; r < repeats6; r++) {
+                              singleGroupCards6.push(...trialCards);
+                            }
 
-                                return (
-                                  <div
-                                    key={`clone-${card.id}-${idx}`}
-                                    className="flex-shrink-0 cursor-pointer pointer-events-auto"
-                                    style={{ width: '272px' }}
-                                    onClickCapture={() => setSelectedCard6(card)}
-                                  >
-                                    <ProfileCard
-                                      name={card.title}
-                                      title={card.desc}
-                                      handle={card.cat || "TELEMETRY"}
-                                      status="DIAGNOSTIC ACTIVE"
-                                      contactText="Analyze / 诊断"
-                                      avatarUrl={card.image || defaultImage}
-                                      showUserInfo={true}
-                                      enableTilt={false}
-                                      behindGlowEnabled={false}
-                                      behindGlowColor={glowColor}
-                                      onContactClick={() => setSelectedCard6(card)}
-                                    />
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
+                            return (
+                              <div className="flex gap-6 overflow-hidden">
+                                <div 
+                                  className="flex gap-6 animate-marquee-forward hover:[animation-play-state:paused]"
+                                  style={{
+                                    animationPlayState: !domeAutoRotate ? 'paused' : undefined,
+                                    animationDuration: `${35 / (domeAutoRotateSpeed * 6 || 1)}s`
+                                  }}
+                                >
+                                  {[...Array(2)].map((_, groupIdx) => (
+                                    <React.Fragment key={groupIdx}>
+                                      {singleGroupCards6.map((card, idx) => {
+                                        const defaultImage = [
+                                          "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop", // Qubit Topology
+                                          "https://images.unsplash.com/photo-1507668077129-56e32842fceb?q=80&w=600&auto=format&fit=crop", // Primal Syndrome
+                                          "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=600&auto=format&fit=crop", // Stabilizer Parity
+                                          "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=600&auto=format&fit=crop", // Decoder Mesh
+                                          "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=600&auto=format&fit=crop", // Cosmic Ray Shield
+                                          "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=600&auto=format&fit=crop", // Synergy Routing
+                                          "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop", // Coherent Decay
+                                          "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=600&auto=format&fit=crop", // MWPM Solver
+                                          "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=600&auto=format&fit=crop", // Decoder Latency
+                                          "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=600&auto=format&fit=crop"  // Weight Distribution
+                                        ][(card.id - 1) % 10];
+                                        
+                                        const glowColors: Record<string, string> = {
+                                          indigo: 'rgba(99, 102, 241, 0.65)',
+                                          teal: 'rgba(20, 184, 166, 0.65)',
+                                          amber: 'rgba(245, 158, 11, 0.65)',
+                                          rose: 'rgba(244, 63, 94, 0.65)',
+                                          purple: 'rgba(168, 85, 247, 0.65)',
+                                          emerald: 'rgba(16, 185, 129, 0.65)',
+                                          pink: 'rgba(236, 72, 153, 0.65)',
+                                          sky: 'rgba(14, 165, 233, 0.65)',
+                                          fuchsia: 'rgba(217, 70, 239, 0.65)'
+                                        };
+                                        const glowColor = glowColors[card.colorType || ''] || 'rgba(59, 130, 246, 0.65)';
+
+                                        return (
+                                          <div
+                                            key={`clone-${card.id}-${groupIdx}-${idx}`}
+                                            className="flex-shrink-0 cursor-pointer pointer-events-auto"
+                                            style={{ width: '272px' }}
+                                            onClickCapture={() => setSelectedCard6(card)}
+                                          >
+                                            <ProfileCard
+                                              name={card.title}
+                                              title={card.desc}
+                                              handle={card.cat || "TELEMETRY"}
+                                              status="DIAGNOSTIC ACTIVE"
+                                              contactText="Analyze / 诊断"
+                                              avatarUrl={card.image || defaultImage}
+                                              showUserInfo={true}
+                                              enableTilt={true}
+                                              behindGlowEnabled={true}
+                                              behindGlowColor={glowColor}
+                                              onContactClick={() => setSelectedCard6(card)}
+                                            />
+                                          </div>
+                                        );
+                                      })}
+                                    </React.Fragment>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </div>
                       </motion.div>
                     ) : (
@@ -2145,12 +2195,12 @@ const App: React.FC = () => {
                               className="relative w-80 h-[430px] rounded-2xl overflow-hidden border border-zinc-700/60 bg-zinc-950 p-6 flex flex-col justify-between shadow-2xl"
                             >
                               {/* Accent top glow */}
-                              <div className={`absolute top-0 left-0 right-0 h-[4px] bg-gradient-to-r ${getCardColorAndIcon(selectedCard6.colorType).glow}`} />
+                              <div className={`absolute top-0 left-0 right-0 h-[4px] bg-gradient-to-r ${getCardColorAndIcon(activeCard6.colorType).glow}`} />
 
                               {/* Background Image */}
                               <div className="absolute inset-0 z-0 opacity-40">
                                 <img
-                                  src={selectedCard6.image || [
+                                  src={activeCard6.image || [
                                     "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop", // Qubit Topology
                                     "https://images.unsplash.com/photo-1507668077129-56e32842fceb?q=80&w=600&auto=format&fit=crop", // Primal Syndrome
                                     "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=600&auto=format&fit=crop", // Stabilizer Parity
@@ -2161,8 +2211,8 @@ const App: React.FC = () => {
                                     "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=600&auto=format&fit=crop", // MWPM Solver
                                     "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=600&auto=format&fit=crop", // Decoder Latency
                                     "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=600&auto=format&fit=crop"  // Weight Distribution
-                                  ][(selectedCard6.id - 1) % 10]}
-                                  alt={selectedCard6.title}
+                                  ][(activeCard6.id - 1) % 10]}
+                                  alt={activeCard6.title}
                                   referrerPolicy="no-referrer"
                                   className="w-full h-full object-cover scale-105"
                                 />
@@ -2172,10 +2222,10 @@ const App: React.FC = () => {
                               {/* Top */}
                               <div className="relative z-10 flex items-center justify-between">
                                 <span className="px-2.5 py-0.5 rounded-md bg-zinc-900/90 text-zinc-400 text-[10px] font-mono tracking-widest border border-zinc-800">
-                                  {selectedCard6.cat || "DIAGNOSTIC CARD"}
+                                  {activeCard6.cat || "DIAGNOSTIC CARD"}
                                 </span>
-                                <div className={`p-1.5 rounded-lg border ${getCardColorAndIcon(selectedCard6.colorType).style}`}>
-                                  {React.createElement(getCardColorAndIcon(selectedCard6.colorType).icon || Sparkles, { className: "w-4 h-4" })}
+                                <div className={`p-1.5 rounded-lg border ${getCardColorAndIcon(activeCard6.colorType).style}`}>
+                                  {React.createElement(getCardColorAndIcon(activeCard6.colorType).icon || Sparkles, { className: "w-4 h-4" })}
                                 </div>
                               </div>
 
@@ -2183,13 +2233,13 @@ const App: React.FC = () => {
                               <div className="relative z-10 space-y-3">
                                 <span className="text-[10px] font-mono text-amber-500 font-bold block tracking-widest">ACTIVE DIAGNOSTIC SLOT</span>
                                 <h3 className="text-xl font-display font-bold text-white tracking-tight">
-                                  {selectedCard6.title}
+                                  {activeCard6.title}
                                 </h3>
                                 <p className="text-xs text-zinc-300 font-sans leading-relaxed">
-                                  {selectedCard6.desc}
+                                  {activeCard6.desc}
                                 </p>
                                 <div className="pt-2 flex items-center justify-between border-t border-zinc-900/80 text-[10px] font-mono text-zinc-500">
-                                  <span>SYS ID: {selectedCard6.id.toString().padStart(4, '0')}</span>
+                                  <span>SYS ID: {activeCard6.id.toString().padStart(4, '0')}</span>
                                   <span className="text-emerald-500 animate-pulse">● SIGNAL ESTABLISHED</span>
                                 </div>
                               </div>
@@ -2206,10 +2256,10 @@ const App: React.FC = () => {
                             >
                               <div className="space-y-2">
                                 <span className="px-3 py-1 bg-zinc-900 border border-zinc-800 text-zinc-400 rounded-md text-[10px] font-mono tracking-widest uppercase">
-                                  MODULE CONFIG: {selectedCard6.cat || "GENERAL PROTOCOL"}
+                                  MODULE CONFIG: {activeCard6.cat || "GENERAL PROTOCOL"}
                                 </span>
                                 <h1 className="text-3xl md:text-5xl font-display font-bold tracking-tight text-white uppercase leading-none">
-                                  {selectedCard6.title}
+                                  {activeCard6.title}
                                 </h1>
                               </div>
 
@@ -2218,7 +2268,7 @@ const App: React.FC = () => {
                                   ANALYSIS SUMMARY / 诊断摘要
                                 </h4>
                                 <p className="text-sm text-zinc-300 font-sans leading-relaxed">
-                                  {selectedCard6.desc} This quantum module represents a core logical structure within AlphaQubit's decoders. Physical calibration data demonstrates optimized microwave parameters and high coherence maintenance.
+                                  {activeCard6.desc} This quantum module represents a core logical structure within AlphaQubit's decoders. Physical calibration data demonstrates optimized microwave parameters and high coherence maintenance.
                                 </p>
                               </div>
 
@@ -2240,9 +2290,9 @@ const App: React.FC = () => {
 
                               {/* Interactive Actions */}
                               <div className="flex flex-wrap items-center gap-4 pt-4">
-                                {selectedCard6.url && (
+                                {activeCard6.url && (
                                   <a
-                                    href={selectedCard6.url}
+                                    href={activeCard6.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-bold rounded-xl text-xs font-mono tracking-widest uppercase transition-all shadow-lg cursor-pointer"
@@ -2325,9 +2375,6 @@ const App: React.FC = () => {
 
                     {/* Infinite Marquee Left to Right Container */}
                     <div className="relative w-[100vw] left-1/2 -translate-x-1/2 py-8 overflow-hidden select-none my-2 bg-transparent">
-                       {/* Gradient Overlays for smooth side fades */}
-                      <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-zinc-950 to-transparent z-10 pointer-events-none" />
-                      <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-zinc-950 to-transparent z-10 pointer-events-none" />
                       
                       {/* Flex track running marquee animation. Hovering pauses the animation as requested. */}
                       {(() => {
@@ -2350,7 +2397,7 @@ const App: React.FC = () => {
                                     <div 
                                       key={`${groupIdx}-${idx}-${card.id}`}
                                       onClick={() => handleCardClick(card)}
-                                      className={`w-[270px] shrink-0 p-5 rounded-2xl bg-zinc-900/80 border border-zinc-800 backdrop-blur-md shadow-lg transition-all duration-300 flex flex-col justify-between text-left group/card cursor-pointer ${colorStyle}`}
+                                      className={`w-[270px] shrink-0 p-5 rounded-2xl glassmorphism-card hover:-translate-y-1.5 hover:scale-[1.01] flex flex-col justify-between text-left group/card cursor-pointer ${colorStyle}`}
                                     >
                                       <div>
                                         <div className="flex items-center justify-between mb-4">
@@ -2361,10 +2408,10 @@ const App: React.FC = () => {
                                             <CardIcon className="w-3.5 h-3.5" />
                                           </div>
                                         </div>
-                                        <h3 className="font-display font-semibold text-white text-xs group-hover/card:text-amber-400 transition-colors mb-2">
-                                          {card.title}
+                                        <h3 className="font-display font-bold text-white text-sm md:text-base group-hover/card:text-amber-400 transition-colors mb-2">
+                                          {card.title.length > 20 ? card.title.substring(0, 20) + "..." : card.title}
                                         </h3>
-                                        <p className="text-zinc-400 text-[10.5px] leading-relaxed font-sans font-light h-12 overflow-hidden text-ellipsis">
+                                        <p className="text-zinc-400 text-[10.5px] leading-relaxed font-sans font-light line-clamp-3 h-auto">
                                           {card.desc}
                                         </p>
                                       </div>
@@ -2533,6 +2580,11 @@ const App: React.FC = () => {
                         <a 
                           href={s.ctaUrl || "#"}
                           onClick={(e) => {
+                            if (s.id === 2) {
+                              e.preventDefault();
+                              setIsPdfSecondaryPageOpen(true);
+                              return;
+                            }
                             if (s.ctaUrl?.startsWith('#')) {
                               e.preventDefault();
                               const targetId = parseInt(s.ctaUrl.replace('#screen-', '')) || (s.id + 1);
@@ -2612,7 +2664,7 @@ const App: React.FC = () => {
 
                     {/* Screen 7: Dynamic selected step text detail inside frame */}
                     {s.id === 7 && (
-                      <div className="w-full max-w-md aspect-[4/3] bg-zinc-900/80 border border-zinc-800 rounded-2xl p-6 shadow-2xl flex flex-col justify-between relative overflow-hidden backdrop-blur-md">
+                      <div className="w-full max-w-md aspect-[4/3] glassmorphism-card rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden">
                         <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
@@ -2651,7 +2703,7 @@ const App: React.FC = () => {
 
                     {/* Screen 8: Rich visual testimonial card wrapper with golden glow */}
                     {s.id === 8 && (
-                      <div className="w-full max-w-md aspect-[4/3] bg-zinc-900 border border-zinc-800/80 rounded-2xl p-6 shadow-2xl relative overflow-hidden flex flex-col justify-between">
+                      <div className="w-full max-w-md aspect-[4/3] glassmorphism-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 blur-xl rounded-full" />
                         <div className="text-4xl text-amber-400 font-serif leading-none">“</div>
                         <p className="text-sm md:text-base text-zinc-200 font-serif italic leading-relaxed relative z-10">
@@ -2674,7 +2726,7 @@ const App: React.FC = () => {
 
                     {/* Screen 9: Mock headquarters location address and real clock */}
                     {s.id === 9 && (
-                      <div className="w-full max-w-md bg-zinc-900 text-zinc-300 rounded-2xl p-6 border border-zinc-800/80 shadow-2xl space-y-4">
+                      <div className="w-full max-w-md glassmorphism-card text-zinc-300 rounded-2xl p-6 space-y-4">
                         <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
                           <span className="text-xs text-white uppercase tracking-wider font-bold font-display">AlphaQubit Headquarters</span>
                           <span className="text-xs text-amber-500 font-mono font-bold animate-pulse">{currentTime} UTC</span>
@@ -3403,122 +3455,67 @@ const App: React.FC = () => {
 
       {/* Immersive Card Detail Simulation View / 卡片模拟量子详情弹窗 (空页面跳转完美高保真方案) */}
       <AnimatePresence>
-        {activeCardDetail && (
-          <div className="fixed inset-0 bg-zinc-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4 lg:p-12 overflow-y-auto">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ type: "spring", damping: 30, stiffness: 150 }}
-              className="w-full max-w-4xl max-h-[75vh] md:max-h-[60vh] bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-row text-left relative overflow-hidden"
-            >
-              {/* Futuristic glowing backdrop */}
-              <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full filter blur-[120px] pointer-events-none" />
-              
-              {/* Left: Image Panel */}
-              <div className="w-2/5 relative bg-zinc-950 flex-shrink-0 border-r border-zinc-800 hidden sm:block">
-                {activeCardDetail.image ? (
-                  <img 
-                    src={activeCardDetail.image} 
-                    alt={activeCardDetail.title} 
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 hover:scale-105" 
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div className="absolute inset-0 w-full h-full flex items-center justify-center text-zinc-600 font-mono text-xs flex-col gap-2">
-                    <span className="text-2xl opacity-20">◉</span>
-                    [NO IMAGE AVAILABLE]
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/20 to-transparent pointer-events-none" />
-                
-                <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
-                  <div className="space-y-1">
-                    <span className="block text-[9px] font-mono text-emerald-400 font-bold bg-zinc-950/80 px-2 py-0.5 rounded backdrop-blur-sm border border-emerald-500/20 w-fit">● ONLINE</span>
-                  </div>
-                  <span className="text-[9px] font-mono text-zinc-500 bg-zinc-950/80 px-2 py-0.5 rounded backdrop-blur-sm border border-zinc-800">DX-6048</span>
-                </div>
-              </div>
+        {activeCardDetail && (() => {
+          const { glow: colorGlow } = getCardColorAndIcon(activeCardDetail.colorType);
+          return (
+            <div className="fixed inset-0 bg-zinc-950/85 backdrop-blur-xl z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 30, scale: 0.95 }}
+                transition={{ type: "spring", damping: 25, stiffness: 180 }}
+                className="w-full max-w-lg bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden flex flex-col max-h-[85vh] md:max-h-[80vh]"
+              >
+                {/* Background glow matching card theme */}
+                <div className={`absolute -top-40 left-1/2 -translate-x-1/2 w-80 h-80 bg-gradient-to-b ${colorGlow} rounded-full filter blur-[60px] opacity-60 pointer-events-none`} />
 
-              {/* Right: Content Panel */}
-              <div className="w-full sm:w-3/5 p-5 sm:p-8 flex flex-col gap-4 overflow-y-auto z-10 bg-zinc-900">
-                <div className="flex justify-between items-start shrink-0">
-                  <div className="space-y-2">
-                    <span className="font-mono text-amber-500 text-[9px] tracking-widest font-bold uppercase block bg-amber-500/10 px-2 py-0.5 rounded w-fit border border-amber-500/20">
-                      DIAGNOSTIC
+                {/* Close Button */}
+                <button
+                  onClick={() => setActiveCardDetail(null)}
+                  className="absolute top-4 right-4 p-2 bg-zinc-950/40 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white rounded-full transition-all cursor-pointer shadow-md z-20"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+
+                {/* Scrollable Content Area */}
+                <div className="flex-1 overflow-y-auto pr-1 md:pr-2 my-4 z-10 flex flex-col items-center text-center w-full scrollbar-thin scrollbar-thumb-zinc-800">
+                  {/* Category Pill */}
+                  {activeCardDetail.cat && (
+                    <span className="font-mono text-amber-500 text-[10px] tracking-[0.2em] font-extrabold uppercase bg-amber-500/5 px-3 py-1 rounded-full border border-amber-500/10 mb-4 block w-fit shrink-0">
+                      {activeCardDetail.cat}
                     </span>
-                    <h2 className="text-xl sm:text-2xl font-display font-bold text-white tracking-tight">
-                      {activeCardDetail.title}
-                    </h2>
-                    <span className="inline-block px-1.5 py-0.5 bg-zinc-800 text-zinc-400 font-mono text-[9px] rounded uppercase tracking-widest">
-                      {activeCardDetail.cat || "VIRTUAL MODULE"}
-                    </span>
-                  </div>
+                  )}
+
+                  {/* Main Title */}
+                  <h2 className="text-2xl md:text-3xl font-display font-black text-white tracking-tight leading-snug max-w-md break-words shrink-0">
+                    {activeCardDetail.title}
+                  </h2>
+
+                  {/* Subtle Divider */}
+                  <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-zinc-700 to-transparent my-5 shrink-0" />
+
+                  {/* Subtitle / Description */}
+                  <p className="text-zinc-300 text-sm md:text-base font-sans font-light leading-relaxed max-w-sm mx-auto whitespace-pre-wrap break-words">
+                    {activeCardDetail.desc}
+                  </p>
+                </div>
+
+                {/* Close Action Trigger */}
+                <div className="pt-4 border-t border-zinc-800/40 flex justify-center z-10 shrink-0">
                   <button
                     onClick={() => setActiveCardDetail(null)}
-                    className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded transition-colors cursor-pointer"
+                    className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-750 text-zinc-200 hover:text-white border border-zinc-700/50 rounded-xl text-xs font-mono tracking-widest uppercase transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-95 cursor-pointer"
                   >
-                    <X className="w-4 h-4" />
+                    Close / 关闭
                   </button>
                 </div>
-
-                <div className="space-y-3 shrink-0">
-                  <h4 className="text-[10px] font-mono font-bold tracking-widest text-zinc-500 uppercase">DESCRIPTION & UTILITY</h4>
-                  <p className="text-zinc-300 text-sm font-sans font-light leading-relaxed">
-                    {activeCardDetail.desc || "This chassis slot currently simulates an interactive sandbox node. No external physical routes are defined."}
-                  </p>
-                  <p className="text-zinc-500 text-[11px] font-sans">
-                    💡 <span className="text-amber-500 font-semibold font-mono">Tip:</span> Direct inputs save immediately as text onto this card. Try <code className="bg-zinc-800 px-1 py-0.5 rounded text-amber-500 font-mono text-[10px]">set title NewName</code>.
-                  </p>
-                </div>
-
-                <div className="bg-black border border-zinc-850 rounded-2xl flex flex-col font-mono text-xs shadow-inner flex-1 min-h-[200px]">
-                  <div className="flex items-center justify-between border-b border-zinc-900 pb-3 pt-4 px-4 shrink-0">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-zinc-400 text-[10px] uppercase font-bold tracking-widest">Q-CHASSIS DEBUG CONSOLE</span>
-                    </div>
-                  </div>
-
-                  <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2 flex flex-col text-[11px] text-zinc-300 leading-relaxed font-mono">
-                    {activeCardLogs.map((log, lIdx) => {
-                      let colorType = "text-zinc-300";
-                      if (log.startsWith("guest@alphaqubit:~$")) {
-                        colorType = "text-amber-400";
-                      } else if (log.startsWith("[SUCCESS]")) {
-                        colorType = "text-emerald-400 font-semibold";
-                      } else if (log.startsWith("[ERROR]")) {
-                        colorType = "text-rose-400 font-semibold";
-                      } else if (log.startsWith("[SYS/INIT]") || log.startsWith("[SYS/OK]")) {
-                        colorType = "text-blue-400 font-light";
-                      } else if (log.startsWith("[ROM/WRITE]")) {
-                        colorType = "text-emerald-400 font-semibold";
-                      }
-                      return (
-                        <div key={lIdx} className={`${colorType} whitespace-pre-wrap`}>
-                          {log}
-                        </div>
-                      );
-                    })}
-                    <div ref={terminalEndRef} />
-                  </div>
-
-                  <form onSubmit={handleTerminalSubmit} className="flex items-center gap-2.5 bg-zinc-950 px-4 py-3 rounded-b-2xl border-t border-zinc-900 focus-within:border-amber-500/50 transition-colors shrink-0">
-                    <span className="text-emerald-400 text-[11px] select-none shrink-0">~$</span>
-                    <input 
-                      type="text"
-                      value={terminalInput}
-                      onChange={(e) => setTerminalInput(e.target.value)}
-                      placeholder="Type text notes..."
-                      className="flex-1 bg-transparent border-none outline-none text-white text-[11px] placeholder-zinc-700 font-mono py-0 focus:outline-none focus:ring-0"
-                    />
-                  </form>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
+              </motion.div>
+            </div>
+          );
+        })()}
       </AnimatePresence>
+
+      <PdfDecoderPage isOpen={isPdfSecondaryPageOpen} onClose={() => setIsPdfSecondaryPageOpen(false)} />
 
     </div>
   );

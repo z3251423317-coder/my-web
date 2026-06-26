@@ -388,8 +388,21 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
             </div>
             <div className="pc-content">
               <div className="pc-details">
-                <h3>{name}</h3>
-                <p>{title}</p>
+                <h3>{name && name.length > 20 ? name.substring(0, 20) + "..." : name}</h3>
+                <p style={{ 
+                  whiteSpace: 'normal', 
+                  width: 'auto', 
+                  display: '-webkit-box', 
+                  WebkitLineClamp: 3, 
+                  WebkitBoxOrient: 'vertical', 
+                  overflow: 'hidden', 
+                  textOverflow: 'ellipsis',
+                  top: '0px',
+                  marginTop: '4px',
+                  lineHeight: '1.25',
+                  paddingLeft: '12px',
+                  paddingRight: '12px'
+                }}>{title}</p>
               </div>
             </div>
           </div>
