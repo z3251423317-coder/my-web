@@ -2364,7 +2364,22 @@ const App: React.FC = () => {
                           {s.label} • SYSTEM CHASSIS ARCHITECTURE
                         </span>
                         <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-none">
-                          <ShinyText text={s.title} color="#bdbdbd" shineColor="#ffffff" speed={3} />
+                          <ShinyText 
+                            text={s.title} 
+                            color="#bdbdbd" 
+                            shineColor="#ffffff" 
+                            speed={3} 
+                            style={{ 
+                              marginTop: '17px', 
+                              paddingLeft: '0px', 
+                              paddingTop: '12px', 
+                              marginRight: '0px', 
+                              paddingBottom: '11px', 
+                              paddingRight: '7px', 
+                              fontSize: '49px', 
+                              fontStyle: 'normal' 
+                            }} 
+                          />
                         </h1>
                         <p className="text-zinc-400 text-xs md:text-sm font-sans font-light leading-relaxed max-w-2xl">
                           {s.description}

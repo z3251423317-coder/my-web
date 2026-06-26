@@ -14,6 +14,7 @@ interface ShinyTextProps {
   pauseOnHover?: boolean;
   direction?: 'left' | 'right';
   delay?: number;
+  style?: React.CSSProperties;
 }
 
 const ShinyText: React.FC<ShinyTextProps> = ({
@@ -27,7 +28,8 @@ const ShinyText: React.FC<ShinyTextProps> = ({
   yoyo = false,
   pauseOnHover = false,
   direction = 'left',
-  delay = 0
+  delay = 0,
+  style = {}
 }) => {
   const [isPaused, setIsPaused] = useState(false);
   const progress = useMotionValue(0);
@@ -118,7 +120,7 @@ const ShinyText: React.FC<ShinyTextProps> = ({
   return (
     <motion.span
       className={`shiny-text ${className}`}
-      style={{ ...gradientStyle, backgroundPosition }}
+      style={{ ...gradientStyle, backgroundPosition, ...style }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
