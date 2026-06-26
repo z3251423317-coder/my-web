@@ -2364,7 +2364,7 @@ const App: React.FC = () => {
                           {s.label} • SYSTEM CHASSIS ARCHITECTURE
                         </span>
                         <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-none">
-                          <ShinyText text={s.title} color="#6e6e6e" shineColor="#ffffff" speed={3} />
+                          <ShinyText text={s.title} color="#bdbdbd" shineColor="#ffffff" speed={3} />
                         </h1>
                         <p className="text-zinc-400 text-xs md:text-sm font-sans font-light leading-relaxed max-w-2xl">
                           {s.description}
@@ -2502,7 +2502,7 @@ const App: React.FC = () => {
                     
                     {/* Highly polished headline */}
                     <h1 className={`${s.id === 1 ? 'font-mono text-[86px] leading-[61px]' : 'font-display text-3xl md:text-4xl lg:text-5xl xl:text-6xl'} font-extrabold tracking-tight leading-none text-white drop-shadow-md`}>
-                      <ShinyText text={s.title} color="#6e6e6e" shineColor="#ffffff" speed={3} />
+                      <ShinyText text={s.title} color="#bdbdbd" shineColor="#ffffff" speed={3} />
                     </h1>
 
                     {/* Subheading */}
