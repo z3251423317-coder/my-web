@@ -22,6 +22,7 @@ import InfiniteMenu from './components/InfiniteMenu';
 import DomeGallery from './components/DomeGallery';
 import ProfileCard from './components/ProfileCard';
 import { PdfDecoderPage } from './components/PdfDecoderPage';
+import ShinyText from './components/ShinyText';
 
 export interface MarqueeCard {
   id: number;
@@ -282,7 +283,23 @@ const PRESET_BG_VIDEOS = [
   { name: "Ethereal Sky Dynamics", url: "https://assets.mixkit.co/videos/preview/mixkit-clouds-and-blue-sky-background-from-below-25804-large.mp4" }
 ];
 
+const DEFAULT_DATA_FINGERPRINT = "fp_v15_" + JSON.stringify(DEFAULT_MARQUEE_CARDS).length + "_" + JSON.stringify(DEFAULT_SCREENS).length;
+
 const App: React.FC = () => {
+  // Clear localStorage if code-defined defaults change to solve stale data issues from the root
+  if (typeof window !== "undefined") {
+    const currentFp = localStorage.getItem("alphaqubit_data_fingerprint");
+    if (currentFp !== DEFAULT_DATA_FINGERPRINT) {
+      localStorage.removeItem("alphaqubit_custom_screens_v10");
+      localStorage.removeItem("alphaqubit_pill_nav_items_v4");
+      localStorage.removeItem("alphaqubit_marquee_cards");
+      localStorage.removeItem("alphaqubit_sphere_cards");
+      localStorage.removeItem("alphaqubit_dome_cards");
+      localStorage.removeItem("alphaqubit_trial_cards");
+      localStorage.setItem("alphaqubit_data_fingerprint", DEFAULT_DATA_FINGERPRINT);
+    }
+  }
+
   const [screens, setScreens] = useState<ScreenData[]>(() => {
     const saved = localStorage.getItem("alphaqubit_custom_screens_v10");
     if (saved) {
@@ -360,7 +377,7 @@ const App: React.FC = () => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((c: any) => c.id === 1 ? DEFAULT_MARQUEE_CARDS[0] : c);
+          return parsed;
         }
       } catch (e) {
         console.error("Failed to parse saved marquee cards", e);
@@ -381,7 +398,7 @@ const App: React.FC = () => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((c: any) => c.id === 1 ? DEFAULT_MARQUEE_CARDS[0] : c);
+          return parsed;
         }
       } catch (e) {
         console.error("Failed to parse saved sphere cards", e);
@@ -403,7 +420,7 @@ const App: React.FC = () => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((c: any) => c.id === 1 ? DEFAULT_MARQUEE_CARDS[0] : c);
+          return parsed;
         }
       } catch (e) {
         console.error("Failed to parse saved dome cards", e);
@@ -424,7 +441,7 @@ const App: React.FC = () => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((c: any) => c.id === 1 ? DEFAULT_MARQUEE_CARDS[0] : c);
+          return parsed;
         }
       } catch (e) {
         console.error("Failed to parse saved trial cards", e);
@@ -2347,7 +2364,7 @@ const App: React.FC = () => {
                           {s.label} • SYSTEM CHASSIS ARCHITECTURE
                         </span>
                         <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-none">
-                          {s.title}
+                          <ShinyText text={s.title} color="#6e6e6e" shineColor="#ffffff" speed={3} />
                         </h1>
                         <p className="text-zinc-400 text-xs md:text-sm font-sans font-light leading-relaxed max-w-2xl">
                           {s.description}
@@ -2485,7 +2502,7 @@ const App: React.FC = () => {
                     
                     {/* Highly polished headline */}
                     <h1 className={`${s.id === 1 ? 'font-mono text-[86px] leading-[61px]' : 'font-display text-3xl md:text-4xl lg:text-5xl xl:text-6xl'} font-extrabold tracking-tight leading-none text-white drop-shadow-md`}>
-                      {s.title}
+                      <ShinyText text={s.title} color="#6e6e6e" shineColor="#ffffff" speed={3} />
                     </h1>
 
                     {/* Subheading */}
