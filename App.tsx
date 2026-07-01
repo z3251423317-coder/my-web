@@ -82,17 +82,17 @@ const DEFAULT_SCREENS: ScreenData[] = [
   },
   {
     id: 2,
-    label: "02. Syndrome Map",
-    title: "Interactive Syndrome Logic",
-    subtitle: "Real-time Parity Checks Across Qubit Grids",
-    description: "Interspersed stabilizer watchdogs constantly measure X and Z parity grids inside the processor. Adjust the interactive grid below to observe error propagation and watch stabilizers activate as syndrome signals.",
+    label: "02. Relationship Ecology",
+    title: "甘露与苦药：亲密关系生态解析",
+    subtitle: "论不合适背后亲密关系中情感供需的结构性失衡 (WXJB-2663-001)",
+    description: "点击下方按钮，进入专门为您构建的情感特征失衡解析看板。深度剖析付出者与接受者之间单向情感输出与接收的结构性逆差，将爱之“甘露”化作解构彼此亲密关系的微观密钥。",
     bgType: "gradient",
     bgUrl: "linear-gradient(to right, #0f172a, #050b14)",
     overlayOpacity: 20,
     overlayBlur: 0,
     tintColor: "none",
     align: "left",
-    ctaText: "Trigger Error Cycles",
+    ctaText: "进入情感供需看板 / DECODE NOW",
     ctaUrl: "#screen-3"
   },
   {
