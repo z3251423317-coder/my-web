@@ -283,6 +283,75 @@ const PRESET_BG_VIDEOS = [
   { name: "Ethereal Sky Dynamics", url: "https://assets.mixkit.co/videos/preview/mixkit-clouds-and-blue-sky-background-from-below-25804-large.mp4" }
 ];
 
+interface SafeVideoProps {
+  src: string;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Force muted & playsinline programmatically to bypass React bugs & aggressive browser rules
+    video.defaultMuted = true;
+    video.muted = true;
+    video.setAttribute("playsinline", "true");
+    video.setAttribute("webkit-playsinline", "true");
+    
+    // Attempt playback
+    const playVideo = () => {
+      video.play().catch(err => {
+        console.log("SafeVideo autoPlay blocked, waiting for interaction:", err);
+      });
+    };
+
+    playVideo();
+
+    // Listen for first touch/click to play if autoplay was blocked by mobile settings or low power mode
+    const handleInteraction = () => {
+      if (video && video.paused) {
+        video.play().then(() => {
+          // Success! Remove interaction listeners
+          document.removeEventListener("click", handleInteraction);
+          document.removeEventListener("touchstart", handleInteraction);
+        }).catch(err => {
+          console.log("Interactive play failed:", err);
+        });
+      } else {
+        document.removeEventListener("click", handleInteraction);
+        document.removeEventListener("touchstart", handleInteraction);
+      }
+    };
+
+    document.addEventListener("click", handleInteraction);
+    document.addEventListener("touchstart", handleInteraction);
+
+    return () => {
+      document.removeEventListener("click", handleInteraction);
+      document.removeEventListener("touchstart", handleInteraction);
+    };
+  }, [src]);
+
+  return (
+    <video
+      ref={videoRef}
+      className={className}
+      style={style}
+      loop
+      muted
+      playsInline
+      autoPlay
+      preload="auto"
+    >
+      <source src={src} type="video/mp4" />
+    </video>
+  );
+};
+
 const DEFAULT_DATA_FINGERPRINT = "fp_v16_" + JSON.stringify(DEFAULT_MARQUEE_CARDS).length + "_" + JSON.stringify(DEFAULT_SCREENS).length;
 
 const App: React.FC = () => {
@@ -1865,16 +1934,10 @@ const App: React.FC = () => {
             )}
             
             {activeScreen.bgType === 'video' && (
-              <video 
-                autoPlay 
-                loop 
-                muted 
-                playsInline 
-                key={activeScreen.bgUrl}
+              <SafeVideo 
+                src={activeScreen.bgUrl}
                 className="absolute inset-0 w-full h-full object-cover"
-              >
-                <source src={activeScreen.bgUrl} type="video/mp4" />
-              </video>
+              />
             )}
 
             {activeScreen.bgType === 'gradient' && (
@@ -1894,17 +1957,11 @@ const App: React.FC = () => {
               />
             )}
             {activeScreen.tempBgUrl && activeScreen.tempBgType === 'video' && (
-              <video 
-                autoPlay 
-                loop 
-                muted 
-                playsInline 
-                key={`temp-vid-${activeScreen.tempBgUrl}`}
+              <SafeVideo 
+                src={activeScreen.tempBgUrl}
                 className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 mix-blend-screen"
                 style={{ opacity: (activeScreen.temperature ?? 25) / 100 }}
-              >
-                <source src={activeScreen.tempBgUrl} type="video/mp4" />
-              </video>
+              />
             )}
 
             {/* Customizable blur backdrop and color mask overlay */}
