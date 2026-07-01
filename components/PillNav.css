@@ -28,11 +28,13 @@
   display: flex;
   align-items: center;
   box-sizing: border-box;
-  background: var(--base, #000);
+  background: transparent;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: 9999px;
   padding: 4px;
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4), 0 1px 1px 0 rgba(255, 255, 255, 0.05) inset;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 @media (max-width: 768px) {
@@ -218,10 +220,12 @@
   top: 4.5rem;
   left: 1rem;
   right: 1rem;
-  background: var(--base, #030712);
+  background: rgba(9, 9, 11, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: 20px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   z-index: 998;
   opacity: 0;
   transform-origin: top center;
@@ -240,8 +244,8 @@
 .mobile-menu-popover .mobile-menu-link {
   display: block;
   padding: 12px 16px;
-  color: var(--pill-text, #fff);
-  background-color: var(--pill-bg, #000);
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.05);
   text-decoration: none;
   font-size: 13px;
@@ -255,6 +259,6 @@
 .mobile-menu-popover .mobile-menu-link:hover,
 .mobile-menu-popover .mobile-menu-link.is-active {
   cursor: pointer;
-  background-color: var(--base, #fff);
-  color: var(--hover-text, #000);
+  background-color: #ffffff;
+  color: #000000;
 }

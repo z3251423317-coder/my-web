@@ -71,8 +71,8 @@ const DEFAULT_SCREENS: ScreenData[] = [
     title: "塑造",
     subtitle: "我不在执迷寻找\n我是谁由我自己塑造",
     description: "A state-of-the-art recurrent, transformer-based neural network model that learns to decode surface code errors with unprecedented reliability on real quantum processors.",
-    bgType: "image",
-    bgUrl: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2000&auto=format&fit=crop",
+    bgType: "video",
+    bgUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%8F%91%E7%8E%B0%E6%9B%B4%E5%A4%9A%E7%B2%BE%E5%BD%A9%E8%A7%86%E9%A2%91%20-%20%E6%8A%96%E9%9F%B3%E6%90%9C%E7%B4%A2.mp4",
     overlayOpacity: 45,
     overlayBlur: 0,
     tintColor: "slate",
@@ -283,15 +283,15 @@ const PRESET_BG_VIDEOS = [
   { name: "Ethereal Sky Dynamics", url: "https://assets.mixkit.co/videos/preview/mixkit-clouds-and-blue-sky-background-from-below-25804-large.mp4" }
 ];
 
-const DEFAULT_DATA_FINGERPRINT = "fp_v15_" + JSON.stringify(DEFAULT_MARQUEE_CARDS).length + "_" + JSON.stringify(DEFAULT_SCREENS).length;
+const DEFAULT_DATA_FINGERPRINT = "fp_v16_" + JSON.stringify(DEFAULT_MARQUEE_CARDS).length + "_" + JSON.stringify(DEFAULT_SCREENS).length;
 
 const App: React.FC = () => {
   // Clear localStorage if code-defined defaults change to solve stale data issues from the root
   if (typeof window !== "undefined") {
     const currentFp = localStorage.getItem("alphaqubit_data_fingerprint");
     if (currentFp !== DEFAULT_DATA_FINGERPRINT) {
-      localStorage.removeItem("alphaqubit_custom_screens_v10");
-      localStorage.removeItem("alphaqubit_pill_nav_items_v4");
+      localStorage.removeItem("alphaqubit_custom_screens_v11");
+      localStorage.removeItem("alphaqubit_pill_nav_items_v5");
       localStorage.removeItem("alphaqubit_marquee_cards");
       localStorage.removeItem("alphaqubit_sphere_cards");
       localStorage.removeItem("alphaqubit_dome_cards");
@@ -301,12 +301,12 @@ const App: React.FC = () => {
   }
 
   const [screens, setScreens] = useState<ScreenData[]>(() => {
-    const saved = localStorage.getItem("alphaqubit_custom_screens_v10");
+    const saved = localStorage.getItem("alphaqubit_custom_screens_v11");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         if (!parsed.some((s: any) => s.id === 9)) {
-          localStorage.removeItem("alphaqubit_custom_screens_v10");
+          localStorage.removeItem("alphaqubit_custom_screens_v11");
           return DEFAULT_SCREENS;
         }
         // Force update screen 3 to new values
@@ -329,12 +329,12 @@ const App: React.FC = () => {
   const [activeId, setActiveId] = useState<number>(1);
 
   const [pillNavItems, setPillNavItems] = useState<PillNavItem[]>(() => {
-    const saved = localStorage.getItem("alphaqubit_pill_nav_items_v4");
+    const saved = localStorage.getItem("alphaqubit_pill_nav_items_v5");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         if (!parsed.some((item: any) => item.href === "#screen-6")) {
-          localStorage.removeItem("alphaqubit_pill_nav_items_v4");
+          localStorage.removeItem("alphaqubit_pill_nav_items_v5");
           // return default below
         } else {
           return parsed;
@@ -342,17 +342,17 @@ const App: React.FC = () => {
       } catch (e) { console.error(e); }
     }
     return [
-      { label: "Home", href: "#screen-1" },
-      { label: "Decoder", href: "#screen-3" },
-      { label: "Gallery", href: "#screen-5" },
-      { label: "Trial Deck", href: "#screen-6" },
-      { label: "Roadmap", href: "#screen-7" },
+      { label: "首页", href: "#screen-1" },
+      { label: "无限进步", href: "#screen-3" },
+      { label: "建设中", href: "#screen-5" },
+      { label: "建设中", href: "#screen-6" },
+      { label: "建设中", href: "#screen-7" },
     ];
   });
 
   const savePillNavItemsToStorage = (updated: PillNavItem[]) => {
     setPillNavItems(updated);
-    localStorage.setItem("alphaqubit_pill_nav_items_v4", JSON.stringify(updated));
+    localStorage.setItem("alphaqubit_pill_nav_items_v5", JSON.stringify(updated));
   };
   const [scrolled, setScrolled] = useState<boolean>(false);
   const [scrollingTo, setScrollingTo] = useState<number | null>(null);
@@ -691,13 +691,13 @@ const App: React.FC = () => {
   // Save changes to localStorage
   const saveToStorage = (updated: ScreenData[]) => {
     setScreens(updated);
-    localStorage.setItem("alphaqubit_custom_screens_v10", JSON.stringify(updated));
+    localStorage.setItem("alphaqubit_custom_screens_v11", JSON.stringify(updated));
   };
 
   const updateScreenField = (field: keyof ScreenData, value: any) => {
     setScreens(prev => {
       const updated = prev.map(s => s.id === activeId ? { ...s, [field]: value } : s);
-      localStorage.setItem("alphaqubit_custom_screens_v10", JSON.stringify(updated));
+      localStorage.setItem("alphaqubit_custom_screens_v11", JSON.stringify(updated));
       return updated;
     });
   };
@@ -705,7 +705,7 @@ const App: React.FC = () => {
   const updateScreenFields = (fields: Partial<ScreenData>) => {
     setScreens(prev => {
       const updated = prev.map(s => s.id === activeId ? { ...s, ...fields } : s);
-      localStorage.setItem("alphaqubit_custom_screens_v10", JSON.stringify(updated));
+      localStorage.setItem("alphaqubit_custom_screens_v11", JSON.stringify(updated));
       return updated;
     });
   };
@@ -713,13 +713,13 @@ const App: React.FC = () => {
   const handleResetToDefault = () => {
     if (window.confirm("确定要重置当前的所有自定义文案、图片、视频背景以及导航选项吗？")) {
       saveToStorage(DEFAULT_SCREENS);
-      localStorage.removeItem("alphaqubit_pill_nav_items_v4");
+      localStorage.removeItem("alphaqubit_pill_nav_items_v5");
       setPillNavItems([
-        { label: "Home", href: "#screen-1" },
-        { label: "Decoder", href: "#screen-3" },
-        { label: "Gallery", href: "#screen-5" },
-        { label: "Trial Deck", href: "#screen-6" },
-        { label: "Roadmap", href: "#screen-7" },
+        { label: "首页", href: "#screen-1" },
+        { label: "无限进步", href: "#screen-3" },
+        { label: "建设中", href: "#screen-5" },
+        { label: "建设中", href: "#screen-6" },
+        { label: "建设中", href: "#screen-7" },
       ]);
       setActiveId(1);
     }
@@ -1718,10 +1718,10 @@ const App: React.FC = () => {
               window.open(item.href, '_blank');
             }
           }}
-          baseColor="#09090b"
-          pillColor="#18181b"
-          pillTextColor="#e4e4e7"
-          hoveredPillTextColor="#f59e0b"
+          baseColor="#ffffff"
+          pillColor="rgba(255, 255, 255, 0.05)"
+          pillTextColor="#ffffff"
+          hoveredPillTextColor="#000000"
         />
       ) : (
         /* Floating Brand Badge (Minimal & Floating) - Only on other screens to keep focus clean */
@@ -1737,7 +1737,7 @@ const App: React.FC = () => {
       {/* Elegant, Minimalist Page-Level Navigation Suite (Fixed on Display Page) */}
       <div className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2 pointer-events-auto">
         {/* Screen Counter Badge */}
-        <div className="px-2.5 py-1 bg-zinc-950/80 border border-zinc-800/80 rounded-full font-mono text-[9px] tracking-widest text-zinc-400 font-bold backdrop-blur-md shadow-lg select-none">
+        <div className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-full font-mono text-[9px] tracking-widest text-zinc-200 font-bold backdrop-blur-md shadow-lg select-none">
           {activeId.toString().padStart(2, '0')} / {screens.length.toString().padStart(2, '0')}
         </div>
 
@@ -1753,7 +1753,7 @@ const App: React.FC = () => {
           }}
           disabled={activeId === screens[0]?.id || scrollingTo !== null}
           title="Previous Screen / 上一屏"
-          className="p-2.5 bg-zinc-950/80 border border-zinc-800/80 hover:border-zinc-700 hover:bg-zinc-900 rounded-full backdrop-blur-md text-zinc-400 hover:text-white transition-all cursor-pointer shadow-lg disabled:opacity-30 disabled:pointer-events-none active:scale-90"
+          className="p-2.5 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 rounded-full backdrop-blur-md text-zinc-300 hover:text-white transition-all cursor-pointer shadow-lg disabled:opacity-30 disabled:pointer-events-none active:scale-90"
         >
           <ChevronUp className="w-4 h-4" />
         </button>
@@ -1770,7 +1770,7 @@ const App: React.FC = () => {
           }}
           disabled={activeId === screens[screens.length - 1]?.id || scrollingTo !== null}
           title="Next Screen / 下一屏"
-          className="p-2.5 bg-zinc-950/80 border border-zinc-800/80 hover:border-zinc-700 hover:bg-zinc-900 rounded-full backdrop-blur-md text-zinc-400 hover:text-white transition-all cursor-pointer shadow-lg disabled:opacity-30 disabled:pointer-events-none active:scale-90"
+          className="p-2.5 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 rounded-full backdrop-blur-md text-zinc-300 hover:text-white transition-all cursor-pointer shadow-lg disabled:opacity-30 disabled:pointer-events-none active:scale-90"
         >
           <ChevronDown className="w-4 h-4" />
         </button>
@@ -2829,7 +2829,7 @@ const App: React.FC = () => {
       </div>
 
       {/* Floating Right Indicator Navigation Dots */}
-      <div className="absolute right-6 top-1/2 transform -translate-y-1/2 z-30 hidden md:flex flex-col gap-3 p-3 bg-zinc-950/80 border border-zinc-800/80 rounded-full backdrop-blur-md shadow-lg">
+      <div className="absolute right-6 top-1/2 transform -translate-y-1/2 z-30 hidden md:flex flex-col gap-3 p-3 bg-white/5 border border-white/10 rounded-full backdrop-blur-md shadow-lg">
         {screens.map(s => (
           <button 
             key={s.id}
@@ -2838,11 +2838,11 @@ const App: React.FC = () => {
             title={s.label}
           >
             {/* Tooltip trigger name */}
-            <span className="absolute right-8 px-2 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-[10px] text-white tracking-wider opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap uppercase">
+            <span className="absolute right-8 px-2 py-0.5 bg-zinc-950/90 border border-white/10 rounded text-[10px] text-white tracking-wider opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap uppercase backdrop-blur-md">
               {s.label}
             </span>
             <div className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-              activeId === s.id ? 'bg-amber-400 scale-125 ring-2 ring-amber-500/50' : 'bg-zinc-600 hover:bg-zinc-300'
+              activeId === s.id ? 'bg-amber-400 scale-125 ring-2 ring-amber-500/50' : 'bg-zinc-600/60 hover:bg-zinc-100'
             }`} />
           </button>
         ))}

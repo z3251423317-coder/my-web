@@ -1340,8 +1340,11 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick }: I
             </span>
           </div>
 
-          {/* Centered item details */}
-          <div className="flex flex-col items-center text-center max-w-xl mx-auto my-auto pt-16">
+          {/* Spacer to maintain flex layout for top and bottom elements */}
+          <div />
+
+          {/* Centered item details in the absolute center of the 3D sphere */}
+          <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center text-center w-[90%] max-w-xl pointer-events-none z-10">
             <h2 className={`font-display font-extrabold text-2xl md:text-3xl text-white tracking-tight drop-shadow-lg mb-3 transition-all duration-500 ${isMoving ? 'opacity-0 scale-95 blur-sm' : 'opacity-100 scale-100'}`}>
               {activeItem.title}
             </h2>
@@ -1352,7 +1355,7 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick }: I
           </div>
 
           {/* Bottom active action button */}
-          <div className="flex justify-center pb-2">
+          <div className="flex justify-center pb-48 sm:pb-2">
             <button
               onClick={handleButtonClick}
               className={`pointer-events-auto group inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 text-xs font-bold font-display tracking-widest uppercase rounded-xl shadow-xl transition-all duration-500 transform cursor-pointer ${

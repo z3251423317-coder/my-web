@@ -46,30 +46,34 @@ export const SurfaceCodeDiagram: React.FC = () => {
   });
 
   return (
-    <div className="flex flex-col items-center p-8 bg-white rounded-xl shadow-sm border border-stone-200 my-8">
-      <h3 className="font-serif text-xl mb-4 text-stone-800">Interactive: Surface Code Detection</h3>
-      <p className="text-sm text-stone-500 mb-6 text-center max-w-md">
-        Click the grey <strong>Data Qubits</strong> to inject errors. Watch the colored <strong>Stabilizers</strong> light up when they detect an odd number of errors.
+    <div className="flex flex-col items-center p-8 glassmorphism-card rounded-2xl shadow-2xl my-8 border border-white/10">
+      <h3 className="font-display text-xl mb-4 text-white font-bold tracking-tight">Interactive: Surface Code Detection</h3>
+      <p className="text-xs text-zinc-400 mb-6 text-center max-w-md font-sans font-light leading-relaxed">
+        Click the dark <strong className="text-zinc-300 font-semibold">Data Qubits</strong> to inject errors. Watch the colored <strong className="text-zinc-300 font-semibold">Stabilizers</strong> light up when they detect an odd number of errors.
       </p>
       
-      <div className="relative w-64 h-64 bg-[#F5F4F0] rounded-lg border border-stone-200 p-4 flex flex-wrap justify-between content-between relative">
+      <div className="relative w-64 h-64 bg-zinc-950/50 rounded-xl border border-zinc-800/80 p-4 flex flex-wrap justify-between content-between">
          {/* Grid Lines */}
-         <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-20">
-            <div className="w-2/3 h-2/3 border border-stone-400"></div>
-            <div className="absolute w-full h-[1px] bg-stone-400"></div>
-            <div className="absolute h-full w-[1px] bg-stone-400"></div>
+         <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-30">
+            <div className="w-2/3 h-2/3 border border-zinc-700/60"></div>
+            <div className="absolute w-full h-[1px] bg-zinc-700/60"></div>
+            <div className="absolute h-full w-[1px] bg-zinc-700/60"></div>
          </div>
 
          {/* Stabilizers (Z=Blue, X=Red) - positioned absolutely for control */}
          {[
-             {id: 0, x: '50%', y: '20%', type: 'Z', color: 'bg-blue-500'},
-             {id: 1, x: '20%', y: '50%', type: 'X', color: 'bg-red-500'},
-             {id: 2, x: '80%', y: '50%', type: 'X', color: 'bg-red-500'},
-             {id: 3, x: '50%', y: '80%', type: 'Z', color: 'bg-blue-500'},
+             {id: 0, x: '50%', y: '20%', type: 'Z', color: 'bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.6)]'},
+             {id: 1, x: '20%', y: '50%', type: 'X', color: 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.6)]'},
+             {id: 2, x: '80%', y: '50%', type: 'X', color: 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.6)]'},
+             {id: 3, x: '50%', y: '80%', type: 'Z', color: 'bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.6)]'},
          ].map(stab => (
              <motion.div
                 key={`stab-${stab.id}`}
-                className={`absolute w-10 h-10 -ml-5 -mt-5 flex items-center justify-center text-white text-xs font-bold rounded-sm shadow-sm transition-all duration-300 ${activeStabilizers.includes(stab.id) ? stab.color + ' opacity-100 scale-110 ring-4 ring-offset-2 ring-stone-200' : 'bg-stone-300 opacity-40'}`}
+                className={`absolute w-10 h-10 -ml-5 -mt-5 flex items-center justify-center text-white text-xs font-bold rounded-lg shadow-md transition-all duration-300 ${
+                  activeStabilizers.includes(stab.id) 
+                    ? stab.color + ' opacity-100 scale-110 ring-2 ring-white/30' 
+                    : 'bg-zinc-800/80 text-zinc-500 border border-zinc-700/30 opacity-40'
+                }`}
                 style={{ left: stab.x, top: stab.y }}
              >
                  {stab.type}
@@ -85,22 +89,26 @@ export const SurfaceCodeDiagram: React.FC = () => {
              <button
                 key={`data-${q.id}`}
                 onClick={() => toggleError(q.id)}
-                className={`absolute w-8 h-8 -ml-4 -mt-4 rounded-full border-2 flex items-center justify-center transition-all duration-200 z-10 ${errors.includes(q.id) ? 'bg-stone-800 border-stone-900 text-nobel-gold' : 'bg-white border-stone-300 hover:border-stone-500'}`}
+                className={`absolute w-8 h-8 -ml-4 -mt-4 rounded-full border-2 flex items-center justify-center transition-all duration-200 z-10 ${
+                  errors.includes(q.id) 
+                    ? 'bg-amber-500 border-amber-400 text-zinc-950 scale-110 shadow-[0_0_12px_rgba(245,158,11,0.6)]' 
+                    : 'bg-zinc-900 border-zinc-700 hover:border-zinc-500 text-zinc-400 hover:text-white hover:scale-105 cursor-pointer'
+                }`}
                 style={{ left: q.x, top: q.y }}
              >
-                {errors.includes(q.id) && <Activity size={14} />}
+                {errors.includes(q.id) && <Activity size={14} className="animate-pulse" />}
              </button>
          ))}
       </div>
 
-      <div className="mt-6 flex items-center gap-4 text-xs font-mono text-stone-500">
-          <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-stone-800"></div> Error</div>
-          <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-blue-500"></div> Z-Check</div>
-          <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-red-500"></div> X-Check</div>
+      <div className="mt-6 flex items-center gap-4 text-xs font-mono text-zinc-400">
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.5)]"></div> Error</div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-md bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.5)]"></div> Z-Check</div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-md bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]"></div> X-Check</div>
       </div>
       
-      <div className="mt-4 h-6 text-sm font-serif italic text-stone-600">
-        {errors.length === 0 ? "System is stable." : `Detected ${activeStabilizers.length} parity violations.`}
+      <div className="mt-4 h-6 text-xs font-mono text-amber-400 tracking-wider">
+        {errors.length === 0 ? "SYSTEM STABLE / 暂无错误异常" : `VIOLATIONS DETECTED: ${activeStabilizers.length} CHECK(S) TRIPPED`}
       </div>
     </div>
   );
