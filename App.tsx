@@ -101,8 +101,8 @@ const DEFAULT_SCREENS: ScreenData[] = [
     title: "无限进步",
     subtitle: "Parsing complex spatial & temporal error clusters",
     description: "以矛盾观审视生活，用实践完成自我迭代",
-    bgType: "image",
-    bgUrl: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=2000&auto=format&fit=crop",
+    bgType: "video",
+    bgUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E4%B8%80%E8%84%9A%E8%B8%A9%E5%88%B0%E6%B0%B4%E5%9D%91%E9%87%8C%E7%9A%84%E6%8A%96%E9%9F%B3%20-%20%E6%8A%96%E9%9F%B3.mp4",
     overlayOpacity: 70,
     overlayBlur: 3,
     tintColor: "indigo",
@@ -220,7 +220,7 @@ const THEME_PACKS = [
     accent: "text-cyan-400 border-cyan-400 hover:bg-cyan-400",
     screens: DEFAULT_SCREENS.map((s, idx) => ({
       ...s,
-      bgType: idx % 2 === 0 ? "video" : "gradient",
+      bgType: (idx % 2 === 0 ? "video" : "gradient") as BackgroundType,
       bgUrl: idx % 2 === 0 
         ? "https://assets.mixkit.co/videos/preview/mixkit-abstract-laser-lights-background-3112-large.mp4"
         : "linear-gradient(225deg, #09090b 0%, #1e1b4b 70%, #581c87 100%)",
@@ -237,7 +237,7 @@ const THEME_PACKS = [
     accent: "text-[#c5a059] border-[#c5a059] hover:bg-[#c5a059]",
     screens: DEFAULT_SCREENS.map((s, idx) => ({
       ...s,
-      bgType: "image",
+      bgType: "image" as BackgroundType,
       bgUrl: idx % 2 === 0
         ? "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2000"
         : "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=2000",
@@ -254,7 +254,7 @@ const THEME_PACKS = [
     accent: "text-teal-400 border-teal-500 hover:bg-teal-500",
     screens: DEFAULT_SCREENS.map((s, idx) => ({
       ...s,
-      bgType: idx % 3 === 0 ? "video" : "image",
+      bgType: (idx % 3 === 0 ? "video" : "image") as BackgroundType,
       bgUrl: idx % 3 === 0
         ? "https://assets.mixkit.co/videos/preview/mixkit-clouds-and-blue-sky-background-from-below-25804-large.mp4"
         : "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2000",
@@ -384,7 +384,9 @@ const App: React.FC = () => {
             return {
               ...s,
               title: "无限进步",
-              description: "以矛盾观审视生活，用实践完成自我迭代"
+              description: "以矛盾观审视生活，用实践完成自我迭代",
+              bgType: "video",
+              bgUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E4%B8%80%E8%84%9A%E8%B8%A9%E5%88%B0%E6%B0%B4%E5%9D%91%E9%87%8C%E7%9A%84%E6%8A%96%E9%9F%B3%20-%20%E6%8A%96%E9%9F%B3.mp4"
             };
           }
           return s;
@@ -438,6 +440,10 @@ const App: React.FC = () => {
 
   // PDF Secondary Page Interactive State
   const [isPdfSecondaryPageOpen, setIsPdfSecondaryPageOpen] = useState<boolean>(false);
+
+  // Missing editor state declarations
+  const [editorOpen, setEditorOpen] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<'content' | 'background' | 'presets'>('content');
 
   // Dynamic Marquee Cards State for Screen 4 (which is the 3rd screen, index 2)
   const [marqueeCards, setMarqueeCards] = useState<MarqueeCard[]>(() => {
@@ -765,7 +771,36 @@ const App: React.FC = () => {
 
   const updateScreenField = (field: keyof ScreenData, value: any) => {
     setScreens(prev => {
-      const updated = prev.map(s => s.id === activeId ? { ...s, [field]: value } : s);
+      const updated = prev.map(s => {
+        if (s.id === activeId) {
+          let extra = {};
+          if (field === 'bgUrl' && typeof value === 'string') {
+            const lowerVal = value.toLowerCase().trim();
+            if (
+              lowerVal.endsWith('.mp4') || 
+              lowerVal.endsWith('.mov') || 
+              lowerVal.endsWith('.webm') || 
+              lowerVal.includes('.mp4?') ||
+              lowerVal.includes('mixkit.co/videos') ||
+              lowerVal.includes('myqcloud.com/') && lowerVal.includes('.mp4')
+            ) {
+              extra = { bgType: 'video' };
+            } else if (
+              lowerVal.endsWith('.jpg') || 
+              lowerVal.endsWith('.jpeg') || 
+              lowerVal.endsWith('.png') || 
+              lowerVal.endsWith('.gif') || 
+              lowerVal.endsWith('.webp') || 
+              lowerVal.endsWith('.svg') ||
+              lowerVal.includes('images.unsplash.com')
+            ) {
+              extra = { bgType: 'image' };
+            }
+          }
+          return { ...s, [field]: value, ...extra };
+        }
+        return s;
+      });
       localStorage.setItem("alphaqubit_custom_screens_v11", JSON.stringify(updated));
       return updated;
     });
@@ -1979,7 +2014,7 @@ const App: React.FC = () => {
       {/* Primary vertical scroll presenter with snapping behavior */}
       <div 
         id="slides-container"
-        className="flex-1 w-full h-full overflow-y-auto lg:snap-y lg:snap-mandatory scroll-smooth relative z-10 bg-transparent"
+        className="flex-1 w-full h-full overflow-y-auto snap-y snap-mandatory scroll-smooth relative z-10 bg-transparent"
       >
         {screens.map((s, idx) => {
           const isSelected = s.id === activeId;
@@ -1989,7 +2024,7 @@ const App: React.FC = () => {
               <section 
                 key={s.id}
                 id={`screen-${s.id}`}
-                className="snap-start lg:snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
+                className="snap-start snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
               >
                 {/* Floating controls specifically for Screen 4 to toggle the drawer */}
                 {import.meta.env.DEV && (
@@ -2054,7 +2089,7 @@ const App: React.FC = () => {
               <section 
                 key={s.id}
                 id={`screen-${s.id}`}
-                className="snap-start lg:snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
+                className="snap-start snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
               >
                 {/* Floating controls specifically for Screen 5 to toggle the dome drawer */}
                 {import.meta.env.DEV && (
@@ -2108,7 +2143,7 @@ const App: React.FC = () => {
               <section 
                 key={s.id}
                 id={`screen-${s.id}`}
-                className="snap-start lg:snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
+                className="snap-start snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
               >
                 {/* Floating controls specifically for Screen 6 to toggle the console drawer */}
                 {import.meta.env.DEV && (
@@ -2400,7 +2435,7 @@ const App: React.FC = () => {
             <section 
               key={s.id}
               id={`screen-${s.id}`}
-              className="snap-start lg:snap-always relative w-full min-h-screen lg:h-screen lg:min-h-[600px] overflow-visible lg:overflow-hidden flex items-center justify-center bg-transparent py-12 lg:py-0"
+              className="snap-start snap-always relative w-full min-h-screen lg:h-screen lg:min-h-[600px] overflow-visible lg:overflow-hidden flex items-center justify-center bg-transparent py-12 lg:py-0"
             >
               {/* 1700px Content Core ("版心控制在 1700px 左右") */}
               <div className="relative z-10 w-full h-auto lg:h-full max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 flex flex-col justify-center text-white pointer-events-auto">
