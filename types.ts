@@ -20,6 +20,10 @@ export interface ScreenData {
   ctaText?: string;
   ctaUrl?: string;
   
+  // Mobile background overrides
+  bgTypeMobile?: BackgroundType;
+  bgUrlMobile?: string;
+  
   // Temperature and its background
   temperature?: number;
   tempBgUrl?: string;

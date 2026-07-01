@@ -12,7 +12,7 @@ import {
   HelpCircle, Monitor, Compass, LayoutGrid, Check, Image as ImageIcon, 
   Video as VideoIcon, Sparkles, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, Send, MapPin, 
   Phone, Globe, Copy, RefreshCw, Palette, UploadCloud, AlertTriangle, CheckCircle,
-  Trash2, Plus, Minus, ExternalLink, Code, GripVertical
+  Trash2, Plus, Minus, ExternalLink, Code, GripVertical, Smartphone
 } from 'lucide-react';
 import { ScreenData, BackgroundType } from './types';
 import PillNav, { PillNavItem } from './components/PillNav';
@@ -103,6 +103,8 @@ const DEFAULT_SCREENS: ScreenData[] = [
     description: "以矛盾观审视生活，用实践完成自我迭代",
     bgType: "video",
     bgUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E4%B8%80%E8%84%9A%E8%B8%A9%E5%88%B0%E6%B0%B4%E5%9D%91%E9%87%8C%E7%9A%84%E6%8A%96%E9%9F%B3%20-%20%E6%8A%96%E9%9F%B3.mp4",
+    bgTypeMobile: "video",
+    bgUrlMobile: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E4%B8%89%E5%B1%8F%E7%A7%BB%E5%8A%A8%E7%AB%AF.mp4",
     overlayOpacity: 70,
     overlayBlur: 3,
     tintColor: "indigo",
@@ -302,14 +304,38 @@ const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style }) => {
     video.setAttribute("playsinline", "true");
     video.setAttribute("webkit-playsinline", "true");
     
+    // Force browser to load the video since src changed
+    try {
+      video.load();
+    } catch (e) {
+      console.log("video.load() failed", e);
+    }
+    
     // Attempt playback
     const playVideo = () => {
-      video.play().catch(err => {
-        console.log("SafeVideo autoPlay blocked, waiting for interaction:", err);
-      });
+      if (video) {
+        video.play().catch(err => {
+          console.log("SafeVideo autoPlay blocked, waiting for interaction:", err);
+        });
+      }
     };
 
     playVideo();
+
+    // Add robust video-ready events to trigger autoplay on slow networks or suspended loads
+    video.addEventListener("loadedmetadata", playVideo);
+    video.addEventListener("canplay", playVideo);
+    video.addEventListener("suspend", playVideo);
+
+    // WeChat Browser integration to trigger autoplay
+    const handleWechat = () => {
+      if (typeof window !== "undefined" && (window as any).WeixinJSBridge) {
+        (window as any).WeixinJSBridge.invoke("getNetworkType", {}, () => {
+          playVideo();
+        });
+      }
+    };
+    document.addEventListener("WeixinJSBridgeReady", handleWechat);
 
     // Listen for first touch/click to play if autoplay was blocked by mobile settings or low power mode
     const handleInteraction = () => {
@@ -331,6 +357,12 @@ const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style }) => {
     document.addEventListener("touchstart", handleInteraction);
 
     return () => {
+      if (video) {
+        video.removeEventListener("loadedmetadata", playVideo);
+        video.removeEventListener("canplay", playVideo);
+        video.removeEventListener("suspend", playVideo);
+      }
+      document.removeEventListener("WeixinJSBridgeReady", handleWechat);
       document.removeEventListener("click", handleInteraction);
       document.removeEventListener("touchstart", handleInteraction);
     };
@@ -341,14 +373,13 @@ const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style }) => {
       ref={videoRef}
       className={className}
       style={style}
+      src={src}
       loop
       muted
       playsInline
       autoPlay
       preload="auto"
-    >
-      <source src={src} type="video/mp4" />
-    </video>
+    />
   );
 };
 
@@ -386,11 +417,14 @@ const App: React.FC = () => {
               title: "无限进步",
               description: "以矛盾观审视生活，用实践完成自我迭代",
               bgType: "video",
-              bgUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E4%B8%80%E8%84%9A%E8%B8%A9%E5%88%B0%E6%B0%B4%E5%9D%91%E9%87%8C%E7%9A%84%E6%8A%96%E9%9F%B3%20-%20%E6%8A%96%E9%9F%B3.mp4"
+              bgUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E4%B8%80%E8%84%9A%E8%B8%A9%E5%88%B0%E6%B0%B4%E5%9D%91%E9%87%8C%E7%9A%84%E6%8A%96%E9%9F%B3%20-%20%E6%8A%96%E9%9F%B3.mp4",
+              bgTypeMobile: "video",
+              bgUrlMobile: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E4%B8%89%E5%B1%8F%E7%A7%BB%E5%8A%A8%E7%AB%AF.mp4"
             };
           }
           return s;
         });
+        localStorage.setItem("alphaqubit_custom_screens_v11", JSON.stringify(migrated));
         return migrated;
       } catch (e) { console.error(e); }
     }
@@ -540,6 +574,14 @@ const App: React.FC = () => {
   const [selectedCard6, setSelectedCard6] = useState<MarqueeCard | null>(null);
   const [copyToast, setCopyToast] = useState<string | null>(null);
   const [activeBgConsoleId, setActiveBgConsoleId] = useState<number | null>(null);
+
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (copyToast) {
@@ -1452,13 +1494,15 @@ const App: React.FC = () => {
       }
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, isTemp: boolean = false) => {
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, mode: 'bg' | 'temp' | 'mobile' = 'bg') => {
       if (e.target.files && e.target.files[0]) {
         const file = e.target.files[0];
         const reader = new FileReader();
         reader.onloadend = () => {
-          if (isTemp) {
+          if (mode === 'temp') {
             onUpdateScreen({ ...currentScreen, tempBgUrl: reader.result as string, tempBgType: file.type.startsWith('video') ? 'video' : 'image' });
+          } else if (mode === 'mobile') {
+            onUpdateScreen({ ...currentScreen, bgUrlMobile: reader.result as string, bgTypeMobile: file.type.startsWith('video') ? 'video' : 'image' });
           } else {
             onUpdateScreen({ ...currentScreen, bgUrl: reader.result as string, bgType: file.type.startsWith('video') ? 'video' : 'image' });
           }
@@ -1526,9 +1570,90 @@ const App: React.FC = () => {
                      <label className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg cursor-pointer text-xs">
                         <UploadCloud className="w-3 h-3" />
                         <span>Upload</span>
-                        <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileChange(e, false)} />
+                        <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileChange(e, 'bg')} />
                      </label>
                   </div>
+                </div>
+
+                {/* Mobile Overrides UI in BG settings */}
+                <div className="p-4 border-b border-zinc-800 bg-zinc-900/40 space-y-3">
+                  <div className="flex items-center justify-between">
+                     <h3 className="text-xs font-mono font-bold text-zinc-300 uppercase tracking-widest flex items-center gap-1">
+                       <Smartphone className="w-3.5 h-3.5 text-indigo-400" />
+                       <span>Mobile Override / 移动端专属背景</span>
+                     </h3>
+                     <button
+                       onClick={() => {
+                         if (currentScreen.bgUrlMobile) {
+                           onUpdateScreen({
+                             ...currentScreen,
+                             bgUrlMobile: undefined,
+                             bgTypeMobile: undefined
+                           });
+                         } else {
+                           onUpdateScreen({
+                             ...currentScreen,
+                             bgUrlMobile: currentScreen.bgUrl,
+                             bgTypeMobile: currentScreen.bgType
+                           });
+                         }
+                       }}
+                       className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold tracking-wide uppercase transition-all cursor-pointer ${
+                         currentScreen.bgUrlMobile 
+                           ? 'bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-500 font-bold' 
+                           : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:text-zinc-300'
+                       }`}
+                     >
+                       {currentScreen.bgUrlMobile ? "已开启 OVERRIDE" : "未开启 INHERIT"}
+                     </button>
+                  </div>
+                  {currentScreen.bgUrlMobile !== undefined && (
+                    <div className="space-y-3 animate-fadeIn">
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase font-bold text-zinc-500 block">移动端背景格式 Mobile Type</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {['image', 'video', 'gradient'].map((bt) => (
+                            <button
+                              key={`mobile-bt-${bt}`}
+                              onClick={() => {
+                                onUpdateScreen({
+                                  ...currentScreen,
+                                  bgTypeMobile: bt as BackgroundType
+                                });
+                              }}
+                              className={`py-1 rounded uppercase font-mono text-[9px] font-bold flex items-center justify-center gap-1 border cursor-pointer ${
+                                (currentScreen.bgTypeMobile || currentScreen.bgType) === bt 
+                                  ? 'bg-indigo-600 text-white border-indigo-500' 
+                                  : 'bg-zinc-950 text-zinc-400 border-zinc-800 hover:border-zinc-700'
+                              }`}
+                            >
+                              <span>{bt}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                         <input 
+                            type="text" 
+                            value={currentScreen.bgUrlMobile || ''}
+                            onChange={(e) => onUpdateScreen({...currentScreen, bgUrlMobile: e.target.value})}
+                            placeholder="Enter mobile background URL / gradient"
+                            className="flex-1 px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs"
+                         />
+                         <label className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg cursor-pointer text-xs">
+                            <UploadCloud className="w-3 h-3" />
+                            <span>Upload</span>
+                            <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileChange(e, 'mobile')} />
+                         </label>
+                      </div>
+                      
+                      <div className="text-[9px] text-zinc-500 leading-normal flex items-start gap-1">
+                        <HelpCircle className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
+                        <span>开启后，若使用手机（屏幕宽规格小）查看本屏，背景会自动变为此专属背景（可上传竖屏版视频或轻量渐变），有效防止横屏大视频在手机上错位显示不全。</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-4 border-b border-zinc-800 bg-zinc-900/40 space-y-3">
@@ -1555,7 +1680,7 @@ const App: React.FC = () => {
                      <label className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg cursor-pointer text-xs">
                         <UploadCloud className="w-3 h-3" />
                         <span>Upload BG</span>
-                        <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileChange(e, true)} />
+                        <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileChange(e, 'temp')} />
                      </label>
                   </div>
                 </div>
@@ -1947,40 +2072,44 @@ const App: React.FC = () => {
 
       {/* Global Animated Background Container */}
       <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden">
-        <AnimatePresence>
-          <motion.div
-            key={`global-bg-${activeScreen.id}-${activeScreen.bgUrl}-${activeScreen.bgType}-${activeScreen.tintColor}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.0 }}
-            className="absolute inset-0 w-full h-full"
-          >
-            {activeScreen.bgType === 'image' && (
-              <img 
-                src={activeScreen.bgUrl} 
-                alt={`bg-${activeScreen.id}`} 
-                className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none transition-transform duration-[6000ms] scale-100 filter brightness-95" 
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2000";
-                }}
-              />
-            )}
-            
-            {activeScreen.bgType === 'video' && (
-              <SafeVideo 
-                src={activeScreen.bgUrl}
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            )}
+        {(() => {
+          const bgUrlToUse = (isMobile && activeScreen.bgUrlMobile) ? activeScreen.bgUrlMobile : activeScreen.bgUrl;
+          const bgTypeToUse = (isMobile && activeScreen.bgUrlMobile) ? (activeScreen.bgTypeMobile || activeScreen.bgType) : activeScreen.bgType;
+          return (
+            <AnimatePresence>
+              <motion.div
+                key={`global-bg-${activeScreen.id}-${bgUrlToUse}-${bgTypeToUse}-${activeScreen.tintColor}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.0 }}
+                className="absolute inset-0 w-full h-full"
+              >
+                {bgTypeToUse === 'image' && (
+                  <img 
+                    src={bgUrlToUse} 
+                    alt={`bg-${activeScreen.id}`} 
+                    className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none transition-transform duration-[6000ms] scale-100 filter brightness-95" 
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2000";
+                    }}
+                  />
+                )}
+                
+                {bgTypeToUse === 'video' && (
+                  <SafeVideo 
+                    src={bgUrlToUse}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                )}
 
-            {activeScreen.bgType === 'gradient' && (
-              <div 
-                className="absolute inset-0 w-full h-full filter brightness-90" 
-                style={{ background: activeScreen.bgUrl }}
-              />
-            )}
+                {bgTypeToUse === 'gradient' && (
+                  <div 
+                    className="absolute inset-0 w-full h-full filter brightness-90" 
+                    style={{ background: bgUrlToUse }}
+                  />
+                )}
 
             {/* Temperature-controlled secondary background layer */}
             {activeScreen.tempBgUrl && activeScreen.tempBgType === 'image' && (
@@ -2009,6 +2138,8 @@ const App: React.FC = () => {
             />
           </motion.div>
         </AnimatePresence>
+          );
+        })()}
       </div>
 
       {/* Primary vertical scroll presenter with snapping behavior */}
@@ -2206,14 +2337,14 @@ const App: React.FC = () => {
                             return (
                               <div className="flex gap-6 overflow-hidden">
                                 <div 
-                                  className="flex gap-6 animate-marquee-forward hover:[animation-play-state:paused]"
+                                  className="flex gap-0 animate-marquee-forward hover:[animation-play-state:paused]"
                                   style={{
                                     animationPlayState: !domeAutoRotate ? 'paused' : undefined,
                                     animationDuration: `${35 / (domeAutoRotateSpeed * 6 || 1)}s`
                                   }}
                                 >
                                   {[...Array(2)].map((_, groupIdx) => (
-                                    <React.Fragment key={groupIdx}>
+                                    <div key={groupIdx} className="flex gap-6 pr-6 shrink-0">
                                       {singleGroupCards6.map((card, idx) => {
                                         const defaultImage = [
                                           "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop", // Qubit Topology
@@ -2264,7 +2395,7 @@ const App: React.FC = () => {
                                           </div>
                                         );
                                       })}
-                                    </React.Fragment>
+                                    </div>
                                   ))}
                                 </div>
                               </div>
@@ -2512,9 +2643,9 @@ const App: React.FC = () => {
                         }
 
                         return (
-                          <div className="animate-marquee-reverse flex gap-6 py-2 hover:[animation-play-state:paused]">
+                          <div className="animate-marquee-reverse flex gap-0 py-2 hover:[animation-play-state:paused]">
                             {[...Array(2)].map((_, groupIdx) => (
-                              <React.Fragment key={groupIdx}>
+                              <div key={groupIdx} className="flex gap-6 pr-6 shrink-0">
                                 {singleGroupCards.map((card, idx) => {
                                   const { style: colorStyle, icon: CardIcon } = getCardColorAndIcon(card.colorType);
                                   return (
@@ -2548,7 +2679,7 @@ const App: React.FC = () => {
                                     </div>
                                   );
                                 })}
-                              </React.Fragment>
+                              </div>
                             ))}
                           </div>
                         );
@@ -3360,6 +3491,81 @@ const App: React.FC = () => {
                     className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-white text-xs font-mono select-all focus:outline-none focus:border-amber-500"
                     placeholder={activeScreen.bgType === 'gradient' ? "e.g. cubic-gradient(...) or linear-gradient(...)" : "http://..."}
                   />
+                </div>
+
+                {/* Mobile Background Overrides Section */}
+                <div className="p-3 bg-zinc-950 border border-zinc-850 rounded-lg space-y-3">
+                  <div className="flex items-center justify-between border-b border-zinc-900 pb-2">
+                    <span className="text-[10px] text-zinc-400 uppercase font-bold flex items-center gap-1">
+                      <Smartphone className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>移动端专属背景设定 (Mobile Background)</span>
+                    </span>
+                    <button
+                      onClick={() => {
+                        if (activeScreen.bgUrlMobile) {
+                          updateScreenFields({
+                            bgUrlMobile: undefined,
+                            bgTypeMobile: undefined
+                          });
+                        } else {
+                          updateScreenFields({
+                            bgUrlMobile: activeScreen.bgUrl,
+                            bgTypeMobile: activeScreen.bgType
+                          });
+                        }
+                      }}
+                      className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold tracking-wide uppercase transition-all cursor-pointer ${
+                        activeScreen.bgUrlMobile 
+                          ? 'bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-500' 
+                          : 'bg-zinc-900 text-zinc-500 border border-zinc-800 hover:text-zinc-300'
+                      }`}
+                    >
+                      {activeScreen.bgUrlMobile ? "已开启 OVERRIDE" : "未开启 INHERIT"}
+                    </button>
+                  </div>
+
+                  {activeScreen.bgUrlMobile !== undefined && (
+                    <div className="space-y-3 animate-fadeIn">
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase font-bold text-zinc-500 block">移动端背景格式 Mobile Media Type</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {['image', 'video', 'gradient'].map((bt) => (
+                            <button
+                              key={`mobile-bt-${bt}`}
+                              onClick={() => {
+                                updateScreenFields({
+                                  bgTypeMobile: bt as BackgroundType
+                                });
+                              }}
+                              className={`py-1 rounded uppercase font-mono text-[9px] font-bold flex items-center justify-center gap-1.5 border cursor-pointer ${
+                                (activeScreen.bgTypeMobile || activeScreen.bgType) === bt 
+                                  ? 'bg-indigo-600 text-white border-indigo-500' 
+                                  : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700'
+                              }`}
+                            >
+                              <span>{bt}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase font-bold text-zinc-500 block">移动端资源链接 / 渐变代码</label>
+                        <textarea 
+                          rows={2} 
+                          value={activeScreen.bgUrlMobile || ''}
+                          onChange={(e) => updateScreenFields({ bgUrlMobile: e.target.value })}
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white text-[11px] font-mono select-all focus:outline-none focus:border-indigo-500"
+                          placeholder="e.g. http://... or linear-gradient(...)"
+                        />
+                      </div>
+                      
+                      <div className="text-[9px] text-zinc-500 leading-normal flex items-start gap-1">
+                        <HelpCircle className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
+                        <span>开启后，若使用手机（屏幕宽小规格）查看本屏，背景会自动变为专属背景（如竖屏版视频或轻量渐变），有效防止横屏PC大视频错位。</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Preset background selector trigger based on format */}

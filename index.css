@@ -79,14 +79,16 @@ body {
 
 /* 10-Card infinite marquee moving Left to Right, pausing on hover */
 @keyframes marquee-reverse {
-  0% { transform: translateX(-50%); }
-  100% { transform: translateX(0%); }
+  0% { transform: translate3d(-50%, 0, 0); }
+  100% { transform: translate3d(0, 0, 0); }
 }
 
 .animate-marquee-reverse {
   display: flex;
   width: max-content;
   animation: marquee-reverse 35s linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .animate-marquee-reverse:hover {
@@ -95,14 +97,16 @@ body {
 
 /* 10-Card infinite marquee moving Right to Left, pausing on hover */
 @keyframes marquee-forward {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-50%); }
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
 }
 
 .animate-marquee-forward {
   display: flex;
   width: max-content;
   animation: marquee-forward 35s linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .animate-marquee-forward:hover {
