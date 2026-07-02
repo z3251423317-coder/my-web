@@ -559,6 +559,13 @@ const App: React.FC = () => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
     checkMobile();
     window.addEventListener('resize', checkMobile);
+    
+    // Automatically open the PDF reader if the URL parameter or hash is set
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('view') === 'pdf-decoder' || window.location.hash === '#pdf-decoder') {
+      setIsPdfSecondaryPageOpen(true);
+    }
+
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 

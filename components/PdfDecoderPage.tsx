@@ -136,8 +136,9 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
   const [isFullscreenOpen, setIsFullscreenOpen] = useState<boolean>(false);
 
   // Mode Toggles for Interactive PDF Display
-  const [workspaceMode, setWorkspaceMode] = useState<'image' | 'pdf'>('image');
+  const [workspaceMode, setWorkspaceMode] = useState<'image' | 'scroll' | 'pdf'>('image');
   const [cardPdfMode, setCardPdfMode] = useState<Record<string, 'image' | 'pdf'>>({});
+  const [pdfEngine, setPdfEngine] = useState<'google' | 'native'>('google');
 
   // Card PDF Preview Loader States
   const [loadingPdfId, setLoadingPdfId] = useState<string | null>(null);
@@ -215,6 +216,109 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
 
   const cardCoverInputRef = useRef<HTMLInputElement>(null);
   const pdfPageInputRef = useRef<HTMLInputElement>(null);
+
+  // States for dynamic client-side PDF.js content extraction
+  const [isExtracting, setIsExtracting] = useState<boolean>(false);
+  const [extractionLog, setExtractionLog] = useState<string[]>([]);
+
+  const handleExtractPdf = async (urlToExtract: string) => {
+    if (!urlToExtract) {
+      alert('请先输入有效的 PDF 链接！');
+      return;
+    }
+    
+    setIsExtracting(true);
+    setExtractionLog(['[INFO] 正在挂载全球 CDN PDFJS 高效解析引擎...']);
+    
+    try {
+      // 1. Dynamic PDFJS script load
+      const pdfjsLib = await new Promise<any>((resolve, reject) => {
+        if ((window as any).pdfjsLib) {
+          resolve((window as any).pdfjsLib);
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+        script.onload = () => {
+          const lib = (window as any).pdfjsLib;
+          lib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+          resolve(lib);
+        };
+        script.onerror = (err) => reject(new Error('PDFJS 库加载失败，请检查网络或稍后重试。'));
+        document.head.appendChild(script);
+      });
+
+      setExtractionLog(prev => [...prev, '[INFO] 正在建立跨域安全数据流代理通道，下载原著 PDF 文件...']);
+
+      // 2. Fetch PDF ArrayBuffer with CORS proxy fallback
+      let arrayBuffer: ArrayBuffer;
+      try {
+        const directResponse = await fetch(urlToExtract);
+        if (!directResponse.ok) throw new Error('CORS restriction');
+        arrayBuffer = await directResponse.arrayBuffer();
+        setExtractionLog(prev => [...prev, '[SUCCESS] PDF 核心通道建立成功，直接读取完成！']);
+      } catch (directErr) {
+        setExtractionLog(prev => [...prev, '[WARN] 检测到第三方服务器跨域拦截 (CORS)，已自动接入高速跨域代理，继续握手...']);
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(urlToExtract)}`;
+        const proxyResponse = await fetch(proxyUrl);
+        if (!proxyResponse.ok) throw new Error('通过代理提取 PDF 文件失败。请确保链接可被直接下载且是有效的 PDF 文件。');
+        arrayBuffer = await proxyResponse.arrayBuffer();
+        setExtractionLog(prev => [...prev, '[SUCCESS] 跨域代理握手成功，PDF 数据流已全量接通！']);
+      }
+
+      setExtractionLog(prev => [...prev, '[INFO] 正在反序列化 PDF 二进制流，解构文档目录...']);
+
+      // 3. Load PDF via PDFJS
+      const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) });
+      const pdfDoc = await loadingTask.promise;
+      const totalPages = pdfDoc.numPages;
+      
+      setExtractionLog(prev => [...prev, `[SUCCESS] 目录解析完毕！文档共计 ${totalPages} 页。`]);
+      setExtractionLog(prev => [...prev, `[INFO] 为了保障本地浏览器存储效率，正在并行高精度渲染前 ${Math.min(totalPages, 8)} 页画册原件...`]);
+
+      // 4. Render first Math.min(totalPages, 8) pages to high quality JPGs
+      const renderedImages: string[] = [];
+      const numToRender = Math.min(totalPages, 8);
+      
+      for (let pageNum = 1; pageNum <= numToRender; pageNum++) {
+        setExtractionLog(prev => [...prev, `[RENDER] 正在渲染并生成内容：第 ${pageNum}/${numToRender} 页...`]);
+        const page = await pdfDoc.getPage(pageNum);
+        
+        // Render at scale 1.5 to have great quality but compressed size
+        const viewport = page.getViewport({ scale: 1.5 });
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        if (context) {
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          await page.render({ canvasContext: context, viewport }).promise;
+          
+          // Use JPEG format with 0.82 compression ratio to fit within localStorage (5MB) seamlessly
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          renderedImages.push(dataUrl);
+        }
+      }
+
+      setExtractionLog(prev => [...prev, `[SUCCESS] 全部 ${numToRender} 页高清晰度大纲原画生成完毕！`]);
+      setExtractionLog(prev => [...prev, `[INFO] 正在为您全量同步到本地状态与缓存仓库中...`]);
+
+      setEditPdfPageImages(renderedImages);
+      setActivePageIndex(0);
+      
+      setExtractionLog(prev => [...prev, `[SUCCESS] ✨ 恭喜！原著内容已全量同步到您的看板大纲中。`]);
+      setTimeout(() => {
+        setIsExtracting(false);
+      }, 1500);
+
+    } catch (err: any) {
+      console.error(err);
+      setExtractionLog(prev => [...prev, `[ERROR] 解析提取失败: ${err.message || err}`]);
+      setTimeout(() => {
+        setIsExtracting(false);
+        alert(`PDF 提取失败：${err.message || '请确保这是一个有效的 PDF 链接且可以正常公开访问。'}`);
+      }, 3000);
+    }
+  };
 
   // Controller State
   const [controllerTitle, setControllerTitle] = useState('');
@@ -718,10 +822,11 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
                       layout
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className={`p-4 rounded-xl backdrop-blur-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all hover:bg-zinc-900/60 ${
+                      onClick={() => handleSelectCard(card)}
+                      className={`p-5 rounded-xl border backdrop-blur-md transition-all duration-300 cursor-pointer flex flex-col md:flex-row items-start md:items-center justify-between gap-4 ${
                         selectedCard?.id === card.id 
-                          ? 'bg-zinc-900/80 border-amber-500/50 ring-1 ring-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.05)]' 
-                          : 'bg-zinc-900/40 border-zinc-850/80 hover:border-zinc-700'
+                          ? 'bg-white/[0.08] border-amber-500/80 ring-1 ring-amber-500/30 shadow-[0_8px_32px_rgba(245,158,11,0.15)] scale-[1.01]' 
+                          : 'bg-white/[0.02] border-white/10 hover:bg-white/[0.08] hover:border-amber-500/40 hover:backdrop-blur-xl hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(251,191,36,0.12)]'
                       }`}
                     >
                       <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -779,9 +884,17 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
               </div>
             </div>
 
+            {/* Backdrop for mobile popup view */}
+            {selectedCard && (
+              <div 
+                className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[55] lg:hidden cursor-pointer animate-fadeIn"
+                onClick={() => setSelectedCard(null)}
+              />
+            )}
+
             {/* Right Side: Split View (PDF Reader Carousel + Custom Card Editor, span 6) */}
             {selectedCard && (
-              <div className="lg:col-span-6 flex flex-col gap-5 bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 backdrop-blur-md animate-fadeIn">
+              <div className="fixed inset-x-4 inset-y-10 lg:static lg:inset-auto z-[60] lg:z-0 lg:col-span-6 flex flex-col gap-5 bg-zinc-900 lg:bg-zinc-900/30 border border-zinc-800 lg:border-zinc-800/80 rounded-2xl p-4 sm:p-5 shadow-2xl lg:shadow-none backdrop-blur-xl lg:backdrop-blur-md overflow-y-auto lg:overflow-y-visible lg:h-auto animate-fadeIn">
                 
                 {/* Right Panel Header */}
                 <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
@@ -800,55 +913,168 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
                  {/* PDF Content Viewer Frame (Sliders showing Page Images from PDF or Live PDF Embed) */}
                 <div className="space-y-3">
                   {/* View Mode Toggle Bar */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-zinc-950/60 p-1.5 rounded-xl border border-zinc-850/80">
-                    <div className="flex items-center gap-2">
+                  <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-zinc-950/60 p-1.5 rounded-xl border border-zinc-850/80">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <button
                         onClick={() => setWorkspaceMode('image')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                        className={`px-2.5 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                           workspaceMode === 'image'
                             ? 'bg-amber-500 text-zinc-950 shadow-md scale-105'
                             : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50'
                         }`}
+                        title="大纲画册形式展示 PDF 各页截图"
                       >
                         <ImageIcon className="w-3.5 h-3.5" />
-                        <span>论文大纲解构图 ({editPdfPageImages.length} 页)</span>
+                        <span>大纲幻灯片 ({editPdfPageImages.length} 页)</span>
                       </button>
+
+                      <button
+                        onClick={() => setWorkspaceMode('scroll')}
+                        className={`px-2.5 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                          workspaceMode === 'scroll'
+                            ? 'bg-amber-500 text-zinc-950 shadow-md scale-105'
+                            : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50'
+                        }`}
+                        title="适合手机端，将所有论文页面连贯拼接，上下滑动即可快速浏览"
+                      >
+                        <BookOpen className="w-3.5 h-3.5" />
+                        <span>手机长图瀑布流 ({editPdfPageImages.length} 页)</span>
+                      </button>
+
                       <button
                         onClick={() => setWorkspaceMode('pdf')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                        className={`px-2.5 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                           workspaceMode === 'pdf'
                             ? 'bg-amber-500 text-zinc-950 shadow-md scale-105'
                             : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50'
                         }`}
+                        title="在线阅读原著 PDF 格式文件，支持手机端/电脑端多引擎切换"
                       >
                         <FileText className="w-3.5 h-3.5" />
-                        <span>在线 PDF 原著阅读</span>
+                        <span>在线原著 PDF</span>
                       </button>
                     </div>
 
-                    <div className="flex items-center gap-2 self-start sm:self-auto">
+                    <div className="flex items-center gap-2 self-start xl:self-auto">
                       {workspaceMode === 'image' ? (
                         <span className="text-[10px] font-mono text-zinc-400 bg-zinc-900/80 px-2 py-1 border border-zinc-800 rounded">
-                          第 {activePageIndex + 1} / {editPdfPageImages.length} 页
+                          第 {activePageIndex + 1} / {editPdfPageImages.length} 页 (幻灯模式)
+                        </span>
+                      ) : workspaceMode === 'scroll' ? (
+                        <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-1 border border-amber-500/20 rounded flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                          <span>长图瀑布流模式 (手机极速)</span>
                         </span>
                       ) : (
                         <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-1 border border-emerald-500/20 rounded animate-pulse flex items-center gap-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          <span>极速原件嵌入中</span>
+                          <span>多引擎 PDF 实时阅读中</span>
                         </span>
                       )}
                     </div>
                   </div>
 
                   {/* High Quality Responsive Container Box */}
-                  <div className="w-full h-96 bg-zinc-950 rounded-xl overflow-hidden border border-zinc-800 relative group/slider flex items-center justify-center shadow-2xl">
+                  <div className="w-full h-[450px] bg-zinc-950 rounded-xl overflow-hidden border border-zinc-800 relative group/slider flex items-center justify-center shadow-2xl">
                     {workspaceMode === 'pdf' ? (
-                      /* Embed Interactive Live PDF document */
-                      <iframe 
-                        src={`${editPdfUrl || DEFAULT_PDF_URL}#toolbar=1`} 
-                        className="w-full h-full border-0 bg-zinc-950"
-                        title="Associated Academic PDF document"
-                      />
+                      /* Embed Interactive Live PDF document with dynamic engine selectors */
+                      <div className="w-full h-full flex flex-col bg-zinc-950">
+                        {/* Engine Selector Header */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-2 bg-zinc-900/50 border-b border-zinc-800 gap-2 text-[10px] text-zinc-400 font-mono">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-zinc-500">手机查看模式:</span>
+                            <button
+                              onClick={() => setPdfEngine('google')}
+                              className={`px-2 py-0.5 rounded transition-all cursor-pointer font-bold ${
+                                pdfEngine === 'google'
+                                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono text-[9px]'
+                                  : 'bg-zinc-950 hover:bg-zinc-800 border border-zinc-850 text-zinc-400 font-mono text-[9px]'
+                              }`}
+                              title="使用在线高速代理渲染，解决部分手机端直接加载PDF空白的问题"
+                            >
+                              极速预览 (手机端推荐)
+                            </button>
+                            <button
+                              onClick={() => setPdfEngine('native')}
+                              className={`px-2 py-0.5 rounded transition-all cursor-pointer font-bold ${
+                                pdfEngine === 'native'
+                                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono text-[9px]'
+                                  : 'bg-zinc-950 hover:bg-zinc-800 border border-zinc-850 text-zinc-400 font-mono text-[9px]'
+                              }`}
+                              title="使用浏览器原生 PDF 渲染，支持电脑端操作"
+                            >
+                              标准嵌入 (电脑端推荐)
+                            </button>
+                          </div>
+                          
+                          <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
+                            <a 
+                              href={editPdfUrl || DEFAULT_PDF_URL} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-amber-500 hover:text-amber-400 hover:underline flex items-center gap-1 font-bold bg-amber-500/10 hover:bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/20 transition-all active:scale-95"
+                              title="直接在外部浏览器中打开并使用手机自带的最佳阅读器阅览 PDF 原著"
+                            >
+                              <ExternalLink className="w-2.5 h-2.5" />
+                              <span>外部原生态打开</span>
+                            </a>
+                          </div>
+                        </div>
+
+                        {/* Actual Iframe viewport */}
+                        <div className="flex-1 relative bg-zinc-950">
+                          {pdfEngine === 'google' ? (
+                            <iframe 
+                              src={`https://docs.google.com/viewer?url=${encodeURIComponent(editPdfUrl || DEFAULT_PDF_URL)}&embedded=true`} 
+                              className="w-full h-full border-0 bg-zinc-900"
+                              title="Online Fast PDF Document Reader"
+                            />
+                          ) : (
+                            <iframe 
+                              src={`${editPdfUrl || DEFAULT_PDF_URL}#toolbar=1`} 
+                              className="w-full h-full border-0 bg-zinc-950"
+                              title="Standard Native PDF Document Reader"
+                            />
+                          )}
+                        </div>
+                      </div>
+                    ) : workspaceMode === 'scroll' ? (
+                      /* Scrollable Vertical List of Pages for mobile convenience */
+                      <div className="w-full h-full overflow-y-auto p-3 space-y-4 bg-zinc-950/80 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
+                        <div className="text-center pb-2 border-b border-zinc-900 flex items-center justify-between">
+                          <span className="text-[10px] text-zinc-400 font-mono">
+                            长图流瀑布阅览（滑动流畅，最适合手机屏幕）
+                          </span>
+                          <span className="text-[10px] font-mono text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                            共 {editPdfPageImages.length} 页
+                          </span>
+                        </div>
+                        {editPdfPageImages.map((imgUrl, idx) => (
+                          <div key={idx} className="relative group/page flex flex-col items-center">
+                            <div className="absolute top-2 left-2 bg-black/75 backdrop-blur-md px-2 py-0.5 rounded text-[9px] font-mono text-zinc-400 border border-zinc-800 z-10">
+                              第 {idx + 1} 页 / Page {idx + 1}
+                            </div>
+                            <img 
+                              src={imgUrl} 
+                              alt={`PDF Page ${idx + 1}`} 
+                              referrerPolicy="no-referrer"
+                              className="max-w-full rounded-lg shadow-xl border border-zinc-900 cursor-zoom-in hover:border-amber-500/50 transition-colors"
+                              onClick={() => {
+                                setActivePageIndex(idx);
+                                setIsFullscreenOpen(true);
+                              }}
+                              title="点击放大该页阅读"
+                            />
+                            {idx < editPdfPageImages.length - 1 && (
+                              <div className="w-full py-3 flex items-center justify-center">
+                                <div className="h-px bg-zinc-900/60 w-1/4" />
+                                <span className="text-[9px] text-zinc-600 font-mono px-2 uppercase tracking-widest">CONTINUE SCROLL</span>
+                                <div className="h-px bg-zinc-900/60 w-1/4" />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     ) : (
                       /* Original beautiful slideshow code */
                       <>
@@ -1165,13 +1391,26 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
                         恢复默认 PDF 链接
                       </button>
                     </div>
-                    <input 
-                      type="text" 
-                      value={editPdfUrl}
-                      onChange={(e) => setEditPdfUrl(e.target.value)}
-                      placeholder="PDF 链接 (如 cos、oss 直链或 pdf 文件链接)"
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-[10px] font-mono text-indigo-300 focus:outline-none focus:border-amber-500"
-                    />
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={editPdfUrl}
+                        onChange={(e) => setEditPdfUrl(e.target.value)}
+                        placeholder="PDF 链接 (如 cos、oss 直链或 pdf 文件链接)"
+                        className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-[10px] font-mono text-indigo-300 focus:outline-none focus:border-amber-500"
+                      />
+                      <button
+                        onClick={() => handleExtractPdf(editPdfUrl)}
+                        disabled={isExtracting || !editPdfUrl}
+                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[10px] font-mono font-bold rounded flex items-center gap-1 shrink-0 shadow transition-all active:scale-95 cursor-pointer"
+                        title="使用 PDFJS 引擎智能解构提取 PDF 每一页高清原件内容"
+                      >
+                        <span>✨ 智能解析提取</span>
+                      </button>
+                    </div>
+                    <p className="text-[9px] text-zinc-500 leading-normal font-sans">
+                      💡 提示：输入您的 PDF 链接并点击【智能解析提取】，系统将自动运行浏览器端 PDF 解析引擎，将文档的前 8 页实时转化为大纲幻灯片和手机瀑布流，解决您上传链接后无法获取内容的痛点。
+                    </p>
                   </div>
 
                 </div>
@@ -1206,6 +1445,54 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
 
         </div>
       </motion.div>
+
+      {/* High-Tech PDF Parsing Terminal Overlay */}
+      {isExtracting && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/90 backdrop-blur-md">
+          <div className="w-full max-w-xl mx-4 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden font-mono flex flex-col h-[380px]">
+            {/* Terminal Header */}
+            <div className="px-4 py-3 bg-zinc-950 border-b border-zinc-850 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-red-500/80" />
+                <span className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                <span className="w-3 h-3 rounded-full bg-green-500/80" />
+                <span className="text-[11px] text-zinc-400 font-bold ml-2">ALPHA DECODER: PDF_PARSER_CORE.bin</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping" />
+                <span className="text-[10px] text-zinc-500">ENGINE_BUSY</span>
+              </div>
+            </div>
+
+            {/* Terminal Output Area */}
+            <div className="flex-1 p-5 overflow-y-auto space-y-2 text-xs text-zinc-300">
+              {extractionLog.map((log, index) => {
+                let colorClass = "text-zinc-400";
+                if (log.startsWith("[SUCCESS]")) colorClass = "text-emerald-400 font-bold";
+                if (log.startsWith("[ERROR]")) colorClass = "text-rose-400 font-bold";
+                if (log.startsWith("[WARN]")) colorClass = "text-amber-400";
+                if (log.startsWith("[RENDER]")) colorClass = "text-indigo-300";
+                return (
+                  <div key={index} className={`leading-normal ${colorClass}`}>
+                    {log}
+                  </div>
+                );
+              })}
+              
+              {/* Spinning cursor at the end */}
+              <div className="flex items-center gap-1.5 text-zinc-500">
+                <span className="animate-pulse">_</span>
+              </div>
+            </div>
+
+            {/* Terminal Footer Progress indicator */}
+            <div className="px-4 py-2.5 bg-zinc-950 border-t border-zinc-850 text-[10px] text-zinc-500 flex justify-between items-center">
+              <span>PDFJS DECRYPTION PIPELINE ACTIVE</span>
+              <span className="text-zinc-400">MEMORY ALLOCATION: STABLE</span>
+            </div>
+          </div>
+        </div>
+      )}
     </AnimatePresence>
   );
 };
