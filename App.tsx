@@ -24,28 +24,7 @@ import ProfileCard from './components/ProfileCard';
 import { PdfDecoderPage } from './components/PdfDecoderPage';
 import ShinyText from './components/ShinyText';
 
-export interface MarqueeCard {
-  id: number;
-  title: string;
-  cat: string;
-  desc: string;
-  url: string;
-  colorType?: string;
-  image?: string;
-}
-
-const DEFAULT_MARQUEE_CARDS: MarqueeCard[] = [
-  { id: 1, title: "精彩的人生是奋斗出来的，但幸福的人生不是", cat: "生活哲学", desc: "阿斯兰还v哈落地v哈定律ID死哦急急急急急急急急急急急急急急急急急急急急急急急急急急急斤斤计较急急急急急急急急急急急急急急急急急急急急急急阿斯兰还v哈落地v哈定律ID死哦急急急急急急急急急急急急急急急急急急急急急急急急急急急斤斤计较急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急积极斤斤计较急急急急急急急急急急急急嘿嘿嘿嘿阿斯兰还v哈落地v哈定律ID死哦急急急急急急急急急急急急急急急急急急急急急急急急急急急斤斤计较急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急积极斤斤计较急急急急急急急急急急急急嘿嘿嘿嘿阿斯兰还v哈落地v哈定律ID死哦急急急急急急急急急急急急急急急急急急急急急急急急急急急斤斤计较急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急积极斤斤计较急急急急急急急急急急急急嘿嘿嘿嘿阿斯兰还v哈落地v哈定律ID死哦急急急急急急急急急急急急急急急急急急急急急急急急急急急斤斤计较急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急积极斤斤计较急急急急急急急急急急急急嘿嘿嘿嘿急急急急急急急急急急急急急急急急急急急急急急急急急急积极斤斤计较急急急急急急急急急急急急嘿嘿嘿嘿阿斯兰还v哈落地v哈定律ID死哦急急急急急急急急急急急急急急急急急急急急急急急急急急急斤斤计较急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急急积极斤斤计较急急急急急急急急急急急急嘿嘿嘿嘿", url: "https://huaban.com/discovery", colorType: "teal", image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=2000&auto=format&fit=crop" },
-  { id: 2, title: "Primal Syndrome", cat: "DECODER GATE", desc: "Dynamic error location extraction pipelines in real-time.", url: "", colorType: "teal", image: "https://images.unsplash.com/photo-1507668077129-56e32842fceb?q=80&w=600&auto=format&fit=crop" },
-  { id: 3, title: "Stabilizer Parity", cat: "X-Z MEASURE", desc: "Continuous quantum parity watchdog capturing local leakage.", url: "", colorType: "amber", image: "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=600&auto=format&fit=crop" },
-  { id: 4, title: "Decoder Mesh", cat: "TRANSFORMER", desc: "High-throughput neural block predicting complex noise.", url: "", colorType: "rose", image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=600&auto=format&fit=crop" },
-  { id: 5, title: "Cosmic Ray Shield", cat: "ENVIRONMENT", desc: "Mapping historical, highly correlated multi-qubit events.", url: "", colorType: "purple", image: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=600&auto=format&fit=crop" },
-  { id: 6, title: "Synergy Routing", cat: "ROUTING LAYER", desc: "Active syndrome routing grids updating at micro-second scale.", url: "", colorType: "emerald", image: "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=600&auto=format&fit=crop" },
-  { id: 7, title: "Coherent Decay", cat: "LOGICAL COHERENCE", desc: "Physical leakage mitigation with strict fault-tolerance limits.", url: "", colorType: "pink", image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop" },
-  { id: 8, title: "MWPM Solver", cat: "HEURISTICS", desc: "Optimal graph matching comparison validating error bounds.", url: "", colorType: "sky", image: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=600&auto=format&fit=crop" },
-  { id: 9, title: "Decoder Latency", cat: "PERFORMANCE", desc: "Tracking neural response constraints against physical T1 times.", url: "", colorType: "fuchsia", image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=600&auto=format&fit=crop" },
-  { id: 10, title: "Weight Distribution", cat: "ATTENTION MAP", desc: "Multi-head attention maps focusing on key noise correlations.", url: "", colorType: "blue", image: "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=600&auto=format&fit=crop" }
-];
+import { DEFAULT_MARQUEE_CARDS, MarqueeCard } from './src/cardData';
 
 const getCardColorAndIcon = (colorType: string = "blue") => {
   switch (colorType.toLowerCase()) {
@@ -383,7 +362,7 @@ const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style }) => {
   );
 };
 
-const DEFAULT_DATA_FINGERPRINT = "fp_v16_" + JSON.stringify(DEFAULT_MARQUEE_CARDS).length + "_" + JSON.stringify(DEFAULT_SCREENS).length;
+const DEFAULT_DATA_FINGERPRINT = "fp_v21_" + JSON.stringify(DEFAULT_MARQUEE_CARDS).length + "_" + JSON.stringify(DEFAULT_SCREENS).length;
 
 const App: React.FC = () => {
   // Clear localStorage if code-defined defaults change to solve stale data issues from the root
@@ -564,10 +543,10 @@ const App: React.FC = () => {
     localStorage.setItem("alphaqubit_trial_cards", JSON.stringify(updated));
   };
 
-  const [isConsoleOpen3, setIsConsoleOpen3] = useState<boolean>(import.meta.env.DEV); // Open by default for Screen 3 editing discovery
-  const [isConsoleOpen4, setIsConsoleOpen4] = useState<boolean>(import.meta.env.DEV); // Open by default for Screen 4 editing discovery
-  const [isConsoleOpen6, setIsConsoleOpen6] = useState<boolean>(import.meta.env.DEV); // Open by default for Screen 6 (DomeGallery) editing discovery
-  const [isConsoleOpen10, setIsConsoleOpen10] = useState<boolean>(import.meta.env.DEV); // Open by default for Screen 10 (Interactive Trial Deck) editing discovery
+  const [isConsoleOpen3, setIsConsoleOpen3] = useState<boolean>(false); // Open by default for Screen 3 editing discovery
+  const [isConsoleOpen4, setIsConsoleOpen4] = useState<boolean>(false); // Open by default for Screen 4 editing discovery
+  const [isConsoleOpen6, setIsConsoleOpen6] = useState<boolean>(false); // Open by default for Screen 6 (DomeGallery) editing discovery
+  const [isConsoleOpen10, setIsConsoleOpen10] = useState<boolean>(false); // Open by default for Screen 10 (Interactive Trial Deck) editing discovery
   const [domeAutoRotate, setDomeAutoRotate] = useState<boolean>(true);
   const [domeAutoRotateSpeed, setDomeAutoRotateSpeed] = useState<number>(0.15);
   const [activeCardDetail, setActiveCardDetail] = useState<MarqueeCard | null>(null);
@@ -2210,7 +2189,9 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Reusable Syndrome Deck Console drawer */}
+              <div className="hidden md:block">
                 {renderGenericConsole(isConsoleOpen4, setIsConsoleOpen4, "3D SPHERE CONSOLE (SCREEN 4) / 3D球形控制台 (第4屏)", "Configure spherical noise matrices on Screen 4 (Fourth Slide)", sphereCards, saveSphereCards, false, screens.find(s => s.id === 4) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
+              </div>
               </section>
             );
           }
@@ -2263,7 +2244,9 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Reusable Dome Console drawer */}
+              <div className="hidden md:block">
                 {renderGenericConsole(isConsoleOpen6, setIsConsoleOpen6, "3D DOME GALLERY CONSOLE (SCREEN 5) / 穹顶画廊控制台 (第5屏)", "Configure 3D Dome Gallery and cards metadata on Screen 5", domeCards, saveDomeCards, true, screens.find(s => s.id === 5) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
+              </div>
               </section>
             );
           }
@@ -2557,7 +2540,9 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Reusable Dome Console drawer */}
+              <div className="hidden md:block">
                 {renderGenericConsole(isConsoleOpen10, setIsConsoleOpen10, "SLIDER CARD CONSOLE (SCREEN 6) / 移动卡片控制台 (第6屏)", "Configure sliding diagnostic cards and metadata on Screen 6", trialCards, saveTrialCards, false, screens.find(s => s.id === 6) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
+              </div>
               </section>
             );
           }
@@ -2713,7 +2698,9 @@ const App: React.FC = () => {
                     </div>
 
                     {/* ⚙️ Interactive Card Syndrome Console (Only visible on Screen 3, slide-over layout) */}
+                  <div className="hidden md:block">
                     {renderGenericConsole(isConsoleOpen3, setIsConsoleOpen3, "MARQUEE CONSOLE (SCREEN 3) / 走马灯控制台 (第3屏)", "Configure sliding noise matrices on Screen 3 (Third Slide)", marqueeCards, saveMarqueeCards, false, screens.find(s => s.id === 3) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
+                  </div>
 
                   </div>
                 ) : (

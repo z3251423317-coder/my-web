@@ -58,72 +58,75 @@ const DEFAULT_PDF_URL = "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com
 // Default curated PDF page screenshots/scans to make the experience extremely realistic and high-fidelity
 const INITIAL_RELATIONSHIP_CARDS: RelationshipCard[] = [
   {
-    id: 'rel-1',
-    title: '此为甘露，彼之苦药',
-    cat: '核心供需错位 / Misalignment',
-    desc: '一方全力付出的温存关怀，对另一方却成为沉重的道德绑架与心理负累，探究“好意”转化为关系毒药的逆转机制。',
-    imageUrl: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop',
-    pdfUrl: DEFAULT_PDF_URL,
+    id: "rel-1782978620375",
+    title: "22",
+    cat: "自定义分析 / Custom",
+    desc: "自定义创建的情感供需分析卡片。",
+    imageUrl: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop",
+    pdfUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E6%9E%84%E7%9F%B3%E6%96%87%E6%A1%A3/1.%E6%AD%A4%E4%B8%BA%E7%94%98%E9%A5%B4%EF%BC%8C%E5%BD%BC%E4%B9%8B%E8%8B%A6%E8%8D%AF%E2%80%94%E2%80%94%E8%AE%BA%E4%B8%8D%E5%90%88%E9%80%82%E7%9A%84%E8%83%8C%E5%90%8E%E4%BA%B2%E5%AF%86%E5%85%B3%E7%B3%BB%E4%B8%AD%E6%83%85%E6%84%9F%E4%BE%9B%E9%9C%80%E7%9A%84%E7%BB%93%E6%9E%84%E6%80%A7%E5%A4%B1%E8%A1%A1%EF%BC%88WXJB-2663-001%EF%BC%89.pdf",
     pdfPageImages: [
-      'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=1200&auto=format&fit=crop', // page 1: paper cover
-      'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop', // page 2: relationship grid
-      'https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?q=80&w=1200&auto=format&fit=crop', // page 3: analysis model
-      'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=1200&auto=format&fit=crop'  // page 4: summary notes
+      "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop"
     ],
-    imbalanceScore: 88,
-    notes: '论文深度阐述：付出者潜意识里带有极高的期待值，当接收者由于性格依恋类型（如回避型）无法给予等价情绪反馈时，关系迅速进入系统性失衡。付出作为一种债务，让对方窒息。',
-    lastUpdated: '2026-07-01 10:00'
+    imbalanceScore: 50,
+    notes: "可编辑深度论文研读笔记或分析心得...",
+    lastUpdated: "2026-07-02 07:50"
   },
   {
-    id: 'rel-2',
-    title: '焦虑型与回避型的依恋对抗',
-    cat: '底层依恋动力 / Attachment',
-    desc: '追逐与逃避的无限循环。深度剖析情感世界中最经典的结构性死锁——渴望融合的焦虑型与需要边界的回避型。',
-    imageUrl: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=800&auto=format&fit=crop',
-    pdfUrl: DEFAULT_PDF_URL,
+    id: "rel-1782974086095",
+    title: "11",
+    cat: "自定义分析 / Custom",
+    desc: "自定义创建的情感供需 analysis 卡片。",
+    imageUrl: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop",
+    pdfUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/1.%E6%AD%A4%E4%B8%BA%E7%94%98%E9%A5%B4%EF%BC%8C%E5%BD%BC%E4%B9%8B%E8%8B%A6%E8%8D%AF%E2%80%94%E2%5%94%E2%80%94%E8%AE%BA%E4%B8%8D%E5%90%88%E9%80%82%E7%9A%84%E8%83%8C%E5%90%8E%E4%BA%B2%E5%AF%86%E5%85%B3%E7%B3%BB%E4%B8%AD%E6%83%85%E6%84%9F%E4%BE%9B%E9%9C%80%E7%9A%84%E7%BB%93%E6%9E%84%E6%80%A7%E5%A4%B1%E8%A1%A1%EF%BC%88WXJB-2663-001%EF%BC%89.pdf",
     pdfPageImages: [
-      'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=1200&auto=format&fit=crop', // page 1: attachment cycle
-      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1200&auto=format&fit=crop', // page 2: research stats
-      'https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?q=80&w=1200&auto=format&fit=crop'  // page 3: interactive model
+      "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop"
     ],
-    imbalanceScore: 94,
-    notes: '不合适的背后，是双方对“安全边界”的定义存在质的差异。这种失衡不是任何一方的刻意伤害，而是供需底座的结构性不兼容。一方越追，另一方越逃。',
-    lastUpdated: '2026-07-01 10:15'
+    imbalanceScore: 50,
+    notes: "可编辑深度论文研读笔记或分析心得...",
+    lastUpdated: "2026-07-02 06:34"
   },
   {
-    id: 'rel-3',
-    title: '隐性情感控制的虚妄',
-    cat: '权利不对等 / Power Balance',
-    desc: '付出作为一种微型筹码，在无形中争夺关系的主导权。当爱变成了一种不得不偿还的债务，逃离成为了唯一的解脱。',
-    imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=800&auto=format&fit=crop',
-    pdfUrl: DEFAULT_PDF_URL,
+    id: "rel-4",
+    title: "安全感逆差下的零和博弈",
+    cat: "深层代偿机制 / Compensation",
+    desc: "双方试图在对方身上填补童年或过往体验中遗留的匮乏感，最终将本应滋养彼此的避风港扭曲为不断透支能耗的战场。",
+    imageUrl: "https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?q=80&w=800&auto=format&fit=crop",
+    pdfUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/1.%E6%AD%A4%E4%B8%BA%E7%94%98%E9%A5%B4%EF%BC%8C%E5%BD%BC%E4%B9%8B%E8%8B%A6%E8%8D%AF%E2%80%94%E2%5%94%E2%80%94%E8%AE%BA%E4%B8%8D%E5%90%88%E9%80%82%E7%9A%84%E8%83%8C%E5%90%8E%E4%BA%B2%E5%AF%86%E5%85%B3%E7%B3%BB%E4%B8%AD%E6%83%85%E6%84%9F%E4%BE%9B%E9%9C%80%E7%9A%84%E7%BB%93%E6%9E%84%E6%80%A7%E5%A4%B1%E8%A1%A1%EF%BC%88WXJB-2663-001%EF%BC%89.pdf",
     pdfPageImages: [
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1200&auto=format&fit=crop', // page 1: power dynamic
-      'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop'  // page 2: debt model
-    ],
-    imbalanceScore: 75,
-    notes: '当情感倾注失去对等的倾听与适配，过度的、不契合的迎合反而窒息了交流通道，形成了微型权力高压。付出者把自己的牺牲当做至高无上的筹码。',
-    lastUpdated: '2026-07-01 10:30'
-  },
-  {
-    id: 'rel-4',
-    title: '安全感逆差下的零和博弈',
-    cat: '深层代偿机制 / Compensation',
-    desc: '双方试图在对方身上填补童年或过往体验中遗留的匮乏感，最终将本应滋养彼此的避风港扭曲为不断透支能耗的战场。',
-    imageUrl: 'https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?q=80&w=800&auto=format&fit=crop',
-    pdfUrl: DEFAULT_PDF_URL,
-    pdfPageImages: [
-      'https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?q=80&w=1200&auto=format&fit=crop', // page 1: zero-sum balance
-      'https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=1200&auto=format&fit=crop'  // page 2: research spectrum
+      "https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=1200&auto=format&fit=crop"
     ],
     imbalanceScore: 82,
-    notes: '为了满足自我安全感，过度迎合或冷酷防御都是代偿行为。唯有认清结构失衡，才能从博弈走向成熟和解。本章深度剖析代偿心理解析。',
-    lastUpdated: '2026-07-01 10:45'
+    notes: "为了满足自我安全感，过度迎合或冷酷防御都是代偿行为。唯有认清结构失衡，才能从博弈走向成熟和解。本章深度剖析代偿心理解析。",
+    lastUpdated: "2026-07-01 10:45"
   }
 ];
 
 export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose }) => {
-  const [cards, setCards] = useState<RelationshipCard[]>(INITIAL_RELATIONSHIP_CARDS);
+  const [cards, setCards] = useState<RelationshipCard[]>(() => {
+    const saved = localStorage.getItem("alphaqubit_relationship_cards_v4");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch (e) {
+        console.error("Failed to parse saved relationship cards", e);
+      }
+    }
+    return INITIAL_RELATIONSHIP_CARDS;
+  });
+
+  const saveCards = (updater: RelationshipCard[] | ((prev: RelationshipCard[]) => RelationshipCard[])) => {
+    setCards(prev => {
+      const updated = typeof updater === "function" ? updater(prev) : updater;
+      localStorage.setItem("alphaqubit_relationship_cards_v4", JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCard, setSelectedCard] = useState<RelationshipCard | null>(null);
@@ -265,7 +268,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
       notes: '可编辑深度论文研读笔记或分析心得...',
       lastUpdated: timestamp
     };
-    setCards(prev => [newCard, ...prev]);
+    saveCards(prev => [newCard, ...prev]);
     setControllerTitle('');
     setControllerDesc('');
     setControllerPdfUrl('');
@@ -274,7 +277,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
   // Quick Action: Remove selected or last card
   const handleDeleteCard = (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    setCards(prev => prev.filter(c => c.id !== id));
+    saveCards(prev => prev.filter(c => c.id !== id));
     if (selectedCard?.id === id) {
       setSelectedCard(null);
     }
@@ -297,7 +300,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
       lastUpdated: timestamp
     };
 
-    setCards(prev => prev.map(c => c.id === selectedCard.id ? updatedCard : c));
+    saveCards(prev => prev.map(c => c.id === selectedCard.id ? updatedCard : c));
     setSelectedCard(updatedCard);
     alert('修改已成功保存并同步。');
   };
@@ -456,9 +459,72 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
                 exit={{ height: 0, opacity: 0, marginTop: 0 }}
                 className="overflow-hidden flex flex-col gap-4"
               >
+                {/* Dynamic Card Count Control */}
+                <div className="bg-zinc-900 border border-zinc-800/80 rounded-xl p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-zinc-300 font-medium">卡片数量控制 (Count)</span>
+                    <div className="flex items-center gap-1.5">
+                      <button 
+                        onClick={() => {
+                          if (cards.length > 1) {
+                            saveCards(cards.slice(0, cards.length - 1));
+                          }
+                        }}
+                        disabled={cards.length <= 1}
+                        className="p-1 px-2.5 text-xs font-bold bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 disabled:hover:bg-zinc-800 text-white rounded-lg cursor-pointer transition-all active:scale-95"
+                        onPointerDown={e => e.stopPropagation()}
+                        title="减少一张卡片"
+                      >
+                        -
+                      </button>
+                      <span className="text-xs font-mono font-bold text-amber-500 w-6 text-center">{cards.length}</span>
+                      <button 
+                        onClick={() => {
+                          const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+                          const newCard: RelationshipCard = {
+                            id: `rel-${Date.now()}`,
+                            title: `新分析卡片 ${cards.length + 1}`,
+                            cat: '自定义分析 / Custom',
+                            desc: '自定义创建的情感供需分析卡片。',
+                            imageUrl: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop',
+                            pdfUrl: DEFAULT_PDF_URL,
+                            pdfPageImages: [
+                              'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=1200&auto=format&fit=crop',
+                              'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop'
+                            ],
+                            imbalanceScore: 50,
+                            notes: '可编辑深度论文研读笔记或分析心得...',
+                            lastUpdated: timestamp
+                          };
+                          saveCards([...cards, newCard]);
+                        }}
+                        className="p-1 px-2.5 text-xs font-bold bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg cursor-pointer transition-all active:scale-95"
+                        onPointerDown={e => e.stopPropagation()}
+                        title="增加一张卡片"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={() => {
+                      if (window.confirm("确定要恢复列表为默认的 3 张卡片吗？这会覆盖当前的所有自定义改动。")) {
+                        saveCards(INITIAL_RELATIONSHIP_CARDS);
+                        setSelectedCard(null);
+                      }
+                    }}
+                    className="w-full py-1.5 bg-zinc-950 hover:bg-red-950/20 border border-zinc-800/80 hover:border-red-900/30 text-zinc-400 hover:text-red-400 text-[10px] font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1"
+                    onPointerDown={e => e.stopPropagation()}
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span>恢复默认的 3 张卡片</span>
+                  </button>
+                </div>
+
                 <div className="space-y-3">
                   <div>
-                    <label className="text-[10px] text-zinc-400 font-mono mb-1 block">卡片标题 (Title)</label>
+                    <label className="text-[10px] text-zinc-400 font-mono mb-1 block">卡片标题 (Card title)</label>
                     <input 
                       type="text" 
                       value={controllerTitle}
@@ -469,7 +535,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-zinc-400 font-mono mb-1 block">PDF 链接 (PDF URL)</label>
+                    <label className="text-[10px] text-zinc-400 font-mono mb-1 block">PDF 链接 (PDF link)</label>
                     <input 
                       type="text" 
                       value={controllerPdfUrl}
