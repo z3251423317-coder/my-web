@@ -281,16 +281,9 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
 
         // 2. Fetch PDF ArrayBuffer with CORS proxy fallback
         let arrayBuffer: ArrayBuffer;
-        try {
-          const directResponse = await fetch(targetUrl);
-          if (!directResponse.ok) throw new Error('CORS restriction');
-          arrayBuffer = await directResponse.arrayBuffer();
-        } catch (directErr) {
-          const proxyUrl = `/api/proxy-pdf?url=${encodeURIComponent(targetUrl)}`;
-          const proxyResponse = await fetch(proxyUrl);
-          if (!proxyResponse.ok) throw new Error('加载 PDF 失败，请确保链接有效且可下载。');
-          arrayBuffer = await proxyResponse.arrayBuffer();
-        }
+        const response = await fetch(targetUrl);
+        if (!response.ok) throw new Error('加载 PDF 失败，请确保链接有效且可下载。');
+        arrayBuffer = await response.arrayBuffer();
 
         if (!active) return;
 
@@ -445,19 +438,10 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
 
       // 2. Fetch PDF ArrayBuffer with CORS proxy fallback
       let arrayBuffer: ArrayBuffer;
-      try {
-        const directResponse = await fetch(urlToExtract);
-        if (!directResponse.ok) throw new Error('CORS restriction');
-        arrayBuffer = await directResponse.arrayBuffer();
-        setExtractionLog(prev => [...prev, '[SUCCESS] PDF 核心通道建立成功，直接读取完成！']);
-      } catch (directErr) {
-        setExtractionLog(prev => [...prev, '[WARN] 检测到第三方服务器跨域拦截 (CORS)，已自动接入高速跨域代理，继续握手...']);
-        const proxyUrl = `/api/proxy-pdf?url=${encodeURIComponent(urlToExtract)}`;
-        const proxyResponse = await fetch(proxyUrl);
-        if (!proxyResponse.ok) throw new Error('通过代理提取 PDF 文件失败。请确保链接可被直接下载且是有效的 PDF 文件。');
-        arrayBuffer = await proxyResponse.arrayBuffer();
-        setExtractionLog(prev => [...prev, '[SUCCESS] 跨域代理握手成功，PDF 数据流已全量接通！']);
-      }
+      const response = await fetch(urlToExtract);
+      if (!response.ok) throw new Error('加载 PDF 失败，请确保链接有效且可下载。');
+      arrayBuffer = await response.arrayBuffer();
+      setExtractionLog(prev => [...prev, '[SUCCESS] PDF 核心通道建立成功，直接读取完成！']);
 
       setExtractionLog(prev => [...prev, '[INFO] 正在反序列化 PDF 二进制流，解构文档目录...']);
 
