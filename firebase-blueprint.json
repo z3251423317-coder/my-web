@@ -1,0 +1,17 @@
+{
+  "collections": {
+    "cards": {
+      "id": "string",
+      "title": "string",
+      "cat": "string",
+      "desc": "string",
+      "imageUrl": "string",
+      "pdfUrl": "string",
+      "pdfPageImages": "array",
+      "imbalanceScore": "number",
+      "notes": "string",
+      "lastUpdated": "string",
+      "createdAt": "timestamp"
+    }
+  }
+}

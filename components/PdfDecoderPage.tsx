@@ -1,6 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
+  collection, 
+  onSnapshot, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  doc, 
+  query, 
+  orderBy,
+  serverTimestamp 
+} from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { 
   FileText, 
   Upload, 
   X, 
@@ -75,7 +87,52 @@ const INITIAL_RELATIONSHIP_CARDS: RelationshipCard[] = [
 ];
 
 export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose }) => {
-  const [cards, setCards] = useState<RelationshipCard[]>(INITIAL_RELATIONSHIP_CARDS);
+  const [cards, setCards] = useState<RelationshipCard[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Sync with Firestore in real-time
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const q = query(collection(db, 'cards'), orderBy('lastUpdated', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedCards = snapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id,
+      })) as RelationshipCard[];
+      
+      setCards(fetchedCards);
+      setIsLoading(false);
+    }, (error) => {
+      console.error("Firestore sync error:", error);
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [isOpen]);
+
+  const handleSeedData = async () => {
+    if (cards.length > 0) {
+      if (!confirm('数据库已包含数据，是否仍要添加预设样本数据？')) return;
+    }
+    
+    setIsLoading(true);
+    try {
+      for (const card of INITIAL_RELATIONSHIP_CARDS) {
+        const { id, ...cardData } = card; // strip local id
+        await addDoc(collection(db, 'cards'), {
+          ...cardData,
+          createdAt: serverTimestamp()
+        });
+      }
+      alert('预设样本数据已成功导入云端。');
+    } catch (e) {
+      console.error(e);
+      alert('导入失败。');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCard, setSelectedCard] = useState<RelationshipCard | null>(null);
@@ -196,14 +253,13 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
   };
 
   // Controller Action: Add a new custom analysis card
-  const handleCreateCustomCard = () => {
+  const handleCreateCustomCard = async () => {
     if (!controllerTitle.trim()) {
       alert("请输入卡片标题 / Please enter a card title");
       return;
     }
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
-    const newCard: RelationshipCard = {
-      id: `rel-${Date.now()}`,
+    const newCardData = {
       title: controllerTitle,
       cat: '自定义分析 / Custom',
       desc: controllerDesc || '自定义创建的情感供需分析卡片。',
@@ -215,29 +271,42 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
       ],
       imbalanceScore: 50,
       notes: '可编辑深度论文研读笔记或分析心得...',
-      lastUpdated: timestamp
+      lastUpdated: timestamp,
+      createdAt: serverTimestamp()
     };
-    setCards(prev => [newCard, ...prev]);
-    setControllerTitle('');
-    setControllerDesc('');
-    setControllerPdfUrl('');
+    
+    try {
+      await addDoc(collection(db, 'cards'), newCardData);
+      setControllerTitle('');
+      setControllerDesc('');
+      setControllerPdfUrl('');
+    } catch (e) {
+      console.error("Error adding document: ", e);
+      alert('保存失败，请检查网络连接。');
+    }
   };
 
   // Quick Action: Remove selected or last card
-  const handleDeleteCard = (id: string, e?: React.MouseEvent) => {
+  const handleDeleteCard = async (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    setCards(prev => prev.filter(c => c.id !== id));
-    if (selectedCard?.id === id) {
-      setSelectedCard(null);
+    if (!confirm('确定要永久删除这条数据吗？此操作无法撤销。')) return;
+
+    try {
+      await deleteDoc(doc(db, 'cards', id));
+      if (selectedCard?.id === id) {
+        setSelectedCard(null);
+      }
+    } catch (e) {
+      console.error("Error deleting document: ", e);
+      alert('删除失败。');
     }
   };
 
   // Save modifications to the current selected card
-  const handleSaveCard = () => {
+  const handleSaveCard = async () => {
     if (!selectedCard) return;
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
-    const updatedCard: RelationshipCard = {
-      ...selectedCard,
+    const updatedCardData = {
       title: editTitle,
       cat: editCat,
       desc: editDesc,
@@ -249,9 +318,14 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
       lastUpdated: timestamp
     };
 
-    setCards(prev => prev.map(c => c.id === selectedCard.id ? updatedCard : c));
-    setSelectedCard(updatedCard);
-    alert('修改已成功保存并同步。');
+    try {
+      await updateDoc(doc(db, 'cards', selectedCard.id), updatedCardData);
+      setSelectedCard({ ...selectedCard, ...updatedCardData });
+      alert('修改已成功保存到云端并实时同步。');
+    } catch (e) {
+      console.error("Error updating document: ", e);
+      alert('保存到云端失败。');
+    }
   };
 
   // Handle local card cover image upload and converting to base64
@@ -454,6 +528,17 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
                       <Plus className="w-4 h-4 pointer-events-none" />
                       <span>新增分析卡片</span>
                     </button>
+                    {cards.length === 0 && !isLoading && (
+                      <button 
+                        onClick={handleSeedData}
+                        className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer shadow-lg"
+                        onPointerDown={(e) => e.stopPropagation()}
+                        title="初始化预设样本数据"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                        <span>初始化样本</span>
+                      </button>
+                    )}
                     <button 
                       onClick={() => {
                         navigator.clipboard.writeText(JSON.stringify(cards, null, 2));
