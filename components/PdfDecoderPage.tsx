@@ -30,7 +30,9 @@ import {
   ArrowRight,
   Settings,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Share2,
+  Copy
 } from 'lucide-react';
 
 export interface RelationshipCard {
@@ -500,6 +502,18 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
                       <Plus className="w-4 h-4 pointer-events-none" />
                       <span>新增分析卡片</span>
                     </button>
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(JSON.stringify(cards, null, 2));
+                        alert('全部卡片数据已复制，请发送给 AI 进行部署');
+                      }}
+                      className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-amber-500 text-xs font-bold rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer shadow-lg"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      title="复制全部卡片 JSON 数据用于 Git 部署"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      <span>复制数据</span>
+                    </button>
                   </div>
                   
                   <div className="mt-2 pt-2 border-t border-zinc-800/50">
@@ -674,6 +688,17 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
                         <div className="px-3 py-1.5 bg-zinc-950 border border-zinc-850 rounded-lg text-[10px] font-mono text-zinc-500 text-left shrink-0">
                           失衡度: <span className={card.imbalanceScore >= 85 ? "text-red-400" : card.imbalanceScore >= 70 ? "text-amber-400" : "text-teal-400"}>{card.imbalanceScore}%</span>
                         </div>
+                        <button 
+                          onPointerDown={(e) => { 
+                            e.stopPropagation(); 
+                            navigator.clipboard.writeText(JSON.stringify(card, null, 2));
+                            alert('单条卡片数据已复制');
+                          }} 
+                          className="p-1.5 text-zinc-500 hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition-colors shrink-0"
+                          title="复制此卡片数据"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
                         <button 
                           onPointerDown={(e) => { e.stopPropagation(); handleDeleteCard(card.id, e as any); }} 
                           className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors shrink-0"
