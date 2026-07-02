@@ -90,6 +90,61 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
   const [cards, setCards] = useState<RelationshipCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const handleMigrateLocalData = async () => {
+    const saved = localStorage.getItem('relationship_pdf_cards_v2');
+    if (!saved) {
+      alert('未检测到本地旧版数据。');
+      return;
+    }
+    
+    try {
+      const localCards = JSON.parse(saved);
+      if (!Array.isArray(localCards) || localCards.length === 0) {
+        alert('本地旧版数据为空或格式不正确。');
+        return;
+      }
+      
+      if (!confirm(`检测到 ${localCards.length} 条本地数据，是否同步到云端数据库？`)) return;
+      
+      setIsLoading(true);
+      for (const card of localCards) {
+        const { id, ...cardData } = card; 
+        await addDoc(collection(db, 'cards'), {
+          ...cardData,
+          createdAt: serverTimestamp()
+        });
+      }
+      alert('本地数据已成功迁移至云端。您可以安全清除本地缓存。');
+      // Optional: localStorage.removeItem('relationship_pdf_cards_v2');
+    } catch (e) {
+      console.error(e);
+      alert('同步本地数据失败。');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSeedData = async () => {
+    // Avoid double seeding
+    if (cards.length > 0) return;
+    
+    setIsLoading(true);
+    try {
+      for (const card of INITIAL_RELATIONSHIP_CARDS) {
+        const { id, ...cardData } = card; 
+        await addDoc(collection(db, 'cards'), {
+          ...cardData,
+          createdAt: serverTimestamp()
+        });
+      }
+      console.log('Seeded initial data to Firestore');
+    } catch (e) {
+      console.error('Seeding failed:', e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Sync with Firestore in real-time
   useEffect(() => {
     if (!isOpen) return;
@@ -102,6 +157,12 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
       })) as RelationshipCard[];
       
       setCards(fetchedCards);
+      
+      // Auto-seed if empty on first load
+      if (fetchedCards.length === 0 && isLoading) {
+        handleSeedData();
+      }
+      
       setIsLoading(false);
     }, (error) => {
       console.error("Firestore sync error:", error);
@@ -110,29 +171,6 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
 
     return () => unsubscribe();
   }, [isOpen]);
-
-  const handleSeedData = async () => {
-    if (cards.length > 0) {
-      if (!confirm('数据库已包含数据，是否仍要添加预设样本数据？')) return;
-    }
-    
-    setIsLoading(true);
-    try {
-      for (const card of INITIAL_RELATIONSHIP_CARDS) {
-        const { id, ...cardData } = card; // strip local id
-        await addDoc(collection(db, 'cards'), {
-          ...cardData,
-          createdAt: serverTimestamp()
-        });
-      }
-      alert('预设样本数据已成功导入云端。');
-    } catch (e) {
-      console.error(e);
-      alert('导入失败。');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCard, setSelectedCard] = useState<RelationshipCard | null>(null);
@@ -539,6 +577,15 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
                         <span>初始化样本</span>
                       </button>
                     )}
+                    <button 
+                      onClick={handleMigrateLocalData}
+                      className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-teal-500 text-xs font-bold rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer shadow-lg"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      title="同步浏览器本地数据到云端"
+                    >
+                      <Upload className="w-4 h-4" />
+                      <span>同步本地到云端</span>
+                    </button>
                     <button 
                       onClick={() => {
                         navigator.clipboard.writeText(JSON.stringify(cards, null, 2));
