@@ -1992,7 +1992,7 @@ const App: React.FC = () => {
       </div>
 
       {/* Developer Settings Control Panel (Only visible in DEV, draggable, clean and elegant) */}
-      {import.meta.env.DEV && (
+      {import.meta.env.DEV && !isMobile && (
         <motion.div 
           drag
           dragMomentum={false}
@@ -2144,7 +2144,7 @@ const App: React.FC = () => {
                 className="snap-start snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
               >
                 {/* Floating controls specifically for Screen 4 to toggle the drawer */}
-                {import.meta.env.DEV && (
+                {import.meta.env.DEV && !isMobile && (
                   <div className="absolute top-20 right-6 lg:top-6 lg:right-44 z-50 pointer-events-auto flex items-center gap-3">
                     <button
                       onClick={() => setIsConsoleOpen4(!isConsoleOpen4)}
@@ -2211,7 +2211,7 @@ const App: React.FC = () => {
                 className="snap-start snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
               >
                 {/* Floating controls specifically for Screen 5 to toggle the dome drawer */}
-                {import.meta.env.DEV && (
+                {import.meta.env.DEV && !isMobile && (
                   <div className="absolute top-24 right-6 lg:top-6 lg:right-6 z-50 pointer-events-auto flex items-center gap-3">
                     <button
                       onClick={() => setIsConsoleOpen6(!isConsoleOpen6)}
@@ -2267,7 +2267,7 @@ const App: React.FC = () => {
                 className="snap-start snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
               >
                 {/* Floating controls specifically for Screen 6 to toggle the console drawer */}
-                {import.meta.env.DEV && (
+                {import.meta.env.DEV && !isMobile && (
                   <div className="absolute top-24 right-6 lg:top-6 lg:right-6 z-50 pointer-events-auto flex items-center gap-3">
                     <button
                       onClick={() => setIsConsoleOpen10(!isConsoleOpen10)}
@@ -2602,7 +2602,7 @@ const App: React.FC = () => {
                       </motion.div>
 
                       {/* Controls Toggle Trigger (Visible only on this screen, fulfilling user's '控制台只在该页显示') */}
-                      {import.meta.env.DEV && (
+                      {import.meta.env.DEV && !isMobile && (
                         <div className="flex items-center gap-3">
                           <button
                             id="console-toggle-btn"
