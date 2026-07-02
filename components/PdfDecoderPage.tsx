@@ -89,6 +89,18 @@ const INITIAL_RELATIONSHIP_CARDS: RelationshipCard[] = [
 export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose }) => {
   const [cards, setCards] = useState<RelationshipCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+
+  // Sync with Firestore in real-time
+  useEffect(() => {
+    const handleStatus = () => setIsOnline(navigator.onLine);
+    window.addEventListener('online', handleStatus);
+    window.addEventListener('offline', handleStatus);
+    return () => {
+      window.removeEventListener('online', handleStatus);
+      window.removeEventListener('offline', handleStatus);
+    };
+  }, []);
 
   const handleMigrateLocalData = async () => {
     const saved = localStorage.getItem('relationship_pdf_cards_v2');
@@ -557,6 +569,14 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
                 </div>
 
                 <div className="pt-2 flex flex-col gap-2">
+                  <div className="flex items-center gap-2 mb-1 px-1">
+                    <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.8)]' : 'bg-red-500'} animate-pulse`} />
+                    <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+                      {isOnline ? 'Cloud Database Connected' : 'Connection Lost'}
+                    </span>
+                    {isLoading && <div className="ml-auto w-3 h-3 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />}
+                  </div>
+
                   <div className="flex items-center justify-between gap-2">
                     <button
                       onClick={handleCreateCustomCard}
