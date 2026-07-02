@@ -1,18 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  collection, 
-  onSnapshot, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  query, 
-  orderBy,
-  serverTimestamp 
-} from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import { 
   FileText, 
   Upload, 
   X, 
@@ -42,9 +30,7 @@ import {
   ArrowRight,
   Settings,
   ChevronDown,
-  ChevronUp,
-  Share2,
-  Copy
+  ChevronUp
 } from 'lucide-react';
 
 export interface RelationshipCard {
@@ -70,119 +56,72 @@ const DEFAULT_PDF_URL = "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com
 // Default curated PDF page screenshots/scans to make the experience extremely realistic and high-fidelity
 const INITIAL_RELATIONSHIP_CARDS: RelationshipCard[] = [
   {
-    "id": "rel-1782960002438",
-    "title": "测试",
-    "cat": "自定义分析 / Custom",
-    "desc": "自定义创建的情感供需分析卡片。",
-    "imageUrl": "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop",
-    "pdfUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E6%9E%84%E7%9F%B3%E6%96%87%E6%A1%A3/1.%E6%AD%A4%E4%B8%BA%E7%94%98%E9%A5%B4%EF%BC%8C%E5%BD%BC%E4%B9%8B%E8%8B%A6%E8%8D%AF%E2%80%94%E2%80%94%E8%AE%BA%E4%B8%8D%E5%90%88%E9%80%82%E7%9A%84%E8%83%8C%E5%90%8E%E4%BA%B2%E5%AF%86%E5%85%B3%E7%B3%BB%E4%B8%AD%E6%83%85%E6%84%9F%E4%BE%9B%E9%9C%80%E7%9A%84%E7%BB%93%E6%9E%84%E6%80%A7%E5%A4%B1%E8%A1%A1%EF%BC%88WXJB-2663-001%EF%BC%89.pdf",
-    "pdfPageImages": [
-      "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=1200&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop"
+    id: 'rel-1',
+    title: '此为甘露，彼之苦药',
+    cat: '核心供需错位 / Misalignment',
+    desc: '一方全力付出的温存关怀，对另一方却成为沉重的道德绑架与心理负累，探究“好意”转化为关系毒药的逆转机制。',
+    imageUrl: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop',
+    pdfUrl: DEFAULT_PDF_URL,
+    pdfPageImages: [
+      'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=1200&auto=format&fit=crop', // page 1: paper cover
+      'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop', // page 2: relationship grid
+      'https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?q=80&w=1200&auto=format&fit=crop', // page 3: analysis model
+      'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=1200&auto=format&fit=crop'  // page 4: summary notes
     ],
-    "imbalanceScore": 50,
-    "notes": "可编辑深度论文研读笔记或分析心得...",
-    "lastUpdated": "2026-07-02 02:40"
+    imbalanceScore: 88,
+    notes: '论文深度阐述：付出者潜意识里带有极高的期待值，当接收者由于性格依恋类型（如回避型）无法给予等价情绪反馈时，关系迅速进入系统性失衡。付出作为一种债务，让对方窒息。',
+    lastUpdated: '2026-07-01 10:00'
+  },
+  {
+    id: 'rel-2',
+    title: '焦虑型与回避型的依恋对抗',
+    cat: '底层依恋动力 / Attachment',
+    desc: '追逐与逃避的无限循环。深度剖析情感世界中最经典的结构性死锁——渴望融合的焦虑型与需要边界的回避型。',
+    imageUrl: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=800&auto=format&fit=crop',
+    pdfUrl: DEFAULT_PDF_URL,
+    pdfPageImages: [
+      'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=1200&auto=format&fit=crop', // page 1: attachment cycle
+      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1200&auto=format&fit=crop', // page 2: research stats
+      'https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?q=80&w=1200&auto=format&fit=crop'  // page 3: interactive model
+    ],
+    imbalanceScore: 94,
+    notes: '不合适的背后，是双方对“安全边界”的定义存在质的差异。这种失衡不是任何一方的刻意伤害，而是供需底座的结构性不兼容。一方越追，另一方越逃。',
+    lastUpdated: '2026-07-01 10:15'
+  },
+  {
+    id: 'rel-3',
+    title: '隐性情感控制的虚妄',
+    cat: '权利不对等 / Power Balance',
+    desc: '付出作为一种微型筹码，在无形中争夺关系的主导权。当爱变成了一种不得不偿还的债务，逃离成为了唯一的解脱。',
+    imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=800&auto=format&fit=crop',
+    pdfUrl: DEFAULT_PDF_URL,
+    pdfPageImages: [
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1200&auto=format&fit=crop', // page 1: power dynamic
+      'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop'  // page 2: debt model
+    ],
+    imbalanceScore: 75,
+    notes: '当情感倾注失去对等的倾听与适配，过度的、不契合的迎合反而窒息了交流通道，形成了微型权力高压。付出者把自己的牺牲当做至高无上的筹码。',
+    lastUpdated: '2026-07-01 10:30'
+  },
+  {
+    id: 'rel-4',
+    title: '安全感逆差下的零和博弈',
+    cat: '深层代偿机制 / Compensation',
+    desc: '双方试图在对方身上填补童年或过往体验中遗留的匮乏感，最终将本应滋养彼此的避风港扭曲为不断透支能耗的战场。',
+    imageUrl: 'https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?q=80&w=800&auto=format&fit=crop',
+    pdfUrl: DEFAULT_PDF_URL,
+    pdfPageImages: [
+      'https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?q=80&w=1200&auto=format&fit=crop', // page 1: zero-sum balance
+      'https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=1200&auto=format&fit=crop'  // page 2: research spectrum
+    ],
+    imbalanceScore: 82,
+    notes: '为了满足自我安全感，过度迎合或冷酷防御都是代偿行为。唯有认清结构失衡，才能从博弈走向成熟和解。本章深度剖析代偿心理解析。',
+    lastUpdated: '2026-07-01 10:45'
   }
 ];
 
 export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose }) => {
-  const [cards, setCards] = useState<RelationshipCard[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
-
-  // Sync with Firestore in real-time
-  useEffect(() => {
-    const handleStatus = () => setIsOnline(navigator.onLine);
-    window.addEventListener('online', handleStatus);
-    window.addEventListener('offline', handleStatus);
-    return () => {
-      window.removeEventListener('online', handleStatus);
-      window.removeEventListener('offline', handleStatus);
-    };
-  }, []);
-
-  const handleMigrateLocalData = async () => {
-    const saved = localStorage.getItem('relationship_pdf_cards_v2');
-    if (!saved) {
-      alert('未检测到本地旧版数据。');
-      return;
-    }
-    
-    try {
-      const localCards = JSON.parse(saved);
-      if (!Array.isArray(localCards) || localCards.length === 0) {
-        alert('本地旧版数据为空或格式不正确。');
-        return;
-      }
-      
-      if (!confirm(`检测到 ${localCards.length} 条本地数据，是否同步到云端数据库？`)) return;
-      
-      setIsLoading(true);
-      for (const card of localCards) {
-        const { id, ...cardData } = card; 
-        await addDoc(collection(db, 'cards'), {
-          ...cardData,
-          createdAt: serverTimestamp()
-        });
-      }
-      alert('本地数据已成功迁移至云端。您可以安全清除本地缓存。');
-      // Optional: localStorage.removeItem('relationship_pdf_cards_v2');
-    } catch (e) {
-      console.error(e);
-      alert('同步本地数据失败。');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSeedData = async () => {
-    // Avoid double seeding
-    if (cards.length > 0) return;
-    
-    setIsLoading(true);
-    try {
-      for (const card of INITIAL_RELATIONSHIP_CARDS) {
-        const { id, ...cardData } = card; 
-        await addDoc(collection(db, 'cards'), {
-          ...cardData,
-          createdAt: serverTimestamp()
-        });
-      }
-      console.log('Seeded initial data to Firestore');
-    } catch (e) {
-      console.error('Seeding failed:', e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Sync with Firestore in real-time
-  useEffect(() => {
-    if (!isOpen) return;
-    
-    const q = query(collection(db, 'cards'), orderBy('lastUpdated', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const fetchedCards = snapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id,
-      })) as RelationshipCard[];
-      
-      setCards(fetchedCards);
-      
-      // Auto-seed if empty on first load
-      if (fetchedCards.length === 0 && isLoading) {
-        handleSeedData();
-      }
-      
-      setIsLoading(false);
-    }, (error) => {
-      console.error("Firestore sync error:", error);
-      setIsLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [isOpen]);
+  const [cards, setCards] = useState<RelationshipCard[]>(INITIAL_RELATIONSHIP_CARDS);
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCard, setSelectedCard] = useState<RelationshipCard | null>(null);
@@ -303,13 +242,14 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
   };
 
   // Controller Action: Add a new custom analysis card
-  const handleCreateCustomCard = async () => {
+  const handleCreateCustomCard = () => {
     if (!controllerTitle.trim()) {
       alert("请输入卡片标题 / Please enter a card title");
       return;
     }
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
-    const newCardData = {
+    const newCard: RelationshipCard = {
+      id: `rel-${Date.now()}`,
       title: controllerTitle,
       cat: '自定义分析 / Custom',
       desc: controllerDesc || '自定义创建的情感供需分析卡片。',
@@ -321,42 +261,29 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
       ],
       imbalanceScore: 50,
       notes: '可编辑深度论文研读笔记或分析心得...',
-      lastUpdated: timestamp,
-      createdAt: serverTimestamp()
+      lastUpdated: timestamp
     };
-    
-    try {
-      await addDoc(collection(db, 'cards'), newCardData);
-      setControllerTitle('');
-      setControllerDesc('');
-      setControllerPdfUrl('');
-    } catch (e) {
-      console.error("Error adding document: ", e);
-      alert('保存失败，请检查网络连接。');
-    }
+    setCards(prev => [newCard, ...prev]);
+    setControllerTitle('');
+    setControllerDesc('');
+    setControllerPdfUrl('');
   };
 
   // Quick Action: Remove selected or last card
-  const handleDeleteCard = async (id: string, e?: React.MouseEvent) => {
+  const handleDeleteCard = (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    if (!confirm('确定要永久删除这条数据吗？此操作无法撤销。')) return;
-
-    try {
-      await deleteDoc(doc(db, 'cards', id));
-      if (selectedCard?.id === id) {
-        setSelectedCard(null);
-      }
-    } catch (e) {
-      console.error("Error deleting document: ", e);
-      alert('删除失败。');
+    setCards(prev => prev.filter(c => c.id !== id));
+    if (selectedCard?.id === id) {
+      setSelectedCard(null);
     }
   };
 
   // Save modifications to the current selected card
-  const handleSaveCard = async () => {
+  const handleSaveCard = () => {
     if (!selectedCard) return;
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
-    const updatedCardData = {
+    const updatedCard: RelationshipCard = {
+      ...selectedCard,
       title: editTitle,
       cat: editCat,
       desc: editDesc,
@@ -368,14 +295,9 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
       lastUpdated: timestamp
     };
 
-    try {
-      await updateDoc(doc(db, 'cards', selectedCard.id), updatedCardData);
-      setSelectedCard({ ...selectedCard, ...updatedCardData });
-      alert('修改已成功保存到云端并实时同步。');
-    } catch (e) {
-      console.error("Error updating document: ", e);
-      alert('保存到云端失败。');
-    }
+    setCards(prev => prev.map(c => c.id === selectedCard.id ? updatedCard : c));
+    setSelectedCard(updatedCard);
+    alert('修改已成功保存并同步。');
   };
 
   // Handle local card cover image upload and converting to base64
@@ -569,14 +491,6 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
                 </div>
 
                 <div className="pt-2 flex flex-col gap-2">
-                  <div className="flex items-center gap-2 mb-1 px-1">
-                    <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.8)]' : 'bg-red-500'} animate-pulse`} />
-                    <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
-                      {isOnline ? 'Cloud Database Connected' : 'Connection Lost'}
-                    </span>
-                    {isLoading && <div className="ml-auto w-3 h-3 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />}
-                  </div>
-
                   <div className="flex items-center justify-between gap-2">
                     <button
                       onClick={handleCreateCustomCard}
@@ -585,38 +499,6 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
                     >
                       <Plus className="w-4 h-4 pointer-events-none" />
                       <span>新增分析卡片</span>
-                    </button>
-                    {cards.length === 0 && !isLoading && (
-                      <button 
-                        onClick={handleSeedData}
-                        className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer shadow-lg"
-                        onPointerDown={(e) => e.stopPropagation()}
-                        title="初始化预设样本数据"
-                      >
-                        <RefreshCw className="w-4 h-4" />
-                        <span>初始化样本</span>
-                      </button>
-                    )}
-                    <button 
-                      onClick={handleMigrateLocalData}
-                      className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-teal-500 text-xs font-bold rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer shadow-lg"
-                      onPointerDown={(e) => e.stopPropagation()}
-                      title="同步浏览器本地数据到云端"
-                    >
-                      <Upload className="w-4 h-4" />
-                      <span>同步本地到云端</span>
-                    </button>
-                    <button 
-                      onClick={() => {
-                        navigator.clipboard.writeText(JSON.stringify(cards, null, 2));
-                        alert('全部卡片数据已复制，请发送给 AI 进行部署');
-                      }}
-                      className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-amber-500 text-xs font-bold rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer shadow-lg"
-                      onPointerDown={(e) => e.stopPropagation()}
-                      title="复制全部卡片 JSON 数据用于 Git 部署"
-                    >
-                      <Share2 className="w-4 h-4" />
-                      <span>复制数据</span>
                     </button>
                   </div>
                   
@@ -792,17 +674,6 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
                         <div className="px-3 py-1.5 bg-zinc-950 border border-zinc-850 rounded-lg text-[10px] font-mono text-zinc-500 text-left shrink-0">
                           失衡度: <span className={card.imbalanceScore >= 85 ? "text-red-400" : card.imbalanceScore >= 70 ? "text-amber-400" : "text-teal-400"}>{card.imbalanceScore}%</span>
                         </div>
-                        <button 
-                          onPointerDown={(e) => { 
-                            e.stopPropagation(); 
-                            navigator.clipboard.writeText(JSON.stringify(card, null, 2));
-                            alert('单条卡片数据已复制');
-                          }} 
-                          className="p-1.5 text-zinc-500 hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition-colors shrink-0"
-                          title="复制此卡片数据"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </button>
                         <button 
                           onPointerDown={(e) => { e.stopPropagation(); handleDeleteCard(card.id, e as any); }} 
                           className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors shrink-0"

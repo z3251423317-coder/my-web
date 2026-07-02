@@ -12,9 +12,10 @@ import {
   HelpCircle, Monitor, Compass, LayoutGrid, Check, Image as ImageIcon, 
   Video as VideoIcon, Sparkles, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, Send, MapPin, 
   Phone, Globe, Copy, RefreshCw, Palette, UploadCloud, AlertTriangle, CheckCircle,
-  Trash2, Plus, Minus, ExternalLink, Code, GripVertical, Smartphone
+  Trash2, Plus, Minus, ExternalLink, Code, GripVertical, Smartphone, Table as TableIcon
 } from 'lucide-react';
 import { ScreenData, BackgroundType } from './types';
+import { getScreensFromFirebase, saveScreensToFirebase } from './src/lib/firebase';
 import PillNav, { PillNavItem } from './components/PillNav';
 import LogoLoop from './components/LogoLoop';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -23,6 +24,7 @@ import DomeGallery from './components/DomeGallery';
 import ProfileCard from './components/ProfileCard';
 import { PdfDecoderPage } from './components/PdfDecoderPage';
 import ShinyText from './components/ShinyText';
+import { SheetControlPanel } from './src/components/SheetControlPanel';
 
 export interface MarqueeCard {
   id: number;
@@ -405,31 +407,25 @@ const App: React.FC = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (!parsed.some((s: any) => s.id === 9)) {
-          localStorage.removeItem("alphaqubit_custom_screens_v11");
-          return DEFAULT_SCREENS;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
         }
-        // Force update screen 3 to new values
-        const migrated = parsed.map((s: any) => {
-          if (s.id === 3) {
-            return {
-              ...s,
-              title: "无限进步",
-              description: "以矛盾观审视生活，用实践完成自我迭代",
-              bgType: "video",
-              bgUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E4%B8%80%E8%84%9A%E8%B8%A9%E5%88%B0%E6%B0%B4%E5%9D%91%E9%87%8C%E7%9A%84%E6%8A%96%E9%9F%B3%20-%20%E6%8A%96%E9%9F%B3.mp4",
-              bgTypeMobile: "video",
-              bgUrlMobile: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E4%B8%89%E5%B1%8F%E7%A7%BB%E5%8A%A8%E7%AB%AF.mp4"
-            };
-          }
-          return s;
-        });
-        localStorage.setItem("alphaqubit_custom_screens_v11", JSON.stringify(migrated));
-        return migrated;
       } catch (e) { console.error(e); }
     }
     return DEFAULT_SCREENS;
   });
+
+  // Load from Firebase on mount to ensure CMS content is current
+  useEffect(() => {
+    const loadCMS = async () => {
+      const fbData = await getScreensFromFirebase();
+      if (fbData && fbData.length > 0) {
+        setScreens(fbData);
+        localStorage.setItem("alphaqubit_custom_screens_v11", JSON.stringify(fbData));
+      }
+    };
+    loadCMS();
+  }, []);
 
   const [activeId, setActiveId] = useState<number>(1);
 
@@ -574,6 +570,7 @@ const App: React.FC = () => {
   const [selectedCard6, setSelectedCard6] = useState<MarqueeCard | null>(null);
   const [copyToast, setCopyToast] = useState<string | null>(null);
   const [activeBgConsoleId, setActiveBgConsoleId] = useState<number | null>(null);
+  const [isSheetPanelOpen, setIsSheetPanelOpen] = useState<boolean>(false);
 
   const [isMobile, setIsMobile] = useState<boolean>(false);
   useEffect(() => {
@@ -805,10 +802,15 @@ const App: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Save changes to localStorage
-  const saveToStorage = (updated: ScreenData[]) => {
+  // Save changes to localStorage and Firebase for CMS sync
+  const saveToStorage = async (updated: ScreenData[]) => {
     setScreens(updated);
     localStorage.setItem("alphaqubit_custom_screens_v11", JSON.stringify(updated));
+    try {
+      await saveScreensToFirebase(updated);
+    } catch (err) {
+      console.error('Firebase CMS sync failed:', err);
+    }
   };
 
   const updateScreenField = (field: keyof ScreenData, value: any) => {
@@ -876,6 +878,18 @@ const App: React.FC = () => {
     if (pack) {
       saveToStorage(pack.screens);
       alert(`已成功应用「${pack.name}」主题预设模板！`);
+    }
+  };
+
+  const handleSyncSheets = (newScreens: ScreenData[]) => {
+    if (newScreens.length > 0) {
+      // Merge with default screens to ensure all fields are present
+      const synced = newScreens.map(s => {
+        const defaultScreen = DEFAULT_SCREENS.find(ds => ds.id === s.id) || DEFAULT_SCREENS[0];
+        return { ...defaultScreen, ...s };
+      });
+      saveToStorage(synced);
+      alert(`Synced ${synced.length} screens from Google Sheets!`);
     }
   };
 
@@ -2053,6 +2067,14 @@ const App: React.FC = () => {
           >
             <Code className="w-3.5 h-3.5" />
             <span>DEPLOY TO GIT</span>
+          </button>
+
+          <button
+            onClick={() => setIsSheetPanelOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-xl border border-slate-200 text-[10px] font-mono tracking-widest uppercase transition-all shadow-md cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <TableIcon className="w-3.5 h-3.5" />
+            <span>SYNC SHEETS</span>
           </button>
         </motion.div>
       )}
@@ -3846,6 +3868,18 @@ const App: React.FC = () => {
       </AnimatePresence>
 
       <PdfDecoderPage isOpen={isPdfSecondaryPageOpen} onClose={() => setIsPdfSecondaryPageOpen(false)} />
+
+      {/* Sheet Control Panel */}
+      <AnimatePresence>
+        {isSheetPanelOpen && (
+          <SheetControlPanel 
+            isOpen={isSheetPanelOpen}
+            onClose={() => setIsSheetPanelOpen(false)}
+            onSync={handleSyncSheets}
+            currentScreens={screens}
+          />
+        )}
+      </AnimatePresence>
 
     </div>
   );

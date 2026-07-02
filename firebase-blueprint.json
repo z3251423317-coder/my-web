@@ -1,17 +1,25 @@
 {
   "collections": {
-    "cards": {
-      "id": "string",
-      "title": "string",
-      "cat": "string",
-      "desc": "string",
-      "imageUrl": "string",
-      "pdfUrl": "string",
-      "pdfPageImages": "array",
-      "imbalanceScore": "number",
-      "notes": "string",
-      "lastUpdated": "string",
-      "createdAt": "timestamp"
+    "settings": {
+      "documents": {
+        "sheets": {
+          "fields": {
+            "spreadsheetId": { "type": "string" },
+            "range": { "type": "string" },
+            "updatedAt": { "type": "timestamp" }
+          }
+        }
+      }
+    },
+    "screens": {
+      "documents": {
+        "current": {
+          "fields": {
+            "data": { "type": "array" },
+            "updatedAt": { "type": "timestamp" }
+          }
+        }
+      }
     }
   }
 }

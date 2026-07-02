@@ -1,6 +1,6 @@
 {
-  "name": "AlphaQubit Visualizer",
-  "description": "An elegant, PC-optimized dynamic multi-screen interactive presentation builder for research and product showcases with editable image and video backgrounds.",
+  "name": "AlphaQubit Visualizer & Sheets CMS",
+  "description": "An elegant, dynamic multi-screen presentation builder for research and product showcases, now featuring a Google Sheets-powered Control Panel for no-code content updates.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
