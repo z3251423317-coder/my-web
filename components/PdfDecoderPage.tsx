@@ -142,11 +142,6 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCard, setSelectedCard] = useState<RelationshipCard | null>(null);
   
-  // Custom Mobile-Friendly Fullscreen PDF Reader Modal states
-  const [isReaderModalOpen, setIsReaderModalOpen] = useState<boolean>(false);
-  const [tempPdfUrl, setTempPdfUrl] = useState<string>('');
-  const [readerViewMode, setReaderViewMode] = useState<'google' | 'image' | 'iframe'>('google');
-
   // Current active page in the PDF Content Image slide show
   const [activePageIndex, setActivePageIndex] = useState<number>(0);
   const [isFullscreenOpen, setIsFullscreenOpen] = useState<boolean>(false);
@@ -244,7 +239,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
   }, [cards]);
 
   // Handle setting temporary state when a card is selected
-  const handleSelectCard = (card: RelationshipCard, openReader: boolean = true) => {
+  const handleSelectCard = (card: RelationshipCard) => {
     setSelectedCard(card);
     setEditTitle(card.title);
     setEditCat(card.cat);
@@ -252,7 +247,6 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
     setEditNotes(card.notes);
     setEditScore(card.imbalanceScore);
     setEditPdfUrl(card.pdfUrl);
-    setTempPdfUrl(card.pdfUrl);
     setEditImageUrl(card.imageUrl);
     
     // Support migrating cards that might have legacy formatting
@@ -261,32 +255,6 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
       : [card.imageUrl];
     setEditPdfPageImages(pages);
     setActivePageIndex(0);
-
-    if (openReader) {
-      setIsReaderModalOpen(true);
-    }
-  };
-
-  // Instantly update the current card's PDF URL and save it permanently
-  const handleUpdateReaderPdfUrl = (customUrl?: string) => {
-    if (!selectedCard) return;
-    const finalUrl = (customUrl !== undefined ? customUrl : tempPdfUrl).trim();
-    if (!finalUrl) {
-      alert('请输入有效的 PDF 链接。');
-      return;
-    }
-
-    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
-    const updatedCard: RelationshipCard = {
-      ...selectedCard,
-      pdfUrl: finalUrl,
-      lastUpdated: timestamp
-    };
-
-    setCards(prev => prev.map(c => c.id === selectedCard.id ? updatedCard : c));
-    setSelectedCard(updatedCard);
-    setEditPdfUrl(finalUrl);
-    setTempPdfUrl(finalUrl);
   };
 
   // Controller Action: Add a new custom analysis card
@@ -635,256 +603,6 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
           </div>
         )}
 
-        {/* Fullscreen Mobile-Optimized PDF Content Reader Modal */}
-        {isReaderModalOpen && selectedCard && (
-          <div 
-            className="fixed inset-0 bg-zinc-950/98 backdrop-blur-3xl z-55 flex flex-col p-3 md:p-6 select-text overflow-y-auto"
-            onClick={() => setIsReaderModalOpen(false)}
-          >
-            {/* Modal Inner Window */}
-            <div 
-              className="w-full max-w-5xl mx-auto bg-zinc-900 border border-zinc-800 rounded-2xl flex flex-col shadow-2xl overflow-hidden my-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header Bar */}
-              <div className="p-4 border-b border-zinc-800 bg-zinc-950/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded bg-amber-500 text-zinc-950 text-[9px] font-mono font-bold uppercase">
-                      {selectedCard.cat}
-                    </span>
-                    <span className="text-[10px] text-emerald-400 bg-emerald-500/15 border border-emerald-500/20 px-2 py-0.5 rounded-full font-mono animate-pulse flex items-center gap-1">
-                      <span className="w-1 h-1 rounded-full bg-emerald-500" />
-                      <span>已启用移动端流式自适应 / Mobile Fluid Enabled</span>
-                    </span>
-                  </div>
-                  <h2 className="text-base md:text-lg font-bold text-white flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-amber-500" />
-                    <span>{selectedCard.title} — 原著阅读</span>
-                  </h2>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={() => {
-                      if (confirm('是否确定删除此学术维度卡片？')) {
-                        handleDeleteCard(selectedCard.id);
-                        setIsReaderModalOpen(false);
-                      }
-                    }}
-                    className="p-2 bg-red-950/40 border border-red-900/40 hover:bg-red-900/30 text-red-400 hover:text-red-300 rounded-xl transition-all cursor-pointer flex items-center gap-1 text-xs font-mono"
-                    title="删除此维度卡片"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">删除</span>
-                  </button>
-
-                  <button 
-                    onClick={() => setIsReaderModalOpen(false)}
-                    className="p-2 bg-zinc-850 rounded-xl hover:bg-zinc-800 border border-zinc-750 text-zinc-300 hover:text-white transition-all cursor-pointer flex items-center gap-1 text-xs font-mono"
-                  >
-                    <X className="w-4 h-4 text-amber-500" />
-                    <span>关闭阅读 / Close</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Dynamic PDF Link Controller & Mobile Safe Downloader (Crucial for user's requested flow) */}
-              <div className="p-4 bg-zinc-950/40 border-b border-zinc-850 flex flex-col gap-3">
-                <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-zinc-950 p-3 rounded-xl border border-zinc-850">
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[10px] uppercase font-bold text-zinc-400 block font-mono flex items-center gap-1">
-                        <span>自定义您的学术 PDF 链接 (Custom PDF URL Input)</span>
-                      </label>
-                      <button 
-                        onClick={() => {
-                          setTempPdfUrl(DEFAULT_PDF_URL);
-                          handleUpdateReaderPdfUrl(DEFAULT_PDF_URL);
-                        }}
-                        className="text-[9px] text-zinc-500 hover:text-zinc-300 underline font-mono"
-                      >
-                        恢复默认 PDF 链接
-                      </button>
-                    </div>
-                    <input 
-                      type="text" 
-                      value={tempPdfUrl} 
-                      onChange={(e) => setTempPdfUrl(e.target.value)} 
-                      placeholder="请在此输入或粘贴任何自定义 PDF 链接..." 
-                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs font-mono text-amber-400 focus:outline-none focus:border-amber-500/60"
-                    />
-                  </div>
-
-                  <div className="flex items-end gap-2.5 shrink-0">
-                    <button 
-                      onClick={() => handleUpdateReaderPdfUrl()} 
-                      className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 text-xs font-bold font-sans rounded-xl shrink-0 flex items-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      <span>保存并载入预览 / Save & Load</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Mobile Friendly Helper & Direct Launch Bar */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-indigo-950/20 border border-indigo-900/30 p-3 rounded-xl">
-                  <div className="flex items-start gap-2.5">
-                    <div className="p-1.5 bg-indigo-500/10 text-indigo-400 rounded-lg border border-indigo-500/20 mt-0.5">
-                      <Info className="w-4 h-4" />
-                    </div>
-                    <p className="text-[11px] text-zinc-400 leading-normal max-w-lg">
-                      <span className="font-bold text-zinc-200">移动设备阅读提醒：</span>手机或微信浏览器对 iframe 的内嵌 PDF 兼容度不一。
-                      建议点击右侧按钮，一键在系统自带的高性能浏览器/阅读器中极速打开，支持手势捏合放大、选词翻译和高分辨率渲染。
-                    </p>
-                  </div>
-
-                  <button 
-                    onClick={() => window.open(selectedCard.pdfUrl, '_blank')}
-                    className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg hover:scale-102 transition-all cursor-pointer shrink-0"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    <span>📱 手机直接打开 PDF 原件</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* View Mode Tabs Selector */}
-              <div className="flex items-center gap-1 bg-zinc-950 p-1 border-b border-zinc-800">
-                <button
-                  onClick={() => setReaderViewMode('google')}
-                  className={`px-4 py-2 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                    readerViewMode === 'google'
-                      ? 'bg-zinc-900 text-amber-500 border border-zinc-800'
-                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/40'
-                  }`}
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                  <span>交互式预览 (推荐 / Google Viewer)</span>
-                </button>
-
-                <button
-                  onClick={() => setReaderViewMode('iframe')}
-                  className={`px-4 py-2 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                    readerViewMode === 'iframe'
-                      ? 'bg-zinc-900 text-amber-500 border border-zinc-800'
-                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/40'
-                  }`}
-                >
-                  <Terminal className="w-3.5 h-3.5" />
-                  <span>标准内嵌预览 (Iframe)</span>
-                </button>
-
-                <button
-                  onClick={() => setReaderViewMode('image')}
-                  className={`px-4 py-2 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                    readerViewMode === 'image'
-                      ? 'bg-zinc-900 text-amber-500 border border-zinc-800'
-                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/40'
-                  }`}
-                >
-                  <ImageIcon className="w-3.5 h-3.5" />
-                  <span>高清图像翻页 (Images)</span>
-                </button>
-              </div>
-
-              {/* Main Content Viewer Area */}
-              <div className="h-[55vh] md:h-[65vh] bg-zinc-950 relative flex flex-col">
-                {readerViewMode === 'google' ? (
-                  /* Google Docs viewer renders PDF embedded perfectly on mobile iOS/Android safari/chrome */
-                  <iframe 
-                    src={`https://docs.google.com/viewer?url=${encodeURIComponent(selectedCard.pdfUrl)}&embedded=true`}
-                    className="w-full h-full border-0 bg-zinc-950"
-                    title={`Google Docs Mobile PDF Reader: ${selectedCard.title}`}
-                  />
-                ) : readerViewMode === 'iframe' ? (
-                  /* Standard Direct Raw Iframe Embedded Preview */
-                  <iframe 
-                    src={`${selectedCard.pdfUrl}#toolbar=1`}
-                    className="w-full h-full border-0 bg-zinc-950"
-                    title={`Direct Raw PDF Frame: ${selectedCard.title}`}
-                  />
-                ) : (
-                  /* PDF Image Deck slideshow */
-                  <div className="w-full h-full flex flex-col justify-between p-4 relative group/slider">
-                    {/* Image Viewer Container */}
-                    <div className="flex-1 flex items-center justify-center min-h-0 relative">
-                      <button 
-                        onClick={handlePrevPage}
-                        className="absolute left-2 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-zinc-900 border border-zinc-800 text-amber-500 hover:bg-zinc-800 transition-all z-10 hover:scale-110"
-                        title="上一页"
-                      >
-                        <ChevronLeft className="w-5 h-5" />
-                      </button>
-
-                      <AnimatePresence mode="wait">
-                        <motion.img 
-                          key={activePageIndex}
-                          src={editPdfPageImages[activePageIndex] || editImageUrl}
-                          alt={`PDF Page content index ${activePageIndex}`}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -20 }}
-                          transition={{ duration: 0.18 }}
-                          referrerPolicy="no-referrer"
-                          className="max-h-full max-w-full object-contain rounded-lg shadow-2xl border border-zinc-900"
-                        />
-                      </AnimatePresence>
-
-                      <button 
-                        onClick={handleNextPage}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-zinc-900 border border-zinc-800 text-amber-500 hover:bg-zinc-800 transition-all z-10 hover:scale-110"
-                        title="下一页"
-                      >
-                        <ChevronRight className="w-5 h-5" />
-                      </button>
-                    </div>
-
-                    {/* Thumbnail pagination selector */}
-                    <div className="flex items-center gap-1.5 overflow-x-auto py-2 px-1 border-t border-zinc-900/60 mt-3 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
-                      {editPdfPageImages.map((imgUrl, idx) => {
-                        const isActive = idx === activePageIndex;
-                        return (
-                          <button
-                            key={idx}
-                            onClick={() => setActivePageIndex(idx)}
-                            className={`relative w-14 h-10 rounded overflow-hidden border shrink-0 transition-all cursor-pointer ${
-                              isActive 
-                                ? 'border-amber-500 scale-105 ring-1 ring-amber-500/30' 
-                                : 'border-zinc-850 hover:border-zinc-700'
-                            }`}
-                          >
-                            <img 
-                              src={imgUrl} 
-                              alt={`Thumb ${idx + 1}`} 
-                              referrerPolicy="no-referrer"
-                              className="w-full h-full object-cover"
-                            />
-                            <div className={`absolute inset-0 flex items-center justify-center text-[9px] font-mono font-bold ${isActive ? 'bg-amber-500/20 text-white' : 'bg-black/60 text-zinc-400'}`}>
-                              P{idx + 1}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* In-Depth Academic Notes Card Footer */}
-              <div className="p-4 bg-zinc-950 border-t border-zinc-800/80">
-                <div className="flex items-center gap-1.5 text-xs text-amber-500 font-mono font-bold mb-1 uppercase">
-                  <Terminal className="w-4 h-4 text-amber-500" />
-                  <span>深度论文批注与学术笔记 / Academic Notes</span>
-                </div>
-                <p className="text-xs text-zinc-400 leading-relaxed font-sans font-medium whitespace-pre-line bg-zinc-900/60 border border-zinc-850 p-3 rounded-xl">
-                  {selectedCard.notes || '暂无学术笔记，您可以在右下角的维度工作室编辑并添加随笔笔记。'}
-                </p>
-              </div>
-
-            </div>
-          </div>
-        )}
 
         {/* Main Workspace Centered at 1700px */}
         <div className="w-full max-w-[1700px] mx-auto flex-1 flex flex-col h-full">
@@ -948,12 +666,11 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
                       layout
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className={`p-4 rounded-xl backdrop-blur-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all hover:bg-zinc-900/60 cursor-pointer ${
+                      className={`p-4 rounded-xl backdrop-blur-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all hover:bg-zinc-900/60 ${
                         selectedCard?.id === card.id 
                           ? 'bg-zinc-900/80 border-amber-500/50 ring-1 ring-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.05)]' 
                           : 'bg-zinc-900/40 border-zinc-850/80 hover:border-zinc-700'
                       }`}
-                      onClick={() => handleSelectCard(card, false)}
                     >
                       <div className="flex items-start gap-3 flex-1 min-w-0">
                         <div className="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg border border-indigo-500/20 mt-0.5 shrink-0">
@@ -985,12 +702,6 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
                         <div className="px-3 py-1.5 bg-zinc-950 border border-zinc-850 rounded-lg text-[10px] font-mono text-zinc-500 text-left shrink-0">
                           失衡度: <span className={card.imbalanceScore >= 85 ? "text-red-400" : card.imbalanceScore >= 70 ? "text-amber-400" : "text-teal-400"}>{card.imbalanceScore}%</span>
                         </div>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleSelectCard(card, false); }} 
-                          className="px-3 py-1.5 bg-zinc-950 border border-zinc-800 hover:border-amber-500/50 text-xs font-mono text-zinc-300 hover:text-amber-400 rounded-lg transition-all shrink-0"
-                        >
-                          阅读大纲
-                        </button>
                         <button 
                           onPointerDown={(e) => { e.stopPropagation(); handleDeleteCard(card.id, e as any); }} 
                           className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors shrink-0"
