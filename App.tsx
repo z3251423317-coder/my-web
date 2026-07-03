@@ -480,6 +480,57 @@ const App: React.FC = () => {
     return DEFAULT_MARQUEE_CARDS;
   });
 
+  // Migration: Automatically fix PDF URLs with wrong dash count in localStorage
+  useEffect(() => {
+    if (marqueeCards.length === 0) return;
+    
+    const wrongDashes = "E2%80%94%E2%80%94%E2%80%94%E2%80%94%E8";
+    const correctDashes = "E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E8";
+    
+    const fixUrl = (url?: string) => {
+      if (url && url.includes(wrongDashes) && !url.includes(correctDashes)) {
+        return url.replace(wrongDashes, correctDashes);
+      }
+      return url;
+    };
+
+    let changed = false;
+    const updated = marqueeCards.map(card => {
+      const newUrl = fixUrl(card.pdfUrl);
+      if (newUrl !== card.pdfUrl) {
+        changed = true;
+        return { ...card, pdfUrl: newUrl };
+      }
+      return card;
+    });
+
+    if (changed) {
+      saveMarqueeCards(updated);
+      console.log("Migrated PDF URLs to correct dash count in marqueeCards.");
+    }
+
+    // Also migrate other card sets
+    const migrateSet = (set: MarqueeCard[], saver: (updated: MarqueeCard[]) => void, label: string) => {
+      let setChanged = false;
+      const updatedSet = set.map(card => {
+        const newUrl = fixUrl(card.pdfUrl);
+        if (newUrl !== card.pdfUrl) {
+          setChanged = true;
+          return { ...card, pdfUrl: newUrl };
+        }
+        return card;
+      });
+      if (setChanged) {
+        saver(updatedSet);
+        console.log(`Migrated PDF URLs in ${label}.`);
+      }
+    };
+
+    migrateSet(sphereCards, saveSphereCards, "sphereCards");
+    migrateSet(domeCards, saveDomeCards, "domeCards");
+    migrateSet(trialCards, saveTrialCards, "trialCards");
+  }, []);
+
   const saveMarqueeCards = (updated: MarqueeCard[]) => {
     setMarqueeCards(updated);
     localStorage.setItem("alphaqubit_marquee_cards", JSON.stringify(updated));

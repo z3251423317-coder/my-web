@@ -50,12 +50,12 @@ export interface RelationshipCard {
 }
 
 const fetchPdfWithFallback = async (url: string, logCallback?: (msg: string) => void): Promise<ArrayBuffer> => {
-  // 1. Try direct fetch with a cache-buster to bypass any negative CORS cache in the browser
+  // 1. Try direct fetch with a cache-buster
   const cacheBuster = `t_cb=${Date.now()}`;
   const directUrlWithBuster = url + (url.includes('?') ? '&' : '?') + cacheBuster;
   
   try {
-    if (logCallback) logCallback('[INFO] 正在尝试直接建立连接...');
+    if (logCallback) logCallback('[INFO] 正在尝试建立直接数据连接...');
     const response = await fetch(directUrlWithBuster, {
       method: 'GET',
       mode: 'cors',
@@ -65,50 +65,36 @@ const fetchPdfWithFallback = async (url: string, logCallback?: (msg: string) => 
       return await response.arrayBuffer();
     }
   } catch (directErr) {
-    console.warn('[Direct Fetch failed or blocked by CORS, trying proxies...]', directErr);
+    console.warn('[Direct Fetch failed]', directErr);
   }
 
-  // 2. Try the original URL direct fetch just in case query parameters are rejected by the server
+  // 2. Try the local server-side proxy (Best solution for CORS)
   try {
-    const response = await fetch(url, {
-      method: 'GET',
-      mode: 'cors',
-    });
+    if (logCallback) logCallback('[INFO] 检测到跨域拦截，正在接入本地安全代理通道...');
+    const proxyUrl = `/api/proxy-pdf?url=${encodeURIComponent(url)}`;
+    const response = await fetch(proxyUrl);
     if (response.ok) {
-      if (logCallback) logCallback('[SUCCESS] 直接读取成功！');
+      if (logCallback) logCallback('[SUCCESS] 本地代理握手成功，PDF 数据流已接通！');
       return await response.arrayBuffer();
     }
-  } catch (err) {
-    console.warn('[Original Direct Fetch failed...]', err);
+  } catch (proxyErr) {
+    console.warn('[Local Proxy failed]', proxyErr);
   }
 
   // 3. Fallback to AllOrigins raw proxy
   try {
-    if (logCallback) logCallback('[WARN] 检测到跨域拦截，正在接入高速代理通道 (AllOrigins)...');
+    if (logCallback) logCallback('[WARN] 本地代理异常，正在尝试备用公共代理 (AllOrigins)...');
     const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
     const response = await fetch(proxyUrl);
     if (response.ok) {
-      if (logCallback) logCallback('[SUCCESS] 跨域代理握手成功，PDF 数据流已接通！');
+      if (logCallback) logCallback('[SUCCESS] 公共代理握手成功！');
       return await response.arrayBuffer();
     }
   } catch (proxyErr) {
     console.warn('[AllOrigins Proxy failed...]', proxyErr);
   }
 
-  // 4. Fallback to Codetabs proxy
-  try {
-    if (logCallback) logCallback('[WARN] 正在切换备用代理通道 (Codetabs)...');
-    const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
-    const response = await fetch(proxyUrl);
-    if (response.ok) {
-      if (logCallback) logCallback('[SUCCESS] 跨域代理握手成功，PDF 数据流已接通！');
-      return await response.arrayBuffer();
-    }
-  } catch (proxyErr) {
-    console.warn('[Codetabs Proxy failed...]', proxyErr);
-  }
-
-  throw new Error('加载 PDF 失败，请确保链接有效，且 COS 桶已正确配置 CORS 跨域规则。');
+  throw new Error('加载 PDF 失败，请确保链接有效。');
 };
 
 interface PdfDecoderPageProps {

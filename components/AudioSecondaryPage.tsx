@@ -340,6 +340,21 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
                             <Plus className="w-4 h-4" />
                             <span>增加一条音频内容</span>
                          </button>
+
+                         <button 
+                           onClick={() => {
+                              const dataToExport = {
+                                ...activeCard,
+                                audioModules: audioModules
+                              };
+                              navigator.clipboard.writeText(JSON.stringify(dataToExport, null, 2));
+                              alert('数据已复制到剪贴板！请发送给 AI 以便部署到 Git。');
+                           }}
+                           className="w-full py-3.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-2xl text-xs font-bold tracking-widest flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                         >
+                            <RefreshCw className="w-4 h-4" />
+                            <span>复制全量数据 (部署用)</span>
+                         </button>
                       </div>
                    </div>
 
