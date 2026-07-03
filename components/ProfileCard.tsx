@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
+import { Lock } from 'lucide-react';
 import './ProfileCard.css';
 
 const DEFAULT_ICON_PATTERN = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cpath d='M12 22v-10h10M38 12h10v10M12 38v10h10M38 48h10V38' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
@@ -40,6 +41,7 @@ interface ProfileCardProps {
   showUserInfo?: boolean;
   onContactClick?: () => void;
   onClick?: () => void;
+  isEncrypted?: boolean;
 }
 
 const ProfileCardComponent: React.FC<ProfileCardProps> = ({
@@ -62,7 +64,8 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
   contactText = 'Launch',
   showUserInfo = true,
   onContactClick,
-  onClick
+  onClick,
+  isEncrypted = false
 }) => {
   const wrapRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
@@ -354,6 +357,11 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
                   t.style.display = 'none';
                 }}
               />
+              {isEncrypted && (
+                <div className="absolute top-4 right-4 z-[5] p-2 bg-zinc-950/60 backdrop-blur-md rounded-full border border-amber-500/30 text-amber-500 shadow-xl shadow-zinc-950/40">
+                  <Lock className="w-4 h-4" />
+                </div>
+              )}
               {showUserInfo && (
                 <div className="pc-user-info">
                   <div className="pc-user-details">

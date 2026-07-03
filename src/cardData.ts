@@ -12,6 +12,8 @@ export interface MarqueeCard {
   imbalanceScore?: number;
   notes?: string;
   lastUpdated?: string;
+  isEncrypted?: boolean;
+  password?: string;
   audioModules?: {
     id: string;
     name: string;

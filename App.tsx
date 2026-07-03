@@ -13,7 +13,7 @@ import {
   Video as VideoIcon, Sparkles, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, Send, MapPin, 
   Phone, Globe, Copy, RefreshCw, Palette, UploadCloud, AlertTriangle, CheckCircle,
   Trash2, Plus, Minus, ExternalLink, Code, GripVertical, Smartphone, Music, Settings,
-  Search, Star, Play, Pause, Edit3
+  Search, Star, Play, Pause, Edit3, Lock
 } from 'lucide-react';
 import { ScreenData, BackgroundType } from './types';
 import PillNav, { PillNavItem } from './components/PillNav';
@@ -2003,6 +2003,50 @@ const App: React.FC = () => {
                       </div>
                     </div>
 
+                    {/* Encryption Settings */}
+                    <div className="pt-2 border-t border-zinc-800/40 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <label className="text-[9px] font-mono text-zinc-300 uppercase tracking-widest block font-bold">
+                            Encryption Protection / 加密保护
+                          </label>
+                          <span className="text-[10px] text-zinc-500 block font-sans">
+                            Require password to play audio content
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => updateCard(card.id, { isEncrypted: !card.isEncrypted })}
+                          className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none ${
+                            card.isEncrypted ? 'bg-amber-500' : 'bg-zinc-800'
+                          }`}
+                        >
+                          <span
+                            className={`${
+                              card.isEncrypted ? 'translate-x-5' : 'translate-x-1'
+                            } inline-block h-3 w-3 transform rounded-full bg-white transition-transform`}
+                          />
+                        </button>
+                      </div>
+                      
+                      {card.isEncrypted && (
+                        <div className="space-y-1.5 animate-fadeIn">
+                          <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
+                            Set Access Password / 设置访问密码
+                          </label>
+                          <div className="relative">
+                            <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-amber-500/70" />
+                            <input 
+                              type="password" 
+                              value={card.password || ""}
+                              onChange={(e) => updateCard(card.id, { password: e.target.value })}
+                              className="w-full pl-8 pr-2.5 py-1.5 bg-zinc-950 border border-zinc-850 rounded-lg text-xs text-white placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
+                              placeholder="Enter protection password..."
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                   </div>
                 );
               })}
@@ -2482,6 +2526,7 @@ const App: React.FC = () => {
                                               enableTilt={true}
                                               behindGlowEnabled={true}
                                               behindGlowColor={glowColor}
+                                              isEncrypted={card.isEncrypted}
                                               onContactClick={() => {
                                                 setSelectedCard6(card);
                                                 setIsAudioSecondaryPageOpen(true);

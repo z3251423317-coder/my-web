@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, ChevronLeft, Music, Plus, Trash2, Play, Pause, Star, 
   Settings, Clock, User, Calendar, ExternalLink, RefreshCw,
-  Search, SlidersHorizontal, LayoutGrid, List as ListIcon
+  Search, SlidersHorizontal, LayoutGrid, List as ListIcon,
+  Lock, Unlock, ShieldCheck, ShieldAlert
 } from 'lucide-react';
 import { MarqueeCard } from '../src/cardData';
 
@@ -40,17 +41,34 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
   const [isControllerOpen, setIsControllerOpen] = useState(import.meta.env.DEV);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
+  // Encryption states
+  const [isLocked, setIsLocked] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [isPasswordError, setIsPasswordError] = useState(false);
+
   // Form states for adding new module
   const [newName, setNewName] = useState('');
   const [newAudioUrl, setNewAudioUrl] = useState('');
   const [newDuration, setNewDuration] = useState('02:30');
   const [newRating, setNewRating] = useState(5);
 
+  // Reset lock state whenever the page is opened or the card changes
   useEffect(() => {
-    if (activeCard) {
+    if (isOpen && activeCard) {
       setAudioModules(activeCard.audioModules || []);
+      
+      // Always reset lock state based on card encryption
+      if (activeCard.isEncrypted) {
+        setIsLocked(true);
+      } else {
+        setIsLocked(false);
+      }
+      
+      // Clear password input and errors
+      setPasswordInput('');
+      setIsPasswordError(false);
     }
-  }, [activeCard]);
+  }, [isOpen, activeCard]);
 
   if (!isOpen || !activeCard) return null;
 
@@ -92,7 +110,22 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
     handleUpdate(audioModules.filter(m => m.id !== id));
   };
 
+  const handleVerifyPassword = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (passwordInput === activeCard.password) {
+      setIsLocked(false);
+      setIsPasswordError(false);
+    } else {
+      setIsPasswordError(true);
+      setTimeout(() => setIsPasswordError(false), 2000);
+    }
+  };
+
   const handleTogglePlay = (mod: AudioModule) => {
+    if (isLocked) {
+      return; // Do nothing if locked, though button is disabled/lock-styled
+    }
+
     if (playingAudioId === mod.id) {
       activeAudioObj?.pause();
       setPlayingAudioId(null);
@@ -127,13 +160,23 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
         <header className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <button 
-              onClick={onClose}
+              onClick={() => {
+                activeAudioObj?.pause();
+                onClose();
+              }}
               className="p-2 hover:bg-white/5 rounded-full transition-colors cursor-pointer group"
             >
               <ArrowLeft className="w-5 h-5 text-zinc-400 group-hover:text-white" />
             </button>
             <div className="flex flex-col">
-              <h1 className="text-sm font-bold tracking-tight uppercase">{activeCard.title}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-sm font-bold tracking-tight uppercase">{activeCard.title}</h1>
+                {activeCard.isEncrypted && (
+                  <span className={`p-0.5 rounded ${isLocked ? 'text-amber-500' : 'text-emerald-500'}`}>
+                    {isLocked ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                  </span>
+                )}
+              </div>
               <span className="text-[10px] text-zinc-500 font-mono">SECONDARY AUDIO MANAGEMENT</span>
             </div>
           </div>
@@ -186,6 +229,51 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
                    )}
                 </div>
 
+                {/* Lock Overlay Content */}
+                {isLocked && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-10 p-8 rounded-3xl bg-zinc-900/50 border border-amber-500/20 backdrop-blur-sm flex flex-col items-center text-center max-w-2xl mx-auto"
+                  >
+                    <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mb-6">
+                      <Lock className="w-8 h-8 text-amber-500 animate-pulse" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-2">此页面内容已加密保护</h3>
+                    <p className="text-zinc-400 text-sm mb-8 leading-relaxed">
+                      该卡片包含受保护的音频资源。请输入访问密码以解锁完整的功能和播放权限。
+                    </p>
+                    
+                    <form onSubmit={handleVerifyPassword} className="w-full max-w-sm flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                        <input 
+                          type="password" 
+                          placeholder="输入访问密码..."
+                          value={passwordInput}
+                          onChange={(e) => setPasswordInput(e.target.value)}
+                          className={`w-full bg-zinc-950 border ${isPasswordError ? 'border-rose-500' : 'border-white/10'} rounded-2xl pl-11 pr-4 py-3.5 text-sm focus:outline-none focus:border-amber-500/50 transition-all`}
+                        />
+                      </div>
+                      <button 
+                        type="submit"
+                        className="p-3.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-2xl transition-all active:scale-95 flex items-center justify-center"
+                      >
+                        <Unlock className="w-5 h-5" />
+                      </button>
+                    </form>
+                    {isPasswordError && (
+                      <motion.p 
+                        initial={{ opacity: 0 }} 
+                        animate={{ opacity: 1 }} 
+                        className="text-rose-500 text-[10px] font-mono mt-3 uppercase font-bold tracking-widest"
+                      >
+                        Invalid Password / 密码错误
+                      </motion.p>
+                    )}
+                  </motion.div>
+                )}
+
                 {filteredModules.length === 0 ? (
                   <div className="h-64 flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-3xl opacity-40">
                      <Music className="w-10 h-10 mb-4" />
@@ -204,12 +292,12 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
                           viewMode === 'grid' 
                             ? 'bg-zinc-900/40 border-white/5 rounded-3xl p-6 hover:border-amber-500/30 hover:bg-zinc-900/60' 
                             : 'bg-zinc-900/40 border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-amber-500/30'
-                        }`}
+                        } ${isLocked ? 'grayscale opacity-60' : ''}`}
                       >
                          <div className={viewMode === 'grid' ? "space-y-4" : "flex items-center gap-6 flex-1"}>
                             <div className={viewMode === 'grid' ? "flex items-start justify-between" : "flex items-center gap-4 min-w-[240px]"}>
-                               <div className="p-3 bg-amber-500/10 text-amber-500 rounded-2xl group-hover:scale-110 transition-transform">
-                                  <Music className="w-5 h-5" />
+                               <div className={`p-3 rounded-2xl transition-transform ${isLocked ? 'bg-zinc-800 text-zinc-500' : 'bg-amber-500/10 text-amber-500 group-hover:scale-110'}`}>
+                                  {isLocked ? <Lock className="w-5 h-5" /> : <Music className="w-5 h-5" />}
                                </div>
                                <div>
                                   <h4 className="font-bold text-base line-clamp-1">{mod.name}</h4>
@@ -222,7 +310,7 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
 
                             {viewMode === 'grid' && (
                               <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed opacity-70 group-hover:opacity-100 transition-opacity">
-                                此项内容独立控制卡片特征，包含音频链接及评分维度。删除此卡片时该子页数据将自动销毁。
+                                {isLocked ? "此项内容当前处于加密状态，解锁后可查看详情并播放。" : "此项内容独立控制卡片特征，包含音频链接及评分维度。"}
                               </p>
                             )}
 
@@ -238,14 +326,17 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
 
                                <button 
                                   onClick={() => handleTogglePlay(mod)}
+                                  disabled={isLocked}
                                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                                    playingAudioId === mod.id 
-                                      ? 'bg-amber-500 text-zinc-950 shadow-lg shadow-amber-500/20' 
-                                      : 'bg-white/5 text-white hover:bg-white/10'
+                                    isLocked 
+                                      ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
+                                      : playingAudioId === mod.id 
+                                        ? 'bg-amber-500 text-zinc-950 shadow-lg shadow-amber-500/20' 
+                                        : 'bg-white/5 text-white hover:bg-white/10'
                                   }`}
                                >
-                                  {playingAudioId === mod.id ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                                  <span>{playingAudioId === mod.id ? 'PAUSE' : 'PLAY'}</span>
+                                  {isLocked ? <Lock className="w-4 h-4" /> : playingAudioId === mod.id ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                                  <span>{isLocked ? 'LOCKED' : playingAudioId === mod.id ? 'PAUSE' : 'PLAY'}</span>
                                </button>
                             </div>
                          </div>
