@@ -35,19 +35,7 @@ import {
   Share2,
   Copy
 } from 'lucide-react';
-
-export interface RelationshipCard {
-  id: string;
-  title: string;
-  cat: string;
-  desc: string;
-  imageUrl: string;
-  pdfUrl: string;
-  pdfPageImages?: string[]; // Array of pages extracted from PDF / uploaded by user
-  imbalanceScore: number;
-  notes: string;
-  lastUpdated: string;
-}
+import { RelationshipCard } from '../types';
 
 const fetchPdfWithFallback = async (url: string, logCallback?: (msg: string) => void): Promise<ArrayBuffer> => {
   // 1. Try direct fetch with a cache-buster
@@ -100,6 +88,8 @@ const fetchPdfWithFallback = async (url: string, logCallback?: (msg: string) => 
 interface PdfDecoderPageProps {
   isOpen: boolean;
   onClose: () => void;
+  cards: RelationshipCard[];
+  onUpdateCards: (updated: RelationshipCard[]) => void;
 }
 
 const DEFAULT_PDF_URL = "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/1.%E6%AD%A4%E4%B8%BA%E7%94%98%E9%A5%B4%EF%BC%8C%E5%BD%BC%E4%B9%8B%E8%8B%A6%E8%8D%AF%E2%80%94%E2%80%94%E2%80%94%E8%AE%BA%E4%B8%8D%E5%90%88%E9%80%82%E7%9A%84%E8%83%8C%E5%90%8E%E4%BA%B2%E5%AF%86%E5%85%B3%E7%B3%BB%E4%B8%AD%E6%83%85%E6%84%9F%E4%BE%9B%E9%9C%80%E7%9A%84%E7%BB%93%E6%9E%84%E6%80%A7%E5%A4%B1%E8%A1%A1%EF%BC%88WXJB-2663-001%EF%BC%89.pdf";
@@ -107,74 +97,65 @@ const DEFAULT_PDF_URL = "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com
 // Default curated PDF page screenshots/scans to make the experience extremely realistic and high-fidelity
 const INITIAL_RELATIONSHIP_CARDS: RelationshipCard[] = [
   {
-    id: "rel-1782978620375",
-    title: "22",
+    id: 1782974086095,
+    title: "11",
     cat: "自定义分析 / Custom",
     desc: "自定义创建的情感供需分析卡片。",
     imageUrl: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop",
-    pdfUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E6%9E%84%E7%9F%B3%E6%96%87%E6%A1%A3/1.%E6%AD%A4%E4%B8%BA%E7%94%98%E9%A5%B4%EF%BC%8C%E5%BD%BC%E4%B9%8B%E8%8B%A6%E8%8D%AF%E2%80%94%E2%80%94%E8%AE%BA%E4%B8%8D%E5%90%88%E9%80%82%E7%9A%84%E8%83%8C%E5%90%8E%E4%BA%B2%E5%AF%86%E5%85%B3%E7%B3%BB%E4%B8%AD%E6%83%85%E6%84%9F%E4%BE%9B%E9%9C%80%E7%9A%84%E7%BB%93%E6%9E%84%E6%80%A7%E5%A4%B1%E8%A1%A1%EF%BC%88WXJB-2663-001%EF%BC%89.pdf",
+    pdfUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/1.%E6%AD%A4%E4%B8%BA%E7%94%98%E9%A5%B4%EF%BC%8C%E5%BD%BC%E4%B9%8B%E8%8B%A6%E8%8D%AF%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E8%AE%BA%E4%B8%8D%E5%90%88%E9%80%82%E7%9A%84%E8%83%8C%E5%90%8E%E4%BA%B2%E5%AF%86%E5%85%B3%E7%B3%BB%E4%B8%AD%E6%83%85%E6%84%9F%E4%BE%9B%E9%9C%80%E7%9A%84%E7%BB%93%E6%9E%84%E6%80%A7%E5%A4%B1%E8%A1%A1%EF%BC%88WXJB-2663-001%EF%BC%89.pdf",
     pdfPageImages: [
       "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=1200&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop"
     ],
     imbalanceScore: 50,
     notes: "可编辑深度论文研读笔记或分析心得...",
-    lastUpdated: "2026-07-02 07:50"
+    lastUpdated: "2026-07-02 06:34",
+    audioModules: [
+      {
+        id: "mod-1783061786526",
+        name: "11",
+        audioUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%BD%95%E9%9F%B3%E6%96%87%E4%BB%B6/%E6%9C%B1%E8%B4%B5%E5%93%B2/26.07.01.mp3",
+        duration: "02:30",
+        rating: 5,
+        status: "启用",
+        createdAt: "2026年7月3日 下午2:56:26",
+        updatedAt: "2026年7月3日 下午2:56:26",
+        user: "管理员"
+      }
+    ],
+    colorType: "emerald",
+    isEncrypted: true,
+    password: "123456"
   },
   {
-    id: "rel-1782974086095",
-    title: "11",
-    cat: "自定义分析 / Custom",
-    desc: "自定义创建的情感供需 analysis 卡片。",
+    id: 1782974086096,
+    title: "123",
+    cat: "CORE SYSTEM",
+    desc: "Predicts noise errors dynamically using neural inference thresholds.",
     imageUrl: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop",
-    pdfUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/1.%E6%AD%A4%E4%B8%BA%E7%94%98%E9%A5%B4%EF%BC%8C%E5%BD%BC%E4%B9%8B%E8%8B%A6%E8%8D%AF%E2%80%94%E2%5%94%E2%80%94%E8%AE%BA%E4%B8%8D%E5%90%88%E9%80%82%E7%9A%84%E8%83%8C%E5%90%8E%E4%BA%B2%E5%AF%86%E5%85%B3%E7%B3%BB%E4%B8%AD%E6%83%85%E6%84%9F%E4%BE%9B%E9%9C%80%E7%9A%84%E7%BB%93%E6%9E%84%E6%80%A7%E5%A4%B1%E8%A1%A1%EF%BC%88WXJB-2663-001%EF%BC%89.pdf",
-    pdfPageImages: [
-      "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=1200&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop"
-    ],
-    imbalanceScore: 50,
-    notes: "可编辑深度论文研读笔记或分析心得...",
-    lastUpdated: "2026-07-02 06:34"
+    colorType: "teal",
+    isEncrypted: true,
+    password: "123456"
   },
   {
-    id: "rel-4",
-    title: "安全感逆差下的零和博弈",
-    cat: "深层代偿机制 / Compensation",
-    desc: "双方试图在对方身上填补童年或过往体验中遗留的匮乏感，最终将本应滋养彼此的避风港扭曲为不断透支能耗的战场。",
-    imageUrl: "https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?q=80&w=800&auto=format&fit=crop",
-    pdfUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/1.%E6%AD%A4%E4%B8%BA%E7%94%98%E9%A5%B4%EF%BC%8C%E5%BD%BC%E4%B9%8B%E8%8B%A6%E8%8D%AF%E2%80%94%E2%5%94%E2%80%94%E8%AE%BA%E4%B8%8D%E5%90%88%E9%80%82%E7%9A%84%E8%83%8C%E5%90%8E%E4%BA%B2%E5%AF%86%E5%85%B3%E7%B3%BB%E4%B8%AD%E6%83%85%E6%84%9F%E4%BE%9B%E9%9C%80%E7%9A%84%E7%BB%93%E6%9E%84%E6%80%A7%E5%A4%B1%E8%A1%A1%EF%BC%88WXJB-2663-001%EF%BC%89.pdf",
-    pdfPageImages: [
-      "https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?q=80&w=1200&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=1200&auto=format&fit=crop"
-    ],
-    imbalanceScore: 82,
-    notes: "为了满足自我安全感，过度迎合或冷酷防御都是代偿行为。唯有认清结构失衡，才能从博弈走向成熟和解。本章深度剖析代偿心理解析。",
-    lastUpdated: "2026-07-01 10:45"
+    id: 1783074363142,
+    title: "Untitled New Research Unit",
+    cat: "Pending Analysis",
+    desc: "Comprehensive analysis description here...",
+    imageUrl: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800&auto=format&fit=crop",
+    colorType: "indigo",
+    imbalanceScore: 50,
+    audioModules: [],
+    pdfPageImages: [],
+    notes: "Initial research notes...",
+    lastUpdated: "2026-07-03 10:26"
   }
 ];
 
-export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose }) => {
-  const [cards, setCards] = useState<RelationshipCard[]>(() => {
-    const saved = localStorage.getItem("alphaqubit_relationship_cards_v4");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
-        }
-      } catch (e) {
-        console.error("Failed to parse saved relationship cards", e);
-      }
-    }
-    return INITIAL_RELATIONSHIP_CARDS;
-  });
-
+export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose, cards, onUpdateCards }) => {
   const saveCards = (updater: RelationshipCard[] | ((prev: RelationshipCard[]) => RelationshipCard[])) => {
-    setCards(prev => {
-      const updated = typeof updater === "function" ? updater(prev) : updater;
-      localStorage.setItem("alphaqubit_relationship_cards_v4", JSON.stringify(updated));
-      return updated;
-    });
+    const next = typeof updater === 'function' ? updater(cards) : updater;
+    onUpdateCards(next);
   };
 
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -601,7 +582,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
   };
 
   // Quick Action: Remove selected or last card
-  const handleDeleteCard = (id: string, e?: React.MouseEvent) => {
+  const handleDeleteCard = (id: string | number, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     saveCards(prev => prev.filter(c => c.id !== id));
     if (selectedCard?.id === id) {
@@ -916,7 +897,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
                         <div key={c.id} className="flex items-center justify-between gap-2 bg-zinc-900 border border-zinc-800/50 rounded p-1.5 cursor-default" onPointerDown={e => e.stopPropagation()}>
                           <span className="text-[10px] text-zinc-300 truncate w-40">{c.title}</span>
                           <button 
-                            onPointerDown={(e) => { e.stopPropagation(); handleDeleteCard(c.id, e as any); }}
+                            onClick={(e) => { e.stopPropagation(); handleDeleteCard(c.id, e as any); }}
                             className="p-1 text-zinc-500 hover:text-red-400 transition-colors cursor-pointer bg-black/20 rounded relative z-50"
                             title="精准删除此条"
                           >

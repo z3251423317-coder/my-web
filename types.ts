@@ -39,3 +39,32 @@ export interface ScreenData {
   bgMusicUrl?: string;
   mobileMusicUrl?: string;
 }
+
+export interface AudioModule {
+  id: string;
+  name: string;
+  createdAt: string;
+  status: '启用' | '禁用';
+  updatedAt: string;
+  user: string;
+  audioUrl: string;
+  duration: string;
+  rating: number;
+}
+
+export interface RelationshipCard {
+  id: string | number;
+  title: string;
+  cat: string;
+  desc: string;
+  imageUrl: string;
+  pdfUrl?: string;
+  pdfPageImages?: string[];
+  imbalanceScore?: number;
+  notes?: string;
+  lastUpdated?: string;
+  audioModules?: AudioModule[];
+  colorType?: string;
+  isEncrypted?: boolean;
+  password?: string;
+}

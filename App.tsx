@@ -15,7 +15,7 @@ import {
   Trash2, Plus, Minus, ExternalLink, Code, GripVertical, Smartphone, Music, Settings,
   Search, Star, Play, Pause, Edit3, Lock
 } from 'lucide-react';
-import { ScreenData, BackgroundType } from './types';
+import { ScreenData, BackgroundType, RelationshipCard } from './types';
 import PillNav, { PillNavItem } from './components/PillNav';
 import LogoLoop from './components/LogoLoop';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -55,6 +55,8 @@ const DEFAULT_SCREENS: ScreenData[] = [
     description: "A state-of-the-art recurrent, transformer-based neural network model that learns to decode surface code errors with unprecedented reliability on real quantum processors.",
     bgType: "video",
     bgUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%8F%91%E7%8E%B0%E6%9B%B4%E5%A4%9A%E7%B2%BE%E5%BD%A9%E8%A7%86%E9%A2%91%20-%20%E6%8A%96%E9%9F%B3%E6%90%9C%E7%B4%A2.mp4",
+    bgTypeMobile: "video",
+    bgUrlMobile: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E4%B8%80%E8%84%9A%E8%B8%A9%E5%88%B0%E6%B0%B4%E5%9D%91%E9%87%8C%E7%9A%84%E6%8A%96%E9%9F%B3%20-%20%E6%8A%96%E9%9F%B3.mp4",
     overlayOpacity: 45,
     overlayBlur: 0,
     tintColor: "slate",
@@ -396,6 +398,13 @@ const App: React.FC = () => {
         }
         // Force update screen 3 to new values
         const migrated = parsed.map((s: any) => {
+          if (s.id === 1) {
+            return {
+              ...s,
+              bgTypeMobile: "video",
+              bgUrlMobile: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E4%B8%80%E8%84%9A%E8%B8%A9%E5%88%B0%E6%B0%B4%E5%9D%91%E9%87%8C%E7%9A%84%E6%8A%96%E9%9F%B3%20-%20%E6%8A%96%E9%9F%B3.mp4"
+            };
+          }
           if (s.id === 3) {
             return {
               ...s,
@@ -598,6 +607,83 @@ const App: React.FC = () => {
   const saveTrialCards = (updated: MarqueeCard[]) => {
     setTrialCards(updated);
     localStorage.setItem("alphaqubit_trial_cards", JSON.stringify(updated));
+  };
+
+  // Relationship Cards State for PdfDecoderPage (Screen 2 Secondary)
+  const [relationshipCards, setRelationshipCards] = useState<RelationshipCard[]>(() => {
+    const saved = localStorage.getItem("alphaqubit_relationship_cards_v4");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch (e) {
+        console.error("Failed to parse saved relationship cards", e);
+      }
+    }
+    // Hardcoded initial data from PdfDecoderPage.tsx
+    return [
+      {
+        id: 1782974086095,
+        title: "11",
+        cat: "自定义分析 / Custom",
+        desc: "自定义创建的情感供需分析卡片。",
+        imageUrl: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop",
+        pdfUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/1.%E6%AD%A4%E4%B8%BA%E7%94%98%E9%A5%B4%EF%BC%8C%E5%BD%BC%E4%B9%8B%E8%8B%A6%E8%8D%AF%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E8%AE%BA%E4%B8%8D%E5%90%88%E9%80%82%E7%9A%84%E8%83%8C%E5%90%8E%E4%BA%B2%E5%AF%86%E5%85%B3%E7%B3%BB%E4%B8%AD%E6%83%85%E6%84%9F%E4%BE%9B%E9%9C%80%E7%9A%84%E7%BB%93%E6%9E%84%E6%80%A7%E5%A4%B1%E8%A1%A1%EF%BC%88WXJB-2663-001%EF%BC%89.pdf",
+        pdfPageImages: [
+          "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=1200&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop"
+        ],
+        imbalanceScore: 50,
+        notes: "可编辑深度论文研读笔记或分析心得...",
+        lastUpdated: "2026-07-02 06:34",
+        audioModules: [
+          {
+            id: "mod-1783061786526",
+            name: "11",
+            audioUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%BD%95%E9%9F%B3%E6%96%87%E4%BB%B6/%E6%9C%B1%E8%B4%B5%E5%93%B2/26.07.01.mp3",
+            duration: "02:30",
+            rating: 5,
+            status: "启用",
+            createdAt: "2026年7月3日 下午2:56:26",
+            updatedAt: "2026年7月3日 下午2:56:26",
+            user: "管理员"
+          }
+        ],
+        colorType: "emerald",
+        isEncrypted: true,
+        password: "123456"
+      },
+      {
+        id: 1782974086096,
+        title: "123",
+        cat: "CORE SYSTEM",
+        desc: "Predicts noise errors dynamically using neural inference thresholds.",
+        imageUrl: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop",
+        colorType: "teal",
+        isEncrypted: true,
+        password: "123456"
+      },
+      {
+        id: 1783074363142,
+        title: "Untitled New Research Unit",
+        cat: "Pending Analysis",
+        desc: "Comprehensive analysis description here...",
+        imageUrl: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800&auto=format&fit=crop",
+        colorType: "indigo",
+        imbalanceScore: 50,
+        audioModules: [],
+        pdfPageImages: [],
+        notes: "Initial research notes...",
+        lastUpdated: "2026-07-03 10:26"
+      }
+    ];
+  });
+
+  const saveRelationshipCards = (updated: RelationshipCard[]) => {
+    setRelationshipCards(updated);
+    localStorage.setItem("alphaqubit_relationship_cards_v4", JSON.stringify(updated));
   };
 
   const [isConsoleOpen3, setIsConsoleOpen3] = useState<boolean>(false); // Open by default for Screen 3 editing discovery
@@ -1532,13 +1618,9 @@ const App: React.FC = () => {
       }
     };
 
-    const deleteCard = (id: number) => {
+    const deleteCard = (id: number | string) => {
       if (!cards || !saveCards) return;
-      if (cards.length > 1) {
-        saveCards(cards.filter(c => c.id !== id));
-      } else {
-        alert("System constraint: At least 1 console card must remain initialized.");
-      }
+      saveCards(cards.filter(c => c.id !== id));
     };
 
     const updateCard = (id: number, fields: Partial<MarqueeCard>) => {
@@ -1885,18 +1967,22 @@ const App: React.FC = () => {
                   >
                     {/* Item Header */}
                     <div className="flex items-center justify-between border-b border-zinc-800/40 pb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 font-mono text-[9px] rounded uppercase font-bold">
-                          CARD UNIT {idx + 1}
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 font-mono text-[9px] rounded uppercase font-bold shrink-0">
+                          UNIT {idx + 1}
                         </span>
-                        <span className="text-[10px] font-mono text-zinc-600">ID: {card.id}</span>
+                        <span className="text-[10px] font-mono text-zinc-300 font-bold truncate max-w-[150px]">
+                          {card.title || "Untitled Card"}
+                        </span>
+                        <span className="text-[9px] font-mono text-zinc-600 shrink-0">#{card.id}</span>
                       </div>
                       <button
                         onClick={() => deleteCard(card.id)}
-                        className="text-zinc-600 hover:text-rose-500 p-1 opacity-60 group-hover:opacity-100 transition-all rounded hover:bg-rose-500/10 cursor-pointer"
+                        className="flex items-center gap-1 text-[9px] font-mono font-bold text-rose-500/60 hover:text-rose-500 px-2 py-1 transition-all rounded hover:bg-rose-500/10 cursor-pointer uppercase tracking-tighter"
                         title="Delete card"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-3 h-3" />
+                        <span>Delete</span>
                       </button>
                     </div>
 
@@ -2167,20 +2253,51 @@ const App: React.FC = () => {
 
           {/* Deploy to Git */}
           <button
-            onClick={() => {
+            onClick={async () => {
               const appState = {
                 screens,
-                marqueeCards,
-                sphereCards,
-                domeCards,
-                trialCards
+                relationshipCards
               };
               const codeStr = JSON.stringify(appState, null, 2);
-              const prompt = `Please deploy my app to Git. Here is my current application state:\n\n${codeStr}\n\nPlease apply this configuration to the app and deploy.`;
-              if (navigator.clipboard) {
-                navigator.clipboard.writeText(prompt).then(() => {
-                  alert("App state copied! Paste it in the chat for the AI to deploy to git.");
-                });
+              const prompt = `Please sync my background and audio settings. Here is the data:\n\n${codeStr}\n\nPlease apply this configuration.`;
+              
+              const doCopy = async (text: string) => {
+                if (navigator.clipboard && window.isSecureContext) {
+                  try {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                  } catch (err) {
+                    console.error('Clipboard API failed', err);
+                  }
+                }
+                
+                // Fallback: execCommand('copy')
+                try {
+                  const textArea = document.createElement("textarea");
+                  textArea.value = text;
+                  textArea.style.position = "fixed";
+                  textArea.style.left = "-9999px";
+                  textArea.style.top = "0";
+                  document.body.appendChild(textArea);
+                  textArea.focus();
+                  textArea.select();
+                  const successful = document.execCommand('copy');
+                  document.body.removeChild(textArea);
+                  return successful;
+                } catch (err) {
+                  console.error('Fallback copy failed', err);
+                  return false;
+                }
+              };
+
+              const success = await doCopy(prompt);
+              if (success) {
+                alert("App state copied! Paste it in the chat for the AI to deploy to git.\n应用状态已复制！请粘贴到对话框中以便同步。");
+              } else {
+                alert("Copy failed. Please check console (F12) for the data.\n复制失败，请在控制台(F12)中查看数据。");
+                console.log('--- APP STATE START ---');
+                console.log(prompt);
+                console.log('--- APP STATE END ---');
               }
             }}
             className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl border border-emerald-500/50 text-[10px] font-mono tracking-widest uppercase transition-all shadow-md cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
@@ -2412,7 +2529,7 @@ const App: React.FC = () => {
               <section 
                 key={s.id}
                 id={`screen-${s.id}`}
-                className="snap-start snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
+                className="snap-start snap-always relative w-full min-h-screen lg:h-screen overflow-hidden flex items-center justify-center bg-transparent"
               >
                 {/* Floating controls specifically for Screen 6 to toggle the console drawer */}
                 {import.meta.env.DEV && !isMobile && (
@@ -2444,14 +2561,18 @@ const App: React.FC = () => {
                         className="w-full flex flex-col gap-6 mt-4 md:mt-8"
                       >
                         {/* Title and Instruction Header */}
-                        <div className="text-center space-y-2 mb-4">
-                          <span className="px-3 py-1 bg-amber-500/10 text-amber-500 rounded-full text-[10px] font-mono tracking-widest uppercase font-semibold border border-amber-500/20">
+                        <div className="text-center space-y-4 mb-8">
+                          <motion.span 
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            className="px-4 py-1.5 bg-amber-500/10 text-amber-500 rounded-full text-[10px] font-mono tracking-widest uppercase font-bold border border-amber-500/20 inline-block shadow-sm shadow-amber-500/5"
+                          >
                             INTERACTIVE TRIAL DECK / 纠错算法看板
-                          </span>
-                          <h2 className="text-2xl md:text-4xl font-display font-bold tracking-tight text-white uppercase">
+                          </motion.span>
+                          <h2 className="text-3xl md:text-5xl font-display font-black tracking-tighter text-white uppercase leading-none">
                             Sycamore Syndrome Diagnostic Suite
                           </h2>
-                          <p className="text-xs md:text-sm text-zinc-400 max-w-2xl mx-auto font-sans leading-relaxed">
+                          <p className="text-[11px] md:text-sm text-zinc-400 max-w-2xl mx-auto font-sans font-medium leading-relaxed opacity-80">
                             Click any card in the continuous right-to-left feed to lock onto the signal, analyze real-time spatial error patterns, and review physical latency metrics.
                           </p>
                         </div>
@@ -2477,7 +2598,7 @@ const App: React.FC = () => {
                                   }}
                                 >
                                   {[...Array(2)].map((_, groupIdx) => (
-                                    <div key={groupIdx} className="flex gap-6 pr-6 shrink-0">
+                                    <div key={groupIdx} className="flex gap-12 pr-12 shrink-0">
                                       {singleGroupCards6.map((card, idx) => {
                                         const defaultImage = [
                                           "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop", // Qubit Topology
@@ -2509,7 +2630,7 @@ const App: React.FC = () => {
                                           <div
                                             key={`clone-${card.id}-${groupIdx}-${idx}`}
                                             className="flex-shrink-0 cursor-pointer pointer-events-auto"
-                                            style={{ width: '272px' }}
+                                            style={{ width: isMobile ? '200px' : '240px' }}
                                             onClickCapture={() => {
                                               setSelectedCard6(card);
                                               setIsAudioSecondaryPageOpen(true);
@@ -2522,15 +2643,10 @@ const App: React.FC = () => {
                                               status="DIAGNOSTIC ACTIVE"
                                               contactText="Analyze / 诊断"
                                               avatarUrl={card.image || defaultImage}
-                                              showUserInfo={true}
                                               enableTilt={true}
                                               behindGlowEnabled={true}
                                               behindGlowColor={glowColor}
                                               isEncrypted={card.isEncrypted}
-                                              onContactClick={() => {
-                                                setSelectedCard6(card);
-                                                setIsAudioSecondaryPageOpen(true);
-                                              }}
                                             />
                                           </div>
                                         );
@@ -3869,7 +3985,12 @@ const App: React.FC = () => {
         })()}
       </AnimatePresence>
 
-      <PdfDecoderPage isOpen={isPdfSecondaryPageOpen} onClose={() => setIsPdfSecondaryPageOpen(false)} />
+      <PdfDecoderPage 
+        isOpen={isPdfSecondaryPageOpen} 
+        onClose={() => setIsPdfSecondaryPageOpen(false)} 
+        cards={relationshipCards}
+        onUpdateCards={saveRelationshipCards}
+      />
       <AudioSecondaryPage 
         isOpen={isAudioSecondaryPageOpen} 
         onClose={() => setIsAudioSecondaryPageOpen(false)}

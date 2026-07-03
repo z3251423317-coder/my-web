@@ -38,8 +38,6 @@ interface ProfileCardProps {
   handle?: string;
   status?: string;
   contactText?: string;
-  showUserInfo?: boolean;
-  onContactClick?: () => void;
   onClick?: () => void;
   isEncrypted?: boolean;
 }
@@ -62,8 +60,6 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
   handle = 'active_link',
   status = 'Online',
   contactText = 'Launch',
-  showUserInfo = true,
-  onContactClick,
   onClick,
   isEncrypted = false
 }) => {
@@ -333,11 +329,6 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
     [iconUrl, grainUrl, innerGradient, behindGlowColor, behindGlowSize]
   );
 
-  const handleContactClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    onContactClick?.();
-  }, [onContactClick]);
-
   return (
     <div ref={wrapRef} className={`pc-card-wrapper ${className}`.trim()} style={cardStyle as any} onClick={onClick}>
       {behindGlowEnabled && <div className="pc-behind" />}
@@ -358,59 +349,15 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
                 }}
               />
               {isEncrypted && (
-                <div className="absolute top-4 right-4 z-[5] p-2 bg-zinc-950/60 backdrop-blur-md rounded-full border border-amber-500/30 text-amber-500 shadow-xl shadow-zinc-950/40">
-                  <Lock className="w-4 h-4" />
-                </div>
-              )}
-              {showUserInfo && (
-                <div className="pc-user-info">
-                  <div className="pc-user-details">
-                    <div className="pc-mini-avatar">
-                      <img
-                        src={miniAvatarUrl || avatarUrl}
-                        alt={`${name || 'User'} mini avatar`}
-                        loading="lazy"
-                        onError={e => {
-                          const t = e.target as HTMLImageElement;
-                          t.style.opacity = '0.5';
-                          t.src = avatarUrl;
-                        }}
-                      />
-                    </div>
-                    <div className="pc-user-text">
-                      <div className="pc-handle">@{handle}</div>
-                      <div className="pc-status">{status}</div>
-                    </div>
-                  </div>
-                  <button
-                    className="pc-contact-btn"
-                    onClick={handleContactClick}
-                    style={{ pointerEvents: 'auto' }}
-                    type="button"
-                    aria-label={`Contact ${name || 'user'}`}
-                  >
-                    {contactText}
-                  </button>
+                <div className="absolute top-5 right-5 z-[5] p-2.5 bg-zinc-950/70 backdrop-blur-md rounded-full text-amber-500 shadow-lg transition-transform hover:scale-110">
+                  <Lock className="w-5 h-5" strokeWidth={2.5} />
                 </div>
               )}
             </div>
             <div className="pc-content">
               <div className="pc-details">
                 <h3>{name && name.length > 20 ? name.substring(0, 20) + "..." : name}</h3>
-                <p style={{ 
-                  whiteSpace: 'normal', 
-                  width: 'auto', 
-                  display: '-webkit-box', 
-                  WebkitLineClamp: 3, 
-                  WebkitBoxOrient: 'vertical', 
-                  overflow: 'hidden', 
-                  textOverflow: 'ellipsis',
-                  top: '0px',
-                  marginTop: '4px',
-                  lineHeight: '1.25',
-                  paddingLeft: '12px',
-                  paddingRight: '12px'
-                }}>{title}</p>
+                <p>{title}</p>
               </div>
             </div>
           </div>

@@ -6,19 +6,8 @@ import {
   Search, SlidersHorizontal, LayoutGrid, List as ListIcon,
   Lock, Unlock, ShieldCheck, ShieldAlert
 } from 'lucide-react';
+import { AudioModule } from '../types';
 import { MarqueeCard } from '../src/cardData';
-
-interface AudioModule {
-  id: string;
-  name: string;
-  createdAt: string;
-  status: '启用' | '禁用';
-  updatedAt: string;
-  user: string;
-  audioUrl: string;
-  duration: string;
-  rating: number;
-}
 
 interface AudioSecondaryPageProps {
   isOpen: boolean;
@@ -315,14 +304,13 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
                             )}
 
                             <div className={viewMode === 'grid' ? "flex items-center justify-between pt-2" : "flex items-center gap-4 ml-auto"}>
-                               {import.meta.env.DEV && (
-                                 <button 
-                                    onClick={() => handleDeleteModule(mod.id)}
-                                    className="p-2 text-zinc-600 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
-                                 >
-                                    <Trash2 className="w-4 h-4" />
-                                 </button>
-                               )}
+                               <button 
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteModule(mod.id); }}
+                                  className="p-2 text-zinc-600 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                  title="Delete audio module"
+                               >
+                                  <Trash2 className="w-4 h-4" />
+                               </button>
 
                                <button 
                                   onClick={() => handleTogglePlay(mod)}
@@ -349,7 +337,7 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
 
           {/* Sidebar Controller */}
           <AnimatePresence>
-            {isControllerOpen && import.meta.env.DEV && (
+            {isControllerOpen && (
               <motion.aside
                 initial={{ x: 400, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
