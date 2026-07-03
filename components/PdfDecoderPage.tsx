@@ -49,6 +49,68 @@ export interface RelationshipCard {
   lastUpdated: string;
 }
 
+const fetchPdfWithFallback = async (url: string, logCallback?: (msg: string) => void): Promise<ArrayBuffer> => {
+  // 1. Try direct fetch with a cache-buster to bypass any negative CORS cache in the browser
+  const cacheBuster = `t_cb=${Date.now()}`;
+  const directUrlWithBuster = url + (url.includes('?') ? '&' : '?') + cacheBuster;
+  
+  try {
+    if (logCallback) logCallback('[INFO] 正在尝试直接建立连接...');
+    const response = await fetch(directUrlWithBuster, {
+      method: 'GET',
+      mode: 'cors',
+    });
+    if (response.ok) {
+      if (logCallback) logCallback('[SUCCESS] 直接读取成功！');
+      return await response.arrayBuffer();
+    }
+  } catch (directErr) {
+    console.warn('[Direct Fetch failed or blocked by CORS, trying proxies...]', directErr);
+  }
+
+  // 2. Try the original URL direct fetch just in case query parameters are rejected by the server
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      mode: 'cors',
+    });
+    if (response.ok) {
+      if (logCallback) logCallback('[SUCCESS] 直接读取成功！');
+      return await response.arrayBuffer();
+    }
+  } catch (err) {
+    console.warn('[Original Direct Fetch failed...]', err);
+  }
+
+  // 3. Fallback to AllOrigins raw proxy
+  try {
+    if (logCallback) logCallback('[WARN] 检测到跨域拦截，正在接入高速代理通道 (AllOrigins)...');
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+    const response = await fetch(proxyUrl);
+    if (response.ok) {
+      if (logCallback) logCallback('[SUCCESS] 跨域代理握手成功，PDF 数据流已接通！');
+      return await response.arrayBuffer();
+    }
+  } catch (proxyErr) {
+    console.warn('[AllOrigins Proxy failed...]', proxyErr);
+  }
+
+  // 4. Fallback to Codetabs proxy
+  try {
+    if (logCallback) logCallback('[WARN] 正在切换备用代理通道 (Codetabs)...');
+    const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
+    const response = await fetch(proxyUrl);
+    if (response.ok) {
+      if (logCallback) logCallback('[SUCCESS] 跨域代理握手成功，PDF 数据流已接通！');
+      return await response.arrayBuffer();
+    }
+  } catch (proxyErr) {
+    console.warn('[Codetabs Proxy failed...]', proxyErr);
+  }
+
+  throw new Error('加载 PDF 失败，请确保链接有效，且 COS 桶已正确配置 CORS 跨域规则。');
+};
+
 interface PdfDecoderPageProps {
   isOpen: boolean;
   onClose: () => void;
@@ -281,9 +343,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
 
         // 2. Fetch PDF ArrayBuffer with CORS proxy fallback
         let arrayBuffer: ArrayBuffer;
-        const response = await fetch(targetUrl);
-        if (!response.ok) throw new Error('加载 PDF 失败，请确保链接有效且可下载。');
-        arrayBuffer = await response.arrayBuffer();
+        arrayBuffer = await fetchPdfWithFallback(targetUrl);
 
         if (!active) return;
 
@@ -438,10 +498,9 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose 
 
       // 2. Fetch PDF ArrayBuffer with CORS proxy fallback
       let arrayBuffer: ArrayBuffer;
-      const response = await fetch(urlToExtract);
-      if (!response.ok) throw new Error('加载 PDF 失败，请确保链接有效且可下载。');
-      arrayBuffer = await response.arrayBuffer();
-      setExtractionLog(prev => [...prev, '[SUCCESS] PDF 核心通道建立成功，直接读取完成！']);
+      arrayBuffer = await fetchPdfWithFallback(urlToExtract, (msg) => {
+        setExtractionLog(prev => [...prev, msg]);
+      });
 
       setExtractionLog(prev => [...prev, '[INFO] 正在反序列化 PDF 二进制流，解构文档目录...']);
 

@@ -36,4 +36,6 @@ export interface ScreenData {
   gallery?: { title: string; subtitle: string; imageUrl: string }[];
   testimonial?: { quote: string; author: string; role: string; avatarUrl: string };
   logoLoopLogos?: { src: string; alt: string; href?: string }[];
+  bgMusicUrl?: string;
+  mobileMusicUrl?: string;
 }

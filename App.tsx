@@ -8,11 +8,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { HeroScene, QuantumComputerScene } from './components/QuantumScene';
 import { SurfaceCodeDiagram, TransformerDecoderDiagram, PerformanceMetricDiagram } from './components/Diagrams';
 import { 
-  ArrowDown, Menu, X, BookOpen, Settings, Layers, Eye, EyeOff, RotateCcw, 
+  ArrowDown, Menu, X, BookOpen, Layers, Eye, EyeOff, RotateCcw, 
   HelpCircle, Monitor, Compass, LayoutGrid, Check, Image as ImageIcon, 
   Video as VideoIcon, Sparkles, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, Send, MapPin, 
   Phone, Globe, Copy, RefreshCw, Palette, UploadCloud, AlertTriangle, CheckCircle,
-  Trash2, Plus, Minus, ExternalLink, Code, GripVertical, Smartphone
+  Trash2, Plus, Minus, ExternalLink, Code, GripVertical, Smartphone, Music, Settings,
+  Search, Star, Play, Pause, Edit3
 } from 'lucide-react';
 import { ScreenData, BackgroundType } from './types';
 import PillNav, { PillNavItem } from './components/PillNav';
@@ -22,7 +23,9 @@ import InfiniteMenu from './components/InfiniteMenu';
 import DomeGallery from './components/DomeGallery';
 import ProfileCard from './components/ProfileCard';
 import { PdfDecoderPage } from './components/PdfDecoderPage';
+import { AudioSecondaryPage } from './components/AudioSecondaryPage';
 import ShinyText from './components/ShinyText';
+import { MusicPlayer } from './components/MusicPlayer';
 
 import { DEFAULT_MARQUEE_CARDS, MarqueeCard } from './src/cardData';
 
@@ -57,7 +60,8 @@ const DEFAULT_SCREENS: ScreenData[] = [
     tintColor: "slate",
     align: "left",
     ctaText: "Discover the Science",
-    ctaUrl: "#screen-2"
+    ctaUrl: "#screen-2",
+    bgMusicUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
   },
   {
     id: 2,
@@ -72,7 +76,8 @@ const DEFAULT_SCREENS: ScreenData[] = [
     tintColor: "none",
     align: "left",
     ctaText: "进入情感供需看板 / DECODE NOW",
-    ctaUrl: "#screen-3"
+    ctaUrl: "#screen-3",
+    bgMusicUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
   },
   {
     id: 3,
@@ -89,7 +94,8 @@ const DEFAULT_SCREENS: ScreenData[] = [
     tintColor: "indigo",
     align: "right",
     ctaText: "Explore Architecture",
-    ctaUrl: "#screen-4"
+    ctaUrl: "#screen-4",
+    bgMusicUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
   },
   {
     id: 4,
@@ -551,6 +557,23 @@ const App: React.FC = () => {
   const [domeAutoRotateSpeed, setDomeAutoRotateSpeed] = useState<number>(0.15);
   const [activeCardDetail, setActiveCardDetail] = useState<MarqueeCard | null>(null);
   const [selectedCard6, setSelectedCard6] = useState<MarqueeCard | null>(null);
+  const [isAudioSecondaryPageOpen, setIsAudioSecondaryPageOpen] = useState<boolean>(false);
+  const [formSearch6, setFormSearch6] = useState<string>("");
+  const [formStatus6, setFormStatus6] = useState<string>("全部");
+  const [activeFormSearch6, setActiveFormSearch6] = useState<string>("");
+  const [activeFormStatus6, setActiveFormStatus6] = useState<string>("全部");
+  const [editingModule6, setEditingModule6] = useState<any | null>(null);
+  const [isAddingModule6, setIsAddingModule6] = useState<boolean>(false);
+  const [playingAudioId6, setPlayingAudioId6] = useState<string | null>(null);
+  const [activeAudioObj6, setActiveAudioObj6] = useState<HTMLAudioElement | null>(null);
+  useEffect(() => {
+    if (!selectedCard6 && activeAudioObj6) {
+      activeAudioObj6.pause();
+      setActiveAudioObj6(null);
+      setPlayingAudioId6(null);
+    }
+  }, [selectedCard6, activeAudioObj6]);
+
   const [copyToast, setCopyToast] = useState<string | null>(null);
   const [activeBgConsoleId, setActiveBgConsoleId] = useState<number | null>(null);
 
@@ -1561,6 +1584,36 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Music Management Section */}
+                <div className="p-4 border-b border-zinc-800 bg-zinc-900/40 space-y-3">
+                  <div className="flex items-center gap-2 border-b border-zinc-900 pb-2">
+                    <Music className="w-4 h-4 text-amber-500" />
+                    <span className="text-xs font-mono font-bold text-zinc-300 uppercase tracking-widest">音乐管理 (Audio Management)</span>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-zinc-500 block">主音频链接 Music URL</label>
+                    <input 
+                      type="text" 
+                      value={currentScreen.bgMusicUrl || ''}
+                      onChange={(e) => onUpdateScreen({...currentScreen, bgMusicUrl: e.target.value})}
+                      className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs font-mono"
+                      placeholder="http://..."
+                    />
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-zinc-500 block">移动端专属音乐 Mobile Music URL</label>
+                    <input 
+                      type="text" 
+                      value={currentScreen.mobileMusicUrl || ''}
+                      onChange={(e) => onUpdateScreen({...currentScreen, mobileMusicUrl: e.target.value})}
+                      className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs font-mono"
+                      placeholder="http://..."
+                    />
+                  </div>
+                </div>
+
                 {/* Mobile Overrides UI in BG settings */}
                 <div className="p-4 border-b border-zinc-800 bg-zinc-900/40 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2286,8 +2339,7 @@ const App: React.FC = () => {
                 {/* Main Content Area */}
                 <div className="relative z-10 w-full h-full max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 flex flex-col justify-center text-white pointer-events-auto">
                   <AnimatePresence mode="wait">
-                    {!selectedCard6 ? (
-                      // State 1: Horizontal Sliding Marquee List of Cards (From Right to Left)
+                      {/* State 1: Horizontal Sliding Marquee List of Cards (From Right to Left) */}
                       <motion.div
                         key="marquee-list"
                         initial={{ opacity: 0, y: 20 }}
@@ -2310,11 +2362,7 @@ const App: React.FC = () => {
                         </div>
 
                         {/* Infinite Right-to-Left Scrolling Track */}
-                        <div className="relative w-full overflow-hidden py-10 select-none bg-zinc-900/20 rounded-3xl border border-zinc-900 backdrop-blur-sm">
-                          {/* Left & Right fading shadow masks */}
-                          <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-zinc-950 to-transparent z-10 pointer-events-none" />
-                          <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-zinc-950 to-transparent z-10 pointer-events-none" />
-
+                        <div className="relative w-screen left-1/2 -ml-[50vw] overflow-hidden py-10 select-none">
                           {/* Horizontal flex track with animation */}
                           {(() => {
                             const minCardsRequired6 = 12;
@@ -2367,7 +2415,10 @@ const App: React.FC = () => {
                                             key={`clone-${card.id}-${groupIdx}-${idx}`}
                                             className="flex-shrink-0 cursor-pointer pointer-events-auto"
                                             style={{ width: '272px' }}
-                                            onClickCapture={() => setSelectedCard6(card)}
+                                            onClickCapture={() => {
+                                              setSelectedCard6(card);
+                                              setIsAudioSecondaryPageOpen(true);
+                                            }}
                                           >
                                             <ProfileCard
                                               name={card.title}
@@ -2380,7 +2431,10 @@ const App: React.FC = () => {
                                               enableTilt={true}
                                               behindGlowEnabled={true}
                                               behindGlowColor={glowColor}
-                                              onContactClick={() => setSelectedCard6(card)}
+                                              onContactClick={() => {
+                                                setSelectedCard6(card);
+                                                setIsAudioSecondaryPageOpen(true);
+                                              }}
                                             />
                                           </div>
                                         );
@@ -2393,156 +2447,6 @@ const App: React.FC = () => {
                           })()}
                         </div>
                       </motion.div>
-                    ) : (
-                      // State 2: Split Detailed View (Card moves to Left, text displays on the Right)
-                      <motion.div
-                        key="split-detail"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.5, ease: "easeOut" }}
-                        className="w-full flex flex-col justify-center h-full max-h-[85vh] mt-4 md:mt-8"
-                      >
-                        {/* Go back Button at Top Left */}
-                        <div className="mb-6 flex">
-                          <button
-                            onClick={() => setSelectedCard6(null)}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 rounded-xl text-xs font-mono tracking-widest text-zinc-300 hover:text-white transition-all cursor-pointer shadow-lg"
-                          >
-                            <ChevronLeft className="w-4 h-4" />
-                            <span>BACK TO DECK / 返回卡片组</span>
-                          </button>
-                        </div>
-
-                        {/* Split columns layout */}
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-center">
-                          {/* Left Column: The clicked card itself with floating presentation */}
-                          <div className="lg:col-span-5 flex justify-center lg:justify-end pr-0 lg:pr-8">
-                            <motion.div
-                              initial={{ x: 100, opacity: 0 }}
-                              animate={{ x: 0, opacity: 1 }}
-                              transition={{ type: "spring", damping: 20 }}
-                              className="relative w-80 h-[430px] rounded-2xl overflow-hidden border border-zinc-700/60 bg-zinc-950 p-6 flex flex-col justify-between shadow-2xl"
-                            >
-                              {/* Accent top glow */}
-                              <div className={`absolute top-0 left-0 right-0 h-[4px] bg-gradient-to-r ${getCardColorAndIcon(activeCard6.colorType).glow}`} />
-
-                              {/* Background Image */}
-                              <div className="absolute inset-0 z-0 opacity-40">
-                                <img
-                                  src={activeCard6.image || [
-                                    "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop", // Qubit Topology
-                                    "https://images.unsplash.com/photo-1507668077129-56e32842fceb?q=80&w=600&auto=format&fit=crop", // Primal Syndrome
-                                    "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=600&auto=format&fit=crop", // Stabilizer Parity
-                                    "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=600&auto=format&fit=crop", // Decoder Mesh
-                                    "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=600&auto=format&fit=crop", // Cosmic Ray Shield
-                                    "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=600&auto=format&fit=crop", // Synergy Routing
-                                    "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop", // Coherent Decay
-                                    "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=600&auto=format&fit=crop", // MWPM Solver
-                                    "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=600&auto=format&fit=crop", // Decoder Latency
-                                    "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=600&auto=format&fit=crop"  // Weight Distribution
-                                  ][(activeCard6.id - 1) % 10]}
-                                  alt={activeCard6.title}
-                                  referrerPolicy="no-referrer"
-                                  className="w-full h-full object-cover scale-105"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/30 via-zinc-950/60 to-zinc-950" />
-                              </div>
-
-                              {/* Top */}
-                              <div className="relative z-10 flex items-center justify-between">
-                                <span className="px-2.5 py-0.5 rounded-md bg-zinc-900/90 text-zinc-400 text-[10px] font-mono tracking-widest border border-zinc-800">
-                                  {activeCard6.cat || "DIAGNOSTIC CARD"}
-                                </span>
-                                <div className={`p-1.5 rounded-lg border ${getCardColorAndIcon(activeCard6.colorType).style}`}>
-                                  {React.createElement(getCardColorAndIcon(activeCard6.colorType).icon || Sparkles, { className: "w-4 h-4" })}
-                                </div>
-                              </div>
-
-                              {/* Bottom */}
-                              <div className="relative z-10 space-y-3">
-                                <span className="text-[10px] font-mono text-amber-500 font-bold block tracking-widest">ACTIVE DIAGNOSTIC SLOT</span>
-                                <h3 className="text-xl font-display font-bold text-white tracking-tight">
-                                  {activeCard6.title}
-                                </h3>
-                                <p className="text-xs text-zinc-300 font-sans leading-relaxed">
-                                  {activeCard6.desc}
-                                </p>
-                                <div className="pt-2 flex items-center justify-between border-t border-zinc-900/80 text-[10px] font-mono text-zinc-500">
-                                  <span>SYS ID: {activeCard6.id.toString().padStart(4, '0')}</span>
-                                  <span className="text-emerald-500 animate-pulse">● SIGNAL ESTABLISHED</span>
-                                </div>
-                              </div>
-                            </motion.div>
-                          </div>
-
-                          {/* Right Column: Detailed narrative & Text info */}
-                          <div className="lg:col-span-7 space-y-6">
-                            <motion.div
-                              initial={{ x: -50, opacity: 0 }}
-                              animate={{ x: 0, opacity: 1 }}
-                              transition={{ type: "spring", damping: 20, delay: 0.1 }}
-                              className="space-y-5"
-                            >
-                              <div className="space-y-2">
-                                <span className="px-3 py-1 bg-zinc-900 border border-zinc-800 text-zinc-400 rounded-md text-[10px] font-mono tracking-widest uppercase">
-                                  MODULE CONFIG: {activeCard6.cat || "GENERAL PROTOCOL"}
-                                </span>
-                                <h1 className="text-3xl md:text-5xl font-display font-bold tracking-tight text-white uppercase leading-none">
-                                  {activeCard6.title}
-                                </h1>
-                              </div>
-
-                              <div className="p-5 bg-zinc-900/30 border border-zinc-900 backdrop-blur-md rounded-2xl space-y-3">
-                                <h4 className="text-xs font-mono font-bold tracking-widest text-zinc-500 uppercase">
-                                  ANALYSIS SUMMARY / 诊断摘要
-                                </h4>
-                                <p className="text-sm text-zinc-300 font-sans leading-relaxed">
-                                  {activeCard6.desc} This quantum module represents a core logical structure within AlphaQubit's decoders. Physical calibration data demonstrates optimized microwave parameters and high coherence maintenance.
-                                </p>
-                              </div>
-
-                              {/* Realistic Telemetry Subgrid to make it look exceptionally polished */}
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                <div className="p-4 bg-zinc-950 border border-zinc-900 rounded-xl space-y-1">
-                                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Syndrome Rate</span>
-                                  <span className="text-sm font-mono text-white font-bold block">12.44 KHz</span>
-                                </div>
-                                <div className="p-4 bg-zinc-950 border border-zinc-900 rounded-xl space-y-1">
-                                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Active Qubits</span>
-                                  <span className="text-sm font-mono text-amber-500 font-bold block">72 Physical</span>
-                                </div>
-                                <div className="p-4 bg-zinc-950 border border-zinc-900 rounded-xl space-y-1 col-span-2 md:col-span-1">
-                                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Calculated Latency</span>
-                                  <span className="text-sm font-mono text-emerald-400 font-bold block">2.34 ms</span>
-                                </div>
-                              </div>
-
-                              {/* Interactive Actions */}
-                              <div className="flex flex-wrap items-center gap-4 pt-4">
-                                {activeCard6.url && (
-                                  <a
-                                    href={activeCard6.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-bold rounded-xl text-xs font-mono tracking-widest uppercase transition-all shadow-lg cursor-pointer"
-                                  >
-                                    <ExternalLink className="w-4 h-4" />
-                                    <span>LAUNCH DIAGNOSTIC / 运行诊断</span>
-                                  </a>
-                                )}
-                                <button
-                                  onClick={() => setSelectedCard6(null)}
-                                  className="px-5 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white rounded-xl text-xs font-mono tracking-widest uppercase transition-all cursor-pointer"
-                                >
-                                  CLOSE ANALYSIS / 关闭
-                                </button>
-                              </div>
-                            </motion.div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
                   </AnimatePresence>
                 </div>
 
@@ -2869,10 +2773,10 @@ const App: React.FC = () => {
                     
                     {/* Render unique live visualizations on selected sections */}
 
-                    {/* Screen 2: Embed SurfaceCodeDiagram inside the grid */}
+                    {/* Screen 2: Removed Game section as per user request */}
                     {s.id === 2 && (
-                      <div className="w-full max-w-md scale-[1.02] transition-transform duration-300">
-                        <SurfaceCodeDiagram />
+                      <div className="w-full max-w-md hidden">
+                        {/* Removed SurfaceCodeDiagram */}
                       </div>
                     )}
 
@@ -3066,7 +2970,7 @@ const App: React.FC = () => {
       </div>
 
       {/* Interactive Editor Floating Drawer Control Panel */}
-      {false && (
+      {editorOpen && (
         <div className="fixed top-24 right-5 z-40 w-[420px] max-w-[95%] h-[calc(100vh-120px)] bg-zinc-900/95 border border-zinc-800/80 shadow-2xl rounded-2xl flex flex-col backdrop-blur-md overflow-hidden select-text text-zinc-300 animate-slide-in">
           
           {/* Editor Header */}
@@ -3471,6 +3375,36 @@ const App: React.FC = () => {
                   )}
                 </div>
 
+                {/* Music Management Section */}
+                <div className="p-3 bg-zinc-950 border border-zinc-850 rounded-lg space-y-3">
+                  <div className="flex items-center gap-2 border-b border-zinc-900 pb-2">
+                    <Music className="w-4 h-4 text-amber-500" />
+                    <span className="text-[10px] text-zinc-400 uppercase font-bold">音乐管理 (Audio Management)</span>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-zinc-500 block">主音频链接 Music URL</label>
+                    <input 
+                      type="text" 
+                      value={activeScreen.bgMusicUrl || ''}
+                      onChange={(e) => updateScreenField('bgMusicUrl', e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-white focus:outline-none focus:border-amber-500 text-xs font-mono"
+                      placeholder="http://..."
+                    />
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-zinc-500 block">移动端专属音乐 Mobile Music URL</label>
+                    <input 
+                      type="text" 
+                      value={activeScreen.mobileMusicUrl || ''}
+                      onChange={(e) => updateScreenField('mobileMusicUrl', e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-white focus:outline-none focus:border-amber-500 text-xs font-mono"
+                      placeholder="http://..."
+                    />
+                  </div>
+                </div>
+
                 {/* Background Link path */}
                 <div className="space-y-1">
                   <label className="text-[10px] uppercase font-bold text-zinc-500 block">
@@ -3840,7 +3774,21 @@ const App: React.FC = () => {
       </AnimatePresence>
 
       <PdfDecoderPage isOpen={isPdfSecondaryPageOpen} onClose={() => setIsPdfSecondaryPageOpen(false)} />
-
+      <AudioSecondaryPage 
+        isOpen={isAudioSecondaryPageOpen} 
+        onClose={() => setIsAudioSecondaryPageOpen(false)}
+        activeCard={selectedCard6}
+        onUpdateCard={(updatedCard) => {
+          setTrialCards(prev => prev.map(c => c.id === updatedCard.id ? updatedCard : c));
+          setSelectedCard6(updatedCard);
+        }}
+      />
+      <MusicPlayer 
+        musicUrl={activeScreen.bgMusicUrl} 
+        mobileMusicUrl={activeScreen.mobileMusicUrl}
+        isMobile={isMobile}
+      />
+      
     </div>
   );
 };

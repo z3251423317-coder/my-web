@@ -12,6 +12,17 @@ export interface MarqueeCard {
   imbalanceScore?: number;
   notes?: string;
   lastUpdated?: string;
+  audioModules?: {
+    id: string;
+    name: string;
+    createdAt: string;
+    status: '启用' | '禁用';
+    updatedAt: string;
+    user: string;
+    audioUrl: string;
+    duration: string;
+    rating: number;
+  }[];
 }
 
 export const DEFAULT_MARQUEE_CARDS: MarqueeCard[] = [
@@ -29,7 +40,31 @@ export const DEFAULT_MARQUEE_CARDS: MarqueeCard[] = [
     ],
     "imbalanceScore": 50,
     "notes": "可编辑深度论文研读笔记或分析心得...",
-    "lastUpdated": "2026-07-02 06:34"
+    "lastUpdated": "2026-07-02 06:34",
+    "audioModules": [
+      {
+        "id": "m1",
+        "name": "结构性失衡导论",
+        "createdAt": "2026-07-02 10:00",
+        "status": "启用",
+        "updatedAt": "2026-07-02 10:00",
+        "user": "系统管理员",
+        "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        "duration": "05:20",
+        "rating": 5
+      },
+      {
+        "id": "m2",
+        "name": "情感供需模型解析",
+        "createdAt": "2026-07-02 11:30",
+        "status": "启用",
+        "updatedAt": "2026-07-02 11:30",
+        "user": "系统管理员",
+        "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+        "duration": "08:45",
+        "rating": 4
+      }
+    ]
   },
   {
     "id": 4,
@@ -45,6 +80,30 @@ export const DEFAULT_MARQUEE_CARDS: MarqueeCard[] = [
     ],
     "imbalanceScore": 82,
     "notes": "为了满足自我安全感，过度迎合或冷酷防御都是代偿行为。唯有认清结构失衡，才能从博弈走向成熟和解。本章深度剖析代偿心理解析。",
-    "lastUpdated": "2026-07-01 10:45"
+    "lastUpdated": "2026-07-01 10:45",
+    "audioModules": [
+      {
+        "id": "m3",
+        "name": "代偿机制深度调研",
+        "createdAt": "2026-07-01 09:00",
+        "status": "启用",
+        "updatedAt": "2026-07-01 09:00",
+        "user": "系统管理员",
+        "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+        "duration": "12:15",
+        "rating": 5
+      },
+      {
+        "id": "m4",
+        "name": "避风港向战场的演变",
+        "createdAt": "2026-07-01 10:30",
+        "status": "启用",
+        "updatedAt": "2026-07-01 10:30",
+        "user": "系统管理员",
+        "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+        "duration": "07:30",
+        "rating": 3
+      }
+    ]
   }
 ];
