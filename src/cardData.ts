@@ -95,6 +95,8 @@ export const DEFAULT_MARQUEE_CARDS: MarqueeCard[] = [
         "duration": "07:30",
         "rating": 3
       }
-    ]
+    ],
+    "isEncrypted": true,
+    "password": "1111"
   }
 ];

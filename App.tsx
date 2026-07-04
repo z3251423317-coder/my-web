@@ -73,6 +73,9 @@ const DEFAULT_SCREENS: ScreenData[] = [
     description: "点击下方按钮，进入专门为您构建的情感特征失衡解析看板。深度剖析付出者与接受者之间单向情感输出与接收的结构性逆差，将爱之“甘露”化作解构彼此亲密关系的微观密钥。",
     bgType: "gradient",
     bgUrl: "linear-gradient(to right, #0f172a, #050b14)",
+    bgTypeMobile: "video",
+    bgUrlMobile: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/2.mp4",
+    bgOpacity: 55,
     overlayOpacity: 20,
     overlayBlur: 0,
     tintColor: "none",
@@ -278,9 +281,20 @@ interface SafeVideoProps {
   style?: React.CSSProperties;
 }
 
+// Global tracker to handle cases where user has interacted with the page before a video component mounts
+let globalHasInteracted = false;
+if (typeof window !== "undefined") {
+  const markInteracted = () => {
+    globalHasInteracted = true;
+    // We can't really remove these easily if we want them to catch everything, but 'once' helps for each specific trigger
+  };
+  window.addEventListener("click", markInteracted, { capture: true, passive: true });
+  window.addEventListener("touchstart", markInteracted, { capture: true, passive: true });
+}
+
 const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-
+  
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -301,18 +315,43 @@ const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style }) => {
     // Attempt playback
     const playVideo = () => {
       if (video) {
-        video.play().catch(err => {
-          console.log("SafeVideo autoPlay blocked, waiting for interaction:", err);
-        });
+        const promise = video.play();
+        if (promise !== undefined) {
+          promise.catch(err => {
+            console.log("SafeVideo autoPlay blocked, waiting for interaction:", err);
+          });
+        }
       }
     };
 
+    // If we already know the user interacted, try playing immediately
+    // Browsers often allow this if the user has touched the page once
+    // Robust retry mechanism
+    let retryInterval: any;
+    const startRetryLoop = () => {
+      if (retryInterval) clearInterval(retryInterval);
+      let attempts = 0;
+      retryInterval = setInterval(() => {
+        attempts++;
+        if (video && video.paused) {
+          playVideo();
+        }
+        if (attempts > 5 || (video && !video.paused)) {
+          clearInterval(retryInterval);
+        }
+      }, 1000);
+    };
+
     playVideo();
+    startRetryLoop();
 
     // Add robust video-ready events to trigger autoplay on slow networks or suspended loads
     video.addEventListener("loadedmetadata", playVideo);
     video.addEventListener("canplay", playVideo);
     video.addEventListener("suspend", playVideo);
+    video.addEventListener("play", () => {
+      if (retryInterval) clearInterval(retryInterval);
+    });
 
     // WeChat Browser integration to trigger autoplay
     const handleWechat = () => {
@@ -324,34 +363,34 @@ const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style }) => {
     };
     document.addEventListener("WeixinJSBridgeReady", handleWechat);
 
-    // Listen for first touch/click to play if autoplay was blocked by mobile settings or low power mode
+    // Listen for touch/click to play if autoplay was blocked by mobile settings or low power mode
     const handleInteraction = () => {
+      globalHasInteracted = true;
       if (video && video.paused) {
-        video.play().then(() => {
-          // Success! Remove interaction listeners
-          document.removeEventListener("click", handleInteraction);
-          document.removeEventListener("touchstart", handleInteraction);
-        }).catch(err => {
+        video.play().catch(err => {
           console.log("Interactive play failed:", err);
         });
-      } else {
-        document.removeEventListener("click", handleInteraction);
-        document.removeEventListener("touchstart", handleInteraction);
       }
     };
 
-    document.addEventListener("click", handleInteraction);
-    document.addEventListener("touchstart", handleInteraction);
+    // We add listeners to the window so ANY click on the page triggers it
+    window.addEventListener("click", handleInteraction, { once: true });
+    window.addEventListener("touchstart", handleInteraction, { once: true });
+    window.addEventListener("mousedown", handleInteraction, { once: true });
+    window.addEventListener("keydown", handleInteraction, { once: true });
 
     return () => {
+      if (retryInterval) clearInterval(retryInterval);
       if (video) {
         video.removeEventListener("loadedmetadata", playVideo);
         video.removeEventListener("canplay", playVideo);
         video.removeEventListener("suspend", playVideo);
       }
       document.removeEventListener("WeixinJSBridgeReady", handleWechat);
-      document.removeEventListener("click", handleInteraction);
-      document.removeEventListener("touchstart", handleInteraction);
+      window.removeEventListener("click", handleInteraction);
+      window.removeEventListener("touchstart", handleInteraction);
+      window.removeEventListener("mousedown", handleInteraction);
+      window.removeEventListener("keydown", handleInteraction);
     };
   }, [src]);
 
@@ -364,8 +403,11 @@ const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style }) => {
       loop
       muted
       playsInline
+      webkit-playsinline="true"
       autoPlay
       preload="auto"
+      disablePictureInPicture
+      disableRemotePlayback
     />
   );
 };
@@ -403,6 +445,14 @@ const App: React.FC = () => {
               ...s,
               bgTypeMobile: "video",
               bgUrlMobile: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E4%B8%80%E8%84%9A%E8%B8%A9%E5%88%B0%E6%B0%B4%E5%9D%91%E9%87%8C%E7%9A%84%E6%8A%96%E9%9F%B3%20-%20%E6%8A%96%E9%9F%B3.mp4"
+            };
+          }
+          if (s.id === 2) {
+            return {
+              ...s,
+              bgTypeMobile: "video",
+              bgUrlMobile: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/2.mp4",
+              bgOpacity: 55
             };
           }
           if (s.id === 3) {
@@ -2341,6 +2391,7 @@ const App: React.FC = () => {
                     src={bgUrlToUse} 
                     alt={`bg-${activeScreen.id}`} 
                     className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none transition-transform duration-[6000ms] scale-100 filter brightness-95" 
+                    style={{ opacity: activeScreen.bgOpacity !== undefined ? activeScreen.bgOpacity / 100 : undefined }}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.src = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2000";
@@ -2352,13 +2403,17 @@ const App: React.FC = () => {
                   <SafeVideo 
                     src={bgUrlToUse}
                     className="absolute inset-0 w-full h-full object-cover"
+                    style={{ opacity: activeScreen.bgOpacity !== undefined ? activeScreen.bgOpacity / 100 : undefined }}
                   />
                 )}
 
                 {bgTypeToUse === 'gradient' && (
                   <div 
                     className="absolute inset-0 w-full h-full filter brightness-90" 
-                    style={{ background: bgUrlToUse }}
+                    style={{ 
+                      background: bgUrlToUse,
+                      opacity: activeScreen.bgOpacity !== undefined ? activeScreen.bgOpacity / 100 : undefined 
+                    }}
                   />
                 )}
 
@@ -2549,19 +2604,20 @@ const App: React.FC = () => {
                 )}
 
                 {/* Main Content Area */}
-                <div className="relative z-10 w-full h-full max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 flex flex-col justify-center text-white pointer-events-auto">
+                <div className="relative z-10 w-full h-full max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 flex flex-col justify-start pt-12 md:pt-1 lg:pt-2 text-white pointer-events-auto">
                   <AnimatePresence mode="wait">
                       {/* State 1: Horizontal Sliding Marquee List of Cards (From Right to Left) */}
                       <motion.div
                         key="marquee-list"
                         initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
                         exit={{ opacity: 0, y: -20 }}
                         transition={{ duration: 0.5 }}
-                        className="w-full flex flex-col gap-6 mt-4 md:mt-8"
+                        className="w-full flex flex-col gap-3 mt-2 md:mt-4"
                       >
                         {/* Title and Instruction Header */}
-                        <div className="text-center space-y-4 mb-8">
+                        <div className="hidden text-center space-y-3 mb-2 mt-1 md:mt-2">
                           <motion.span 
                             initial={{ opacity: 0, scale: 0.9 }}
                             whileInView={{ opacity: 1, scale: 1 }}
@@ -2578,7 +2634,7 @@ const App: React.FC = () => {
                         </div>
 
                         {/* Infinite Right-to-Left Scrolling Track */}
-                        <div className="relative w-screen left-1/2 -ml-[50vw] overflow-hidden py-10 select-none">
+                        <div className="relative w-screen left-1/2 -ml-[50vw] overflow-hidden py-4 select-none">
                           {/* Horizontal flex track with animation */}
                           {(() => {
                             const minCardsRequired6 = 12;
@@ -3776,6 +3832,22 @@ const App: React.FC = () => {
                       step="1"
                       value={activeScreen.overlayBlur}
                       onChange={(e) => updateScreenField('overlayBlur', parseInt(e.target.value))}
+                      className="w-full accent-amber-500 bg-zinc-800"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-[10px] uppercase font-bold text-zinc-500 mb-1">
+                      <span>视频/背景图透明度 (Background Opacity)</span>
+                      <span className="text-white font-mono">{activeScreen.bgOpacity !== undefined ? activeScreen.bgOpacity : 100}%</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="10" 
+                      max="100" 
+                      step="5"
+                      value={activeScreen.bgOpacity !== undefined ? activeScreen.bgOpacity : 100}
+                      onChange={(e) => updateScreenField('bgOpacity', parseInt(e.target.value))}
                       className="w-full accent-amber-500 bg-zinc-800"
                     />
                   </div>

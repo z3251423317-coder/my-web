@@ -938,29 +938,31 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
             </div>
 
             <div className="flex-1 flex items-center justify-center p-4 relative" onClick={(e) => e.stopPropagation()}>
-              {/* Prev Button */}
-              {fullscreenSource.type === 'pdfjs' && (
-                <button 
-                  disabled={pdfjsCurrentPage <= 1}
-                  onClick={(e) => { e.stopPropagation(); setPdfjsCurrentPage(prev => Math.max(1, prev - 1)); }}
-                  className="absolute left-4 p-4 rounded-full bg-black/80 text-white border border-zinc-850 hover:bg-zinc-900 hover:scale-105 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer z-10"
-                >
-                  <ChevronLeft className="w-8 h-8" />
-                </button>
-              )}
-
-              {/* Main Content (Canvas for PDF.js, Image otherwise) */}
-              {fullscreenSource.type === 'pdfjs' ? (
-                <div className="max-h-[85vh] max-w-[90vw] overflow-auto rounded-xl shadow-2xl border border-zinc-900/80 bg-zinc-950">
+              <motion.div
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                onDragEnd={(e, info) => {
+                  if (info.offset.x < -100) { // Swipe left
+                    if (fullscreenSource.type === 'pdfjs') {
+                      setPdfjsCurrentPage(prev => Math.min(pdfjsTotalPages, prev + 1));
+                    }
+                  } else if (info.offset.x > 100) { // Swipe right
+                    if (fullscreenSource.type === 'pdfjs') {
+                      setPdfjsCurrentPage(prev => Math.max(1, prev - 1));
+                    }
+                  }
+                }}
+                className="max-h-[85vh] max-w-[90vw] overflow-hidden rounded-xl shadow-2xl border border-zinc-900/80 bg-zinc-950 flex items-center justify-center"
+              >
+                {/* Main Content (Canvas for PDF.js, Image otherwise) */}
+                {fullscreenSource.type === 'pdfjs' ? (
                   <canvas 
                     ref={pdfFullscreenCanvasRef} 
-                    className="max-h-[85vh] max-w-full block cursor-zoom-out hover:opacity-90 transition-all"
+                    className="max-h-[85vh] max-w-full object-contain cursor-grab active:cursor-grabbing hover:opacity-90 transition-all"
                     onClick={() => setFullscreenSource(null)}
                     title="点击画布返回"
                   />
-                </div>
-              ) : (
-                <div className="max-h-[85vh] max-w-[90vw] overflow-auto rounded-xl shadow-2xl border border-zinc-900/80 bg-zinc-950 flex items-center justify-center">
+                ) : (
                   <img 
                     src={fullscreenSource.url} 
                     alt="Enlarged reading resource" 
@@ -969,19 +971,8 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
                     className="max-h-[85vh] max-w-full object-contain cursor-zoom-out hover:opacity-90 active:scale-98 transition-all"
                     title="点击图片返回"
                   />
-                </div>
-              )}
-
-              {/* Next Button */}
-              {fullscreenSource.type === 'pdfjs' && (
-                <button 
-                  disabled={pdfjsCurrentPage >= pdfjsTotalPages}
-                  onClick={(e) => { e.stopPropagation(); setPdfjsCurrentPage(prev => Math.min(pdfjsTotalPages, prev + 1)); }}
-                  className="absolute right-4 p-4 rounded-full bg-black/80 text-white border border-zinc-850 hover:bg-zinc-900 hover:scale-105 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer z-10"
-                >
-                  <ChevronRight className="w-8 h-8" />
-                </button>
-              )}
+                )}
+              </motion.div>
             </div>
 
             <div className="text-center text-xs text-zinc-500 font-mono pb-2">
@@ -1144,7 +1135,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
                  {/* PDF Content Viewer Frame (Sliders showing Page Images from PDF or Live PDF Embed) */}
                 <div className="space-y-3">
                   {/* View Mode Header - Only showing Live PDF */}
-                  <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-zinc-950/60 p-2.5 rounded-xl border border-zinc-850/80 animate-fadeIn">
+                  <div className="hidden flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-zinc-950/60 p-2.5 rounded-xl border border-zinc-850/80 animate-fadeIn">
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4 text-amber-500" />
                       <span className="text-xs font-mono font-bold text-zinc-200">在线原著 PDF 阅读器</span>
@@ -1163,7 +1154,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
                     {/* Embed Interactive Live PDF document with dynamic engine selectors */}
                     <div className="w-full h-full flex flex-col bg-zinc-950">
                       {/* Engine Selector Header */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between p-2 bg-zinc-900/50 border-b border-zinc-800 gap-2 text-[10px] text-zinc-400 font-mono">
+                      <div className="hidden flex flex-col sm:flex-row sm:items-center justify-between p-2 bg-zinc-900/50 border-b border-zinc-800 gap-2 text-[10px] text-zinc-400 font-mono">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="text-zinc-500">阅读渲染引擎:</span>
                           <button
