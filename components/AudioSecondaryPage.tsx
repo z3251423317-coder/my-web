@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, ChevronLeft, Music, Plus, Trash2, Play, Pause, Star, 
@@ -40,6 +40,15 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
   const [newAudioUrl, setNewAudioUrl] = useState('');
   const [newDuration, setNewDuration] = useState('02:30');
   const [newRating, setNewRating] = useState(5);
+
+  const touchStartRef = useRef<{ x: number, y: number } | null>(null);
+
+  // Stop playing audio when component unmounts or activeAudioObj changes
+  useEffect(() => {
+    return () => {
+      activeAudioObj?.pause();
+    };
+  }, [activeAudioObj]);
 
   // Reset lock state whenever the page is opened or the card changes
   useEffect(() => {
@@ -144,6 +153,28 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
         exit={{ opacity: 0, scale: 1.1 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         className="fixed inset-0 z-[100] bg-zinc-950 flex flex-col text-white overflow-hidden"
+        onTouchStart={(e) => {
+          if (e.touches.length === 1) {
+            touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+          }
+        }}
+        onTouchEnd={(e) => {
+          if (!touchStartRef.current || e.changedTouches.length !== 1) return;
+          const start = touchStartRef.current;
+          touchStartRef.current = null;
+          const deltaX = e.changedTouches[0].clientX - start.x;
+          const deltaY = e.changedTouches[0].clientY - start.y;
+          
+          const target = e.target as HTMLElement;
+          if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.closest('input[type="range"]')) {
+            return;
+          }
+
+          if (deltaX > 80 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+            activeAudioObj?.pause();
+            onClose();
+          }
+        }}
       >
         {/* Header Section */}
         <header className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-10">

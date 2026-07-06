@@ -173,6 +173,32 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
   const [fullscreenSource, setFullscreenSource] = useState<{ type: 'pdfjs' } | { type: 'image'; url: string } | null>(null);
   const isFullscreenOpen = fullscreenSource !== null;
 
+  const pageTouchStartRef = useRef<{ x: number, y: number } | null>(null);
+  const cardTouchStartRef = useRef<{ x: number, y: number } | null>(null);
+
+  // Synchronize selectedCard with browser history for back button / slide back on mobile
+  useEffect(() => {
+    if (selectedCard) {
+      if (window.history.state?.modal !== 'pdf-card') {
+        window.history.pushState({ modal: 'pdf-card' }, '');
+      }
+    } else {
+      if (window.history.state?.modal === 'pdf-card') {
+        window.history.back();
+      }
+    }
+  }, [selectedCard]);
+
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      if (selectedCard && e.state?.modal !== 'pdf-card') {
+        setSelectedCard(null);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [selectedCard]);
+
   // Mode Toggles for Interactive PDF Display
   const [workspaceMode, setWorkspaceMode] = useState<'image' | 'pdf'>('pdf');
   const [cardPdfMode, setCardPdfMode] = useState<Record<string, 'image' | 'pdf'>>({});
@@ -523,8 +549,37 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
 
   // Save modifications locally in current session
   useEffect(() => {
-    // Session state only
-  }, [cards]);
+    if (!selectedCard) return;
+
+    const hasChanged =
+      editTitle !== (selectedCard.title || '') ||
+      editCat !== (selectedCard.cat || '') ||
+      editDesc !== (selectedCard.desc || '') ||
+      editNotes !== (selectedCard.notes || '') ||
+      editScore !== (selectedCard.imbalanceScore || 50) ||
+      editPdfUrl !== (selectedCard.pdfUrl || '') ||
+      editImageUrl !== (selectedCard.imageUrl || '') ||
+      JSON.stringify(editPdfPageImages) !== JSON.stringify(selectedCard.pdfPageImages || []);
+
+    if (hasChanged) {
+      const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+      const updatedCard: RelationshipCard = {
+        ...selectedCard,
+        title: editTitle,
+        cat: editCat,
+        desc: editDesc,
+        notes: editNotes,
+        imbalanceScore: editScore,
+        pdfUrl: editPdfUrl,
+        imageUrl: editImageUrl,
+        pdfPageImages: editPdfPageImages,
+        lastUpdated: timestamp
+      };
+
+      saveCards(prev => prev.map(c => c.id === selectedCard.id ? updatedCard : c));
+      setSelectedCard(updatedCard);
+    }
+  }, [editTitle, editCat, editDesc, editNotes, editScore, editPdfUrl, editImageUrl, editPdfPageImages, selectedCard]);
 
   // Handle setting temporary state when a card is selected
   const handleSelectCard = (card: RelationshipCard) => {
@@ -720,6 +775,27 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 bg-zinc-950/95 backdrop-blur-2xl z-50 overflow-y-auto flex flex-col p-4 md:p-6 lg:p-8 select-text"
+        onTouchStart={(e) => {
+          if (e.touches.length === 1) {
+            pageTouchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+          }
+        }}
+        onTouchEnd={(e) => {
+          if (!pageTouchStartRef.current || e.changedTouches.length !== 1) return;
+          const start = pageTouchStartRef.current;
+          pageTouchStartRef.current = null;
+          const deltaX = e.changedTouches[0].clientX - start.x;
+          const deltaY = e.changedTouches[0].clientY - start.y;
+          
+          const target = e.target as HTMLElement;
+          if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.closest('input[type="range"]') || target.closest('.no-swipe')) {
+            return;
+          }
+
+          if (deltaX > 80 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+            onClose();
+          }
+        }}
       >
         {/* Floating Draggable Controller */}
         {import.meta.env.DEV && !isMobile && (
@@ -1058,8 +1134,8 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
                         </div>
                         <div className="space-y-0.5 flex-1 min-w-0">
                           <p className="text-xs text-zinc-400 font-mono font-semibold">{card.cat} / CATEGORY</p>
-                          <h4 className="text-sm font-bold text-zinc-100 flex items-center flex-wrap gap-x-2">
-                            <span className="truncate">{card.title}</span>
+                          <h4 className="text-sm font-bold text-zinc-100 flex flex-col gap-1.5 items-start">
+                            <span className="line-clamp-2 break-words leading-snug" title={card.title}>{card.title}</span>
                             <a 
                               href={card.pdfUrl || DEFAULT_PDF_URL}
                               target="_blank" 
@@ -1078,29 +1154,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 shrink-0 flex-wrap md:flex-nowrap">
-                        <div className="px-3 py-1.5 bg-zinc-950 border border-zinc-850 rounded-lg text-[10px] font-mono text-zinc-500 text-left shrink-0">
-                          失衡度: <span className={card.imbalanceScore >= 85 ? "text-red-400" : card.imbalanceScore >= 70 ? "text-amber-400" : "text-teal-400"}>{card.imbalanceScore}%</span>
-                        </div>
-                        <button 
-                          onPointerDown={(e) => { 
-                            e.stopPropagation(); 
-                            navigator.clipboard.writeText(JSON.stringify(card, null, 2));
-                            alert('单条卡片数据已复制');
-                          }} 
-                          className="p-1.5 text-zinc-500 hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition-colors shrink-0"
-                          title="复制此卡片数据"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onPointerDown={(e) => { e.stopPropagation(); handleDeleteCard(card.id, e as any); }} 
-                          className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors shrink-0"
-                          title="删除此卡片"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+
                     </motion.div>
                   );
                 })}
@@ -1117,7 +1171,30 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
 
             {/* Right Side: Split View (PDF Reader Carousel + Custom Card Editor, span 6) */}
             {selectedCard && (
-              <div className="fixed inset-x-4 inset-y-10 lg:static lg:inset-auto z-[60] lg:z-0 lg:col-span-6 flex flex-col gap-5 bg-zinc-900 lg:bg-zinc-900/30 border border-zinc-800 lg:border-zinc-800/80 rounded-2xl p-4 sm:p-5 shadow-2xl lg:shadow-none backdrop-blur-xl lg:backdrop-blur-md overflow-y-auto lg:overflow-y-visible lg:h-auto animate-fadeIn">
+              <div 
+                className="fixed inset-x-4 inset-y-10 lg:static lg:inset-auto z-[60] lg:z-0 lg:col-span-6 flex flex-col gap-5 bg-zinc-900 lg:bg-zinc-900/30 border border-zinc-800 lg:border-zinc-800/80 rounded-2xl p-4 sm:p-5 shadow-2xl lg:shadow-none backdrop-blur-xl lg:backdrop-blur-md overflow-y-auto lg:overflow-y-visible lg:h-auto animate-fadeIn"
+                onTouchStart={(e) => {
+                  if (e.touches.length === 1) {
+                    cardTouchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                  }
+                }}
+                onTouchEnd={(e) => {
+                  if (!cardTouchStartRef.current || e.changedTouches.length !== 1) return;
+                  const start = cardTouchStartRef.current;
+                  cardTouchStartRef.current = null;
+                  const deltaX = e.changedTouches[0].clientX - start.x;
+                  const deltaY = e.changedTouches[0].clientY - start.y;
+                  
+                  const target = e.target as HTMLElement;
+                  if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.closest('input[type="range"]') || target.closest('[role="slider"]') || target.closest('.no-swipe')) {
+                    return;
+                  }
+
+                  if (deltaX > 80 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+                    setSelectedCard(null);
+                  }
+                }}
+              >
                 
                 {/* Right Panel Header */}
                 <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
@@ -1133,7 +1210,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
                   </button>
                 </div>
 
-                 {/* PDF Content Viewer Frame (Sliders showing Page Images from PDF or Live PDF Embed) */}
+                {/* PDF Content Viewer Frame (Sliders showing Page Images from PDF or Live PDF Embed) */}
                 <div className="space-y-3">
                   {/* View Mode Header - Only showing Live PDF */}
                   <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-zinc-950/60 p-2.5 rounded-xl border border-zinc-850/80 animate-fadeIn">
@@ -1169,41 +1246,6 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
                           >
                             浏览器极速直解 (免服务器/推荐) ✨
                           </button>
-                          <button
-                            onClick={() => setPdfEngine('native')}
-                            className={`px-2 py-0.5 rounded transition-all cursor-pointer font-bold ${
-                              pdfEngine === 'native'
-                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono text-[9px]'
-                                : 'bg-zinc-950 hover:bg-zinc-800 border border-zinc-850 text-zinc-400 font-mono text-[9px]'
-                            }`}
-                            title="使用浏览器原生 PDF 渲染，最省流量，100% 在中国正常使用"
-                          >
-                            本地原生嵌入 (电脑推荐)
-                          </button>
-                          <button
-                            onClick={() => setPdfEngine('microsoft')}
-                            className={`px-2 py-0.5 rounded transition-all cursor-pointer font-bold ${
-                              pdfEngine === 'microsoft'
-                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono text-[9px]'
-                                : 'bg-zinc-950 hover:bg-zinc-800 border border-zinc-850 text-zinc-400 font-mono text-[9px]'
-                            }`}
-                            title="通过微软 Office 官方代理服务进行在线渲染，完美支持中国大陆免翻墙访问"
-                          >
-                            微软高速代理 (适合部分安卓手机)
-                          </button>
-                        </div>
-                        
-                        <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
-                          <a 
-                            href={editPdfUrl || DEFAULT_PDF_URL} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-amber-500 hover:text-amber-400 hover:underline flex items-center gap-1 font-bold bg-amber-500/10 hover:bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/20 transition-all active:scale-95"
-                            title="直接在外部浏览器中打开并使用手机自带的最佳阅读器阅览 PDF 原著"
-                          >
-                            <ExternalLink className="w-2.5 h-2.5" />
-                            <span>外部原生态打开</span>
-                          </a>
                         </div>
                       </div>
 
@@ -1563,29 +1605,6 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
                     </p>
                   </div>
 
-                </div>
-
-                {/* Work Area actions */}
-                <div className="pt-4 border-t border-zinc-800/80 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-1.5 text-[9px] font-mono text-zinc-500">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                    <span>自动同步至 localStorage</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setSelectedCard(null)}
-                      className="px-4 py-2 bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white rounded-xl text-xs font-mono font-bold transition-all cursor-pointer"
-                    >
-                      取消编辑 / CLOSE
-                    </button>
-                    <button
-                      onClick={handleSaveCard}
-                      className="px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-bold font-display rounded-xl text-xs tracking-wider uppercase transition-all shadow-lg cursor-pointer hover:scale-[1.02]"
-                    >
-                      保存修改 / SAVE
-                    </button>
-                  </div>
                 </div>
 
               </div>

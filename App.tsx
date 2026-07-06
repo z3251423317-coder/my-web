@@ -751,6 +751,101 @@ const App: React.FC = () => {
     }
   }, [selectedCard6, activeAudioObj6]);
 
+  // Refs for tracking swipe gestures on mobile
+  const appPageTouchStartRef = useRef<{ x: number, y: number } | null>(null);
+
+  // 1. Sync isPdfSecondaryPageOpen with history
+  useEffect(() => {
+    if (isPdfSecondaryPageOpen) {
+      if (window.history.state?.modal !== 'pdf') {
+        window.history.pushState({ modal: 'pdf' }, '');
+      }
+    } else {
+      if (window.history.state?.modal === 'pdf') {
+        window.history.back();
+      }
+    }
+  }, [isPdfSecondaryPageOpen]);
+
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      if (isPdfSecondaryPageOpen && e.state?.modal !== 'pdf') {
+        setIsPdfSecondaryPageOpen(false);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [isPdfSecondaryPageOpen]);
+
+  // 2. Sync isAudioSecondaryPageOpen with history
+  useEffect(() => {
+    if (isAudioSecondaryPageOpen) {
+      if (window.history.state?.modal !== 'audio') {
+        window.history.pushState({ modal: 'audio' }, '');
+      }
+    } else {
+      if (window.history.state?.modal === 'audio') {
+        window.history.back();
+      }
+    }
+  }, [isAudioSecondaryPageOpen]);
+
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      if (isAudioSecondaryPageOpen && e.state?.modal !== 'audio') {
+        setIsAudioSecondaryPageOpen(false);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [isAudioSecondaryPageOpen]);
+
+  // 3. Sync activeCardDetail with history
+  useEffect(() => {
+    if (activeCardDetail) {
+      if (window.history.state?.modal !== 'card-detail') {
+        window.history.pushState({ modal: 'card-detail' }, '');
+      }
+    } else {
+      if (window.history.state?.modal === 'card-detail') {
+        window.history.back();
+      }
+    }
+  }, [activeCardDetail]);
+
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      if (activeCardDetail && e.state?.modal !== 'card-detail') {
+        setActiveCardDetail(null);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [activeCardDetail]);
+
+  // 4. Sync editorOpen with history
+  useEffect(() => {
+    if (editorOpen) {
+      if (window.history.state?.modal !== 'editor') {
+        window.history.pushState({ modal: 'editor' }, '');
+      }
+    } else {
+      if (window.history.state?.modal === 'editor') {
+        window.history.back();
+      }
+    }
+  }, [editorOpen]);
+
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      if (editorOpen && e.state?.modal !== 'editor') {
+        setEditorOpen(false);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [editorOpen]);
+
   const [copyToast, setCopyToast] = useState<string | null>(null);
 
   const [isMobile, setIsMobile] = useState<boolean>(false);
@@ -3562,7 +3657,30 @@ const App: React.FC = () => {
         {activeCardDetail && (() => {
           const { glow: colorGlow } = getCardColorAndIcon(activeCardDetail.colorType);
           return (
-            <div className="fixed inset-0 bg-zinc-950/85 backdrop-blur-xl z-50 flex items-center justify-center p-4">
+            <div 
+              className="fixed inset-0 bg-zinc-950/85 backdrop-blur-xl z-50 flex items-center justify-center p-4"
+              onTouchStart={(e) => {
+                if (e.touches.length === 1) {
+                  appPageTouchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+              }}
+              onTouchEnd={(e) => {
+                if (!appPageTouchStartRef.current || e.changedTouches.length !== 1) return;
+                const start = appPageTouchStartRef.current;
+                appPageTouchStartRef.current = null;
+                const deltaX = e.changedTouches[0].clientX - start.x;
+                const deltaY = e.changedTouches[0].clientY - start.y;
+
+                const target = e.target as HTMLElement;
+                if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.closest('input[type="range"]')) {
+                  return;
+                }
+
+                if ((deltaX > 80 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) || (deltaY > 80 && Math.abs(deltaY) > Math.abs(deltaX) * 1.5)) {
+                  setActiveCardDetail(null);
+                }
+              }}
+            >
               <motion.div
                 initial={{ opacity: 0, y: 30, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
