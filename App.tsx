@@ -27,7 +27,7 @@ import { AudioSecondaryPage } from './components/AudioSecondaryPage';
 import ShinyText from './components/ShinyText';
 import { MusicPlayer } from './components/MusicPlayer';
 
-import { DEFAULT_MARQUEE_CARDS, MarqueeCard } from './src/cardData';
+import { DEFAULT_MARQUEE_CARDS, DEFAULT_QUANTUM_CARDS, MarqueeCard } from './src/cardData';
 
 const getCardColorAndIcon = (colorType: string = "blue") => {
   switch (colorType.toLowerCase()) {
@@ -412,7 +412,7 @@ const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style }) => {
   );
 };
 
-const DEFAULT_DATA_FINGERPRINT = "fp_v21_" + JSON.stringify(DEFAULT_MARQUEE_CARDS).length + "_" + JSON.stringify(DEFAULT_SCREENS).length;
+const DEFAULT_DATA_FINGERPRINT = "fp_v23_" + JSON.stringify(DEFAULT_MARQUEE_CARDS).length + "_" + JSON.stringify(DEFAULT_SCREENS).length + "_" + JSON.stringify(DEFAULT_QUANTUM_CARDS).length;
 
 const App: React.FC = () => {
   // Clear localStorage if code-defined defaults change to solve stale data issues from the root
@@ -536,7 +536,7 @@ const App: React.FC = () => {
         console.error("Failed to parse saved marquee cards", e);
       }
     }
-    return DEFAULT_MARQUEE_CARDS;
+    return DEFAULT_QUANTUM_CARDS;
   });
 
   // Migration: Automatically fix PDF URLs with wrong dash count in localStorage
@@ -608,8 +608,8 @@ const App: React.FC = () => {
         console.error("Failed to parse saved sphere cards", e);
       }
     }
-    // Deep clone DEFAULT_MARQUEE_CARDS so changes are fully independent
-    return JSON.parse(JSON.stringify(DEFAULT_MARQUEE_CARDS));
+    // Deep clone DEFAULT_QUANTUM_CARDS so changes are fully independent
+    return JSON.parse(JSON.stringify(DEFAULT_QUANTUM_CARDS));
   });
 
   const saveSphereCards = (updated: MarqueeCard[]) => {
@@ -630,7 +630,7 @@ const App: React.FC = () => {
         console.error("Failed to parse saved dome cards", e);
       }
     }
-    return JSON.parse(JSON.stringify(DEFAULT_MARQUEE_CARDS));
+    return JSON.parse(JSON.stringify(DEFAULT_QUANTUM_CARDS));
   });
 
   const saveDomeCards = (updated: MarqueeCard[]) => {
@@ -661,7 +661,7 @@ const App: React.FC = () => {
 
   // Relationship Cards State for PdfDecoderPage (Screen 2 Secondary)
   const [relationshipCards, setRelationshipCards] = useState<RelationshipCard[]>(() => {
-    const saved = localStorage.getItem("alphaqubit_relationship_cards_v4");
+    const saved = localStorage.getItem("alphaqubit_relationship_cards_v5");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -675,19 +675,36 @@ const App: React.FC = () => {
     // Hardcoded initial data from PdfDecoderPage.tsx
     return [
       {
-        id: 1782974086095,
-        title: "11",
+        id: "rel-1783354475690",
+        title: "2.基于日常吵架原因与深度聊天之间的几种可能性研究（WXJB-2668-002）",
         cat: "自定义分析 / Custom",
         desc: "自定义创建的情感供需分析卡片。",
         imageUrl: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop",
-        pdfUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/1.%E6%AD%A4%E4%B8%BA%E7%94%98%E9%A5%B4%EF%BC%8C%E5%BD%BC%E4%B9%8B%E8%8B%A6%E8%8D%AF%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E8%AE%BA%E4%B8%8D%E5%90%88%E9%80%82%E7%9A%84%E8%83%8C%E5%90%8E%E4%BA%B2%E5%AF%86%E5%85%B3%E7%B3%BB%E4%B8%AD%E6%83%85%E6%84%9F%E4%BE%9B%E9%9C%80%E7%9A%84%E7%BB%93%E6%9E%84%E6%80%A7%E5%A4%B1%E8%A1%A1%EF%BC%88WXJB-2663-001%EF%BC%89.pdf",
+        pdfUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E6%9E%84%E7%9F%B3%E6%96%87%E6%A1%A3/2.%E5%9F%BA%E4%BA%8E%E6%97%A5%E5%B8%B8%E5%90%B5%E6%9E%B6%E5%8E%9F%E5%9B%A0%E4%B8%8E%E6%B7%B1%E5%BA%A6%E8%81%8A%E5%A4%A9%E4%B9%8B%E9%97%B4%E7%9A%84%E5%87%A0%E7%A7%8D%E5%8F%AF%E8%83%BD%E6%80%A7%E7%A0%94%E7%A9%B6%EF%BC%88WXJB-2668-002%EF%BC%89.pdf",
         pdfPageImages: [
           "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=1200&auto=format&fit=crop",
           "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop"
         ],
         imbalanceScore: 50,
         notes: "可编辑深度论文研读笔记或分析心得...",
-        lastUpdated: "2026-07-02 06:34",
+        lastUpdated: "2026-07-06 16:14",
+        audioModules: [],
+        colorType: "indigo"
+      },
+      {
+        id: "rel-1783354155744",
+        title: "1.此为甘饴，彼之苦药——论不合适的背后亲密关系中情感供需的结构性失衡（WXJB-2663-001）",
+        cat: "自定义分析 / Custom",
+        desc: "自定义创建的情感供需分析卡片。",
+        imageUrl: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop",
+        pdfUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E6%9E%84%E7%9F%B3%E6%96%87%E6%A1%A3/1.%E6%AD%A4%E4%B8%BA%E7%94%98%E9%A5%B4%EF%BC%8C%E5%BD%BC%E4%B9%8B%E8%8B%A6%E8%8D%AF%E2%80%94%E2%80%94%E8%AE%BA%E4%B8%8D%E5%90%88%E9%80%82%E7%9A%84%E8%83%8C%E5%90%8E%E4%BA%B2%E5%AF%86%E5%85%B3%E7%B3%BB%E4%B8%AD%E6%83%85%E6%84%9F%E4%BE%9B%E9%9C%80%E7%9A%84%E7%BB%93%E6%9E%84%E6%80%A7%E5%A4%B1%E8%A1%A1%EF%BC%88WXJB-2663-001%EF%BC%89.pdf",
+        pdfPageImages: [
+          "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=1200&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop"
+        ],
+        imbalanceScore: 50,
+        notes: "可编辑深度论文研读笔记或分析心得...",
+        lastUpdated: "2026-07-06 16:09",
         audioModules: [
           {
             id: "mod-1783061786526",
@@ -701,45 +718,18 @@ const App: React.FC = () => {
             user: "管理员"
           }
         ],
-        colorType: "emerald",
-        isEncrypted: true,
-        password: "123456"
-      },
-      {
-        id: 1782974086096,
-        title: "123",
-        cat: "CORE SYSTEM",
-        desc: "Predicts noise errors dynamically using neural inference thresholds.",
-        imageUrl: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop",
-        colorType: "teal",
-        isEncrypted: true,
-        password: "123456"
-      },
-      {
-        id: 1783074363142,
-        title: "Untitled New Research Unit",
-        cat: "Pending Analysis",
-        desc: "Comprehensive analysis description here...",
-        imageUrl: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800&auto=format&fit=crop",
-        colorType: "indigo",
-        imbalanceScore: 50,
-        audioModules: [],
-        pdfPageImages: [],
-        notes: "Initial research notes...",
-        lastUpdated: "2026-07-03 10:26"
+        colorType: "emerald"
       }
     ];
   });
 
   const saveRelationshipCards = (updated: RelationshipCard[]) => {
     setRelationshipCards(updated);
-    localStorage.setItem("alphaqubit_relationship_cards_v4", JSON.stringify(updated));
+    localStorage.setItem("alphaqubit_relationship_cards_v5", JSON.stringify(updated));
   };
 
-  const [isConsoleOpen3, setIsConsoleOpen3] = useState<boolean>(false); // Open by default for Screen 3 editing discovery
-  const [isConsoleOpen4, setIsConsoleOpen4] = useState<boolean>(false); // Open by default for Screen 4 editing discovery
-  const [isConsoleOpen6, setIsConsoleOpen6] = useState<boolean>(false); // Open by default for Screen 6 (DomeGallery) editing discovery
-  const [isConsoleOpen10, setIsConsoleOpen10] = useState<boolean>(false); // Open by default for Screen 10 (Interactive Trial Deck) editing discovery
+  const [activeConsoleScreenId, setActiveConsoleScreenId] = useState<number | null>(null);
+  const [consoleTab, setConsoleTab] = useState<'cards' | 'bg'>('cards');
   const [domeAutoRotate, setDomeAutoRotate] = useState<boolean>(true);
   const [domeAutoRotateSpeed, setDomeAutoRotateSpeed] = useState<number>(0.15);
   const [activeCardDetail, setActiveCardDetail] = useState<MarqueeCard | null>(null);
@@ -762,7 +752,6 @@ const App: React.FC = () => {
   }, [selectedCard6, activeAudioObj6]);
 
   const [copyToast, setCopyToast] = useState<string | null>(null);
-  const [activeBgConsoleId, setActiveBgConsoleId] = useState<number | null>(null);
 
   const [isMobile, setIsMobile] = useState<boolean>(false);
   useEffect(() => {
@@ -1159,487 +1148,59 @@ const App: React.FC = () => {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // Syndrome Deck Console for Marquee Cards (Screen 3)
-  const renderMarqueeConsole = () => {
-    return (
-      <AnimatePresence>
-        {isConsoleOpen3 && (
-          <motion.div
-            initial={{ opacity: 0, x: 250 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 250 }}
-            transition={{ type: "spring", damping: 25, stiffness: 180 }}
-            className="absolute right-0 top-0 bottom-0 w-full max-w-lg lg:max-w-xl h-full bg-zinc-950/98 border-l border-zinc-800 backdrop-blur-xl shadow-2xl z-[100] flex flex-col pointer-events-auto text-zinc-300"
-          >
-            {/* Console Header */}
-            <div className="p-5 border-b border-zinc-800 bg-zinc-900/60 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="flex h-2.5 w-2.5 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-                </span>
-                <div>
-                  <h2 className="text-xs font-mono font-bold tracking-widest text-white uppercase">
-                    MARQUEE CONSOLE / 走马灯卡片控制台
-                  </h2>
-                  <p className="text-[10px] text-zinc-500 font-light font-sans">
-                    Configure sliding noise matrices on Screen 3 (Third Slide)
-                  </p>
-                </div>
-              </div>
-              <div 
-                role="button"
-                id="close-console-3"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  setIsConsoleOpen3(false);
-                }}
-                className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-white transition-all cursor-pointer relative z-[999] pointer-events-auto flex items-center justify-center min-w-[32px] min-h-[32px]"
-              >
-                <X className="w-4 h-4" />
-              </div>
-            </div>
-
-            {/* Console Quick Toolbar Actions */}
-            <div className="p-4 bg-zinc-900/30 border-b border-zinc-850/80 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={addMarqueeCard}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/30 hover:border-amber-500/50 rounded-lg text-[10px] font-mono tracking-widest uppercase transition-all cursor-pointer"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>ADD CARD / 增加卡片</span>
-                </button>
-                
-                <button
-                  onClick={removeLastMarqueeCard}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 rounded-lg text-[10px] font-mono tracking-widest uppercase transition-all cursor-pointer"
-                >
-                  <Minus className="w-3 h-3" />
-                  <span>REMOVE LAST / 减少卡片</span>
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    try {
-                      const codeStr = JSON.stringify(marqueeCards, null, 2);
-                      if (navigator.clipboard) {
-                        navigator.clipboard.writeText(codeStr);
-                      }
-                      setCopyToast(codeStr);
-                    } catch (e) {
-                      alert("Oops, automatic clipboard blocked! Please copy from the pop-up field instead.");
-                    }
-                  }}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-[10px] font-mono tracking-widest uppercase transition-all shadow-md cursor-pointer"
-                >
-                  <Code className="w-3 h-3" />
-                  <span>COPY DATA / 复制数据</span>
-                </button>
-
-                <button
-                  onClick={resetMarqueeCards}
-                  className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 rounded-lg border border-zinc-800 transition-colors cursor-pointer"
-                  title="Reset layout"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Editable List Body */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[calc(100vh-270px)]">
-              <div className="p-3 bg-zinc-900/40 rounded-xl border border-zinc-800/60 text-[10.5px] leading-relaxed font-sans text-zinc-400">
-                💡 <span className="font-semibold text-zinc-200">走马灯卡片编辑：</span>这些修改仅对第三屏的走马灯滑动卡片生效。编辑完成后，可复制卡片配置发给 AI 写入代码。
-              </div>
-
-              {marqueeCards.map((card, idx) => {
-                return (
-                  <div 
-                    key={card.id}
-                    className="p-4 bg-zinc-900/60 rounded-xl border border-zinc-850 hover:border-zinc-800 transition-all space-y-3 relative group"
-                  >
-                    {/* Item Header */}
-                    <div className="flex items-center justify-between border-b border-zinc-800/40 pb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 font-mono text-[9px] rounded uppercase font-bold">
-                          CHASSIS UNIT {idx + 1}
-                        </span>
-                        <span className="text-[10px] font-mono text-zinc-600">ID: {card.id}</span>
-                      </div>
-                      <button
-                        onClick={() => deleteMarqueeCard(card.id)}
-                        className="text-zinc-600 hover:text-rose-500 p-1 opacity-60 group-hover:opacity-100 transition-all rounded hover:bg-rose-500/10 cursor-pointer"
-                        title="Delete card"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-
-                    {/* Title & Category Form Rows */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
-                          Card Title / 标题
-                        </label>
-                        <input 
-                          type="text" 
-                          value={card.title}
-                          onChange={(e) => updateMarqueeCard(card.id, { title: e.target.value })}
-                          className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
-                          placeholder="Qubit Topology..."
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
-                          Category / 类别
-                        </label>
-                        <input 
-                          type="text" 
-                          value={card.cat}
-                          onChange={(e) => updateMarqueeCard(card.id, { cat: e.target.value.toUpperCase() })}
-                          className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white uppercase focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
-                          placeholder="HARDWARE..."
-                        />
-                      </div>
-                    </div>
-
-                    {/* Description Form Row */}
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
-                        Description / 简述
-                      </label>
-                      <textarea 
-                        value={card.desc}
-                        onChange={(e) => updateMarqueeCard(card.id, { desc: e.target.value })}
-                        rows={2}
-                        className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20 resize-none leading-normal font-sans"
-                        placeholder="Configure details..."
-                      />
-                    </div>
-
-                    {/* Custom URL Form Row */}
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
-                        Interactive Action Link / 点击跳转链接 (可选)
-                      </label>
-                      <input 
-                        type="text" 
-                        value={card.url}
-                        onChange={(e) => updateMarqueeCard(card.id, { url: e.target.value })}
-                        className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white font-mono placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
-                        placeholder="https://..."
-                      />
-                    </div>
-
-                    {/* Custom Image Form Row */}
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
-                        Circle Background Image URL / 圈圈背景图片链接
-                      </label>
-                      <input 
-                        type="text" 
-                        value={card.image || ""}
-                        onChange={(e) => updateMarqueeCard(card.id, { image: e.target.value })}
-                        className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white font-mono placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
-                        placeholder="https://images.unsplash.com/photo-..."
-                      />
-                    </div>
-
-                    {/* Color Picker Row */}
-                    <div className="space-y-1.5">
-                      <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
-                        Accent Theme / 系统色系
-                      </span>
-                      <div className="flex flex-wrap gap-2 pt-1">
-                        {[
-                          { name: "indigo", bg: "bg-indigo-500 border-indigo-400" },
-                          { name: "teal", bg: "bg-teal-500 border-teal-400" },
-                          { name: "amber", bg: "bg-amber-500 border-amber-400" },
-                          { name: "rose", bg: "bg-rose-500 border-rose-400" },
-                          { name: "purple", bg: "bg-purple-500 border-purple-400" },
-                          { name: "emerald", bg: "bg-emerald-500 border-emerald-400" },
-                          { name: "pink", bg: "bg-pink-500 border-pink-400" },
-                          { name: "sky", bg: "bg-sky-500 border-sky-400" },
-                          { name: "fuchsia", bg: "bg-fuchsia-500 border-fuchsia-400" },
-                          { name: "blue", bg: "bg-blue-500 border-blue-400" }
-                        ].map((color) => {
-                          const isSelected = (card.colorType || "blue") === color.name;
-                          return (
-                            <button
-                              key={color.name}
-                              onClick={() => updateMarqueeCard(card.id, { colorType: color.name })}
-                              className={`h-4.5 w-4.5 rounded-full ${color.bg} border transition-transform duration-200 cursor-pointer ${
-                                isSelected ? 'scale-125 ring-2 ring-white/50 border-white' : 'scale-100 hover:scale-110 border-transparent opacity-80'
-                              }`}
-                              title={color.name.toUpperCase()}
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                  </div>
-                );
-              })}
-            </div>
-
-          </motion.div>
-        )}
-      </AnimatePresence>
-    );
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // Syndrome Deck Console for 3D Sphere Cards (Screen 4)
-  const renderSphereConsole = () => {
-    return (
-      <AnimatePresence>
-        {isConsoleOpen4 && (
-          <motion.div
-            initial={{ opacity: 0, x: 250 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 250 }}
-            transition={{ type: "spring", damping: 25, stiffness: 180 }}
-            className="absolute right-0 top-0 bottom-0 w-full max-w-lg lg:max-w-xl h-full bg-zinc-950/98 border-l border-zinc-800 backdrop-blur-xl shadow-2xl z-[100] flex flex-col pointer-events-auto text-zinc-300"
-          >
-            {/* Console Header */}
-            <div className="p-5 border-b border-zinc-800 bg-zinc-900/60 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="flex h-2.5 w-2.5 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-                </span>
-                <div>
-                  <h2 className="text-xs font-mono font-bold tracking-widest text-white uppercase">
-                    3D SPHERE CONSOLE / 3D球形卡片控制台
-                  </h2>
-                  <p className="text-[10px] text-zinc-500 font-light font-sans">
-                    Configure spherical noise matrices on Screen 4 (Fourth Slide)
-                  </p>
-                </div>
-              </div>
-              <div 
-                role="button"
-                id="close-console-4"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  setIsConsoleOpen4(false);
-                }}
-                className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-white transition-all cursor-pointer relative z-[999] pointer-events-auto flex items-center justify-center min-w-[32px] min-h-[32px]"
-              >
-                <X className="w-4 h-4" />
-              </div>
-            </div>
-
-            {/* Console Quick Toolbar Actions */}
-            <div className="p-4 bg-zinc-900/30 border-b border-zinc-850/80 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={addSphereCard}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/30 hover:border-amber-500/50 rounded-lg text-[10px] font-mono tracking-widest uppercase transition-all cursor-pointer"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>ADD CARD / 增加卡片</span>
-                </button>
-                
-                <button
-                  onClick={removeLastSphereCard}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 rounded-lg text-[10px] font-mono tracking-widest uppercase transition-all cursor-pointer"
-                >
-                  <Minus className="w-3 h-3" />
-                  <span>REMOVE LAST / 减少卡片</span>
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    try {
-                      const codeStr = JSON.stringify(sphereCards, null, 2);
-                      if (navigator.clipboard) {
-                        navigator.clipboard.writeText(codeStr);
-                      }
-                      setCopyToast(codeStr);
-                    } catch (e) {
-                      alert("Oops, automatic clipboard blocked! Please copy from the pop-up field instead.");
-                    }
-                  }}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-[10px] font-mono tracking-widest uppercase transition-all shadow-md cursor-pointer"
-                >
-                  <Code className="w-3 h-3" />
-                  <span>COPY DATA / 复制数据</span>
-                </button>
-
-                <button
-                  onClick={resetSphereCards}
-                  className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 rounded-lg border border-zinc-800 transition-colors cursor-pointer"
-                  title="Reset layout"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Editable List Body */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[calc(100vh-270px)]">
-              <div className="p-3 bg-zinc-900/40 rounded-xl border border-zinc-800/60 text-[10.5px] leading-relaxed font-sans text-zinc-400">
-                💡 <span className="font-semibold text-zinc-200">3D球形卡片编辑：</span>这些修改仅对第四屏的3D旋转球形卡片生效。
-              </div>
-
-              {sphereCards.map((card, idx) => {
-                return (
-                  <div 
-                    key={card.id}
-                    className="p-4 bg-zinc-900/60 rounded-xl border border-zinc-850 hover:border-zinc-800 transition-all space-y-3 relative group"
-                  >
-                    {/* Item Header */}
-                    <div className="flex items-center justify-between border-b border-zinc-800/40 pb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 font-mono text-[9px] rounded uppercase font-bold">
-                          SPHERE UNIT {idx + 1}
-                        </span>
-                        <span className="text-[10px] font-mono text-zinc-600">ID: {card.id}</span>
-                      </div>
-                      <button
-                        onClick={() => deleteSphereCard(card.id)}
-                        className="text-zinc-600 hover:text-rose-500 p-1 opacity-60 group-hover:opacity-100 transition-all rounded hover:bg-rose-500/10 cursor-pointer"
-                        title="Delete card"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-
-                    {/* Title & Category Form Rows */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
-                          Card Title / 标题
-                        </label>
-                        <input 
-                          type="text" 
-                          value={card.title}
-                          onChange={(e) => updateSphereCard(card.id, { title: e.target.value })}
-                          className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
-                          placeholder="Qubit Topology..."
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
-                          Category / 类别
-                        </label>
-                        <input 
-                          type="text" 
-                          value={card.cat}
-                          onChange={(e) => updateSphereCard(card.id, { cat: e.target.value.toUpperCase() })}
-                          className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white uppercase focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
-                          placeholder="HARDWARE..."
-                        />
-                      </div>
-                    </div>
-
-                    {/* Description Form Row */}
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
-                        Description / 简述
-                      </label>
-                      <textarea 
-                        value={card.desc}
-                        onChange={(e) => updateSphereCard(card.id, { desc: e.target.value })}
-                        rows={2}
-                        className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20 resize-none leading-normal font-sans"
-                        placeholder="Configure details..."
-                      />
-                    </div>
-
-                    {/* Custom URL Form Row */}
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
-                        Interactive Action Link / 点击跳转链接 (可选)
-                      </label>
-                      <input 
-                        type="text" 
-                        value={card.url}
-                        onChange={(e) => updateSphereCard(card.id, { url: e.target.value })}
-                        className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white font-mono placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
-                        placeholder="https://..."
-                      />
-                    </div>
-
-                    {/* Custom Image Form Row */}
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
-                        Circle Background Image URL / 圈圈背景图片链接
-                      </label>
-                      <input 
-                        type="text" 
-                        value={card.image || ""}
-                        onChange={(e) => updateSphereCard(card.id, { image: e.target.value })}
-                        className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white font-mono placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
-                        placeholder="https://images.unsplash.com/photo-..."
-                      />
-                    </div>
-
-                    {/* Color Picker Row */}
-                    <div className="space-y-1.5">
-                      <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
-                        Accent Theme / 系统色系
-                      </span>
-                      <div className="flex flex-wrap gap-2 pt-1">
-                        {[
-                          { name: "indigo", bg: "bg-indigo-500 border-indigo-400" },
-                          { name: "teal", bg: "bg-teal-500 border-teal-400" },
-                          { name: "amber", bg: "bg-amber-500 border-amber-400" },
-                          { name: "rose", bg: "bg-rose-500 border-rose-400" },
-                          { name: "purple", bg: "bg-purple-500 border-purple-400" },
-                          { name: "emerald", bg: "bg-emerald-500 border-emerald-400" },
-                          { name: "pink", bg: "bg-pink-500 border-pink-400" },
-                          { name: "sky", bg: "bg-sky-500 border-sky-400" },
-                          { name: "fuchsia", bg: "bg-fuchsia-500 border-fuchsia-400" },
-                          { name: "blue", bg: "bg-blue-500 border-blue-400" }
-                        ].map((color) => {
-                          const isSelected = (card.colorType || "blue") === color.name;
-                          return (
-                            <button
-                              key={color.name}
-                              onClick={() => updateSphereCard(card.id, { colorType: color.name })}
-                              className={`h-4.5 w-4.5 rounded-full ${color.bg} border transition-transform duration-200 cursor-pointer ${
-                                isSelected ? 'scale-125 ring-2 ring-white/50 border-white' : 'scale-100 hover:scale-110 border-transparent opacity-80'
-                              }`}
-                              title={color.name.toUpperCase()}
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                  </div>
-                );
-              })}
-            </div>
-
-          </motion.div>
-        )}
-      </AnimatePresence>
-    );
-  };
+  // Legacy consoles disabled
+  const renderMarqueeConsole = () => null;
+  const renderSphereConsole = () => null;
 
   const renderGenericConsole = (
-    isOpen: boolean, 
-    setIsOpen: (open: boolean) => void, 
-    consoleTitle: string,
-    screenLabel: string,
-    cards: MarqueeCard[] | null,
-    saveCards: ((updated: MarqueeCard[]) => void) | null,
-    showRotateControls: boolean,
-    currentScreen: ScreenData,
-    onUpdateScreen: (updated: ScreenData) => void
+    screenId: number | null,
+    onClose: () => void
   ) => {
+    if (screenId === null) return null;
+
+    const currentScreen = screens.find(s => s.id === screenId) || screens[0];
+    const onUpdateScreen = (updated: ScreenData) => {
+      setScreens(prev => prev.map(s => s.id === updated.id ? updated : s));
+    };
+
+    const hasCards = [3, 4, 5, 6].includes(screenId);
+
+    let cards: MarqueeCard[] | null = null;
+    let saveCards: ((updated: MarqueeCard[]) => void) | null = null;
+
+    if (screenId === 3) {
+      cards = marqueeCards;
+      saveCards = saveMarqueeCards;
+    } else if (screenId === 4) {
+      cards = sphereCards;
+      saveCards = saveSphereCards;
+    } else if (screenId === 5) {
+      cards = domeCards;
+      saveCards = saveDomeCards;
+    } else if (screenId === 6) {
+      cards = trialCards;
+      saveCards = saveTrialCards;
+    }
+
+    const showRotateControls = screenId === 5;
+
+    let consoleTitle = `BACKGROUND & TEMP SETTINGS (SCREEN ${screenId} / 第 ${screenId} 屏)`;
+    let screenLabel = `Configure background layers and ambient temperature for Screen ${screenId}`;
+
+    if (screenId === 3) {
+      consoleTitle = "MARQUEE CONSOLE (SCREEN 3) / 走马灯控制台 (第3屏)";
+      screenLabel = "Configure sliding noise matrices on Screen 3 (Third Slide)";
+    } else if (screenId === 4) {
+      consoleTitle = "3D SPHERE CONSOLE (SCREEN 4) / 3D球形控制台 (第4屏)";
+      screenLabel = "Configure spherical noise matrices on Screen 4 (Fourth Slide)";
+    } else if (screenId === 5) {
+      consoleTitle = "3D DOME GALLERY CONSOLE (SCREEN 5) / 穹顶画廊控制台 (第5屏)";
+      screenLabel = "Configure 3D Dome Gallery and cards metadata on Screen 5";
+    } else if (screenId === 6) {
+      consoleTitle = "SLIDER CARD CONSOLE (SCREEN 6) / 移动卡片控制台 (第6屏)";
+      screenLabel = "Configure sliding diagnostic cards and metadata on Screen 6";
+    }
+
     const addCard = () => {
       if (!cards || !saveCards) return;
       const nextId = cards.length > 0 ? Math.max(...cards.map(c => c.id)) + 1 : 1;
@@ -1705,7 +1266,7 @@ const App: React.FC = () => {
 
     return (
       <AnimatePresence>
-        {isOpen && (
+        {screenId !== null && (
           <motion.div
             initial={{ opacity: 0, x: 250 }}
             animate={{ opacity: 1, x: 0 }}
@@ -1735,7 +1296,7 @@ const App: React.FC = () => {
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
-                  setIsOpen(false);
+                  onClose();
                 }}
                 className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-white transition-all cursor-pointer relative z-[999] pointer-events-auto flex items-center justify-center min-w-[32px] min-h-[32px]"
               >
@@ -1743,8 +1304,34 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Background & Temperature Control Panels (Only in BG Settings Console) */}
-            {consoleTitle.startsWith("BACKGROUND & TEMP SETTINGS") && (
+            {/* Console Tab Selector */}
+            {hasCards && (
+              <div className="px-5 py-2 border-b border-zinc-850 bg-zinc-900/30 flex gap-4 text-xs font-mono">
+                <button
+                  onClick={() => setConsoleTab('cards')}
+                  className={`pb-1.5 border-b-2 transition-all cursor-pointer font-bold tracking-wider ${
+                    consoleTab === 'cards' 
+                      ? 'border-amber-500 text-amber-500 font-bold' 
+                      : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                  }`}
+                >
+                  CARD CONFIG / 卡片配置
+                </button>
+                <button
+                  onClick={() => setConsoleTab('bg')}
+                  className={`pb-1.5 border-b-2 transition-all cursor-pointer font-bold tracking-wider ${
+                    consoleTab === 'bg' 
+                      ? 'border-amber-500 text-amber-500 font-bold' 
+                      : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                  }`}
+                >
+                  BG & AUDIO / 背景与音频
+                </button>
+              </div>
+            )}
+
+            {/* Background & Temperature Control Panels */}
+            {(!hasCards || consoleTab === 'bg') && (
               <>
                 <div className="p-4 border-b border-zinc-800 bg-zinc-900/40 space-y-3">
                   <div className="flex items-center justify-between">
@@ -1909,7 +1496,7 @@ const App: React.FC = () => {
               </>
             )}
 
-            {cards && saveCards && (
+            {hasCards && consoleTab === 'cards' && cards && saveCards && (
               <>
             {/* Console Quick Toolbar Actions */}
             <div className="p-4 bg-zinc-900/30 border-b border-zinc-850/80 flex flex-wrap items-center justify-between gap-3">
@@ -2290,15 +1877,15 @@ const App: React.FC = () => {
 
           {/* BG settings controller trigger */}
           <button
-            onClick={() => setActiveBgConsoleId(activeBgConsoleId === activeId ? null : activeId)}
+            onClick={() => setActiveConsoleScreenId(activeConsoleScreenId === activeId ? null : activeId)}
             className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[10px] font-mono tracking-widest uppercase transition-all shadow-md cursor-pointer ${
-              activeBgConsoleId !== null
+              activeConsoleScreenId !== null
                 ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 border-amber-550 font-bold' 
                 : 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:text-white hover:border-zinc-700 hover:bg-zinc-850'
             }`}
           >
-            <Settings className={`w-3.5 h-3.5 ${activeBgConsoleId !== null ? 'animate-spin' : ''}`} />
-            <span>{activeBgConsoleId !== null ? 'HIDE BG SETTINGS' : 'BG SETTINGS'}</span>
+            <Settings className={`w-3.5 h-3.5 ${activeConsoleScreenId !== null ? 'animate-spin' : ''}`} />
+            <span>{activeConsoleScreenId !== null ? 'HIDE BG SETTINGS' : 'BG SETTINGS'}</span>
           </button>
 
           {/* Deploy to Git */}
@@ -2358,17 +1945,10 @@ const App: React.FC = () => {
         </motion.div>
       )}
 
-      {/* Global Background Settings Console */}
+      {/* Global Console (Supports Background Settings & Cards Configuration) */}
       {renderGenericConsole(
-        activeBgConsoleId !== null,
-        (open) => setActiveBgConsoleId(open ? activeId : null),
-        `BACKGROUND & TEMP SETTINGS (SCREEN ${activeBgConsoleId || activeId} / 第 ${activeBgConsoleId || activeId} 屏)`,
-        `Configure background layers and ambient temperature for Screen ${activeBgConsoleId || activeId}`,
-        null,
-        null,
-        false,
-        screens.find(s => s.id === (activeBgConsoleId || activeId)) || screens[0],
-        (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s))
+        activeConsoleScreenId,
+        () => setActiveConsoleScreenId(null)
       )}
 
       {/* Global Animated Background Container */}
@@ -2467,15 +2047,15 @@ const App: React.FC = () => {
                 {import.meta.env.DEV && !isMobile && (
                   <div className="absolute top-20 right-6 lg:top-6 lg:right-44 z-50 pointer-events-auto flex items-center gap-3">
                     <button
-                      onClick={() => setIsConsoleOpen4(!isConsoleOpen4)}
+                      onClick={() => setActiveConsoleScreenId(activeConsoleScreenId === 4 ? null : 4)}
                       className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[11px] font-mono tracking-widest uppercase transition-all duration-300 shadow-lg cursor-pointer backdrop-blur-md ${
-                        isConsoleOpen4 
+                        activeConsoleScreenId === 4 
                           ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 border-amber-550 font-bold' 
                           : 'bg-zinc-900/90 text-zinc-300 border-zinc-800 hover:text-white hover:border-zinc-700 hover:bg-zinc-850'
                       }`}
                     >
-                      <Settings className={`w-3.5 h-3.5 ${isConsoleOpen4 ? 'animate-spin' : ''}`} />
-                      <span>{isConsoleOpen4 ? "HIDE CONSOLE / 隐藏控制台" : "CARD CONSOLE / 打开控制台"}</span>
+                      <Settings className={`w-3.5 h-3.5 ${activeConsoleScreenId === 4 ? 'animate-spin' : ''}`} />
+                      <span>{activeConsoleScreenId === 4 ? "HIDE CONSOLE / 隐藏控制台" : "CARD CONSOLE / 打开控制台"}</span>
                     </button>
                   </div>
                 )}
@@ -2515,10 +2095,6 @@ const App: React.FC = () => {
                   />
                 </div>
 
-                {/* Reusable Syndrome Deck Console drawer */}
-              <div className="hidden md:block">
-                {renderGenericConsole(isConsoleOpen4, setIsConsoleOpen4, "3D SPHERE CONSOLE (SCREEN 4) / 3D球形控制台 (第4屏)", "Configure spherical noise matrices on Screen 4 (Fourth Slide)", sphereCards, saveSphereCards, false, screens.find(s => s.id === 4) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
-              </div>
               </section>
             );
           }
@@ -2534,15 +2110,15 @@ const App: React.FC = () => {
                 {import.meta.env.DEV && !isMobile && (
                   <div className="absolute top-24 right-6 lg:top-6 lg:right-6 z-50 pointer-events-auto flex items-center gap-3">
                     <button
-                      onClick={() => setIsConsoleOpen6(!isConsoleOpen6)}
+                      onClick={() => setActiveConsoleScreenId(activeConsoleScreenId === 5 ? null : 5)}
                       className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[11px] font-mono tracking-widest uppercase transition-all duration-300 shadow-lg cursor-pointer backdrop-blur-md ${
-                        isConsoleOpen6 
+                        activeConsoleScreenId === 5 
                           ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 border-amber-550 font-bold' 
                           : 'bg-zinc-900/90 text-zinc-300 border-zinc-800 hover:text-white hover:border-zinc-700 hover:bg-zinc-850'
                       }`}
                     >
-                      <Settings className={`w-3.5 h-3.5 ${isConsoleOpen6 ? 'animate-spin' : ''}`} />
-                      <span>{isConsoleOpen6 ? "HIDE CONSOLE / 隐藏控制台" : "DOME CONSOLE / 打开画廊控制台"}</span>
+                      <Settings className={`w-3.5 h-3.5 ${activeConsoleScreenId === 5 ? 'animate-spin' : ''}`} />
+                      <span>{activeConsoleScreenId === 5 ? "HIDE CONSOLE / 隐藏控制台" : "DOME CONSOLE / 打开画廊控制台"}</span>
                     </button>
                   </div>
                 )}
@@ -2569,11 +2145,6 @@ const App: React.FC = () => {
                     autoRotateSpeed={domeAutoRotateSpeed}
                   />
                 </div>
-
-                {/* Reusable Dome Console drawer */}
-              <div className="hidden md:block">
-                {renderGenericConsole(isConsoleOpen6, setIsConsoleOpen6, "3D DOME GALLERY CONSOLE (SCREEN 5) / 穹顶画廊控制台 (第5屏)", "Configure 3D Dome Gallery and cards metadata on Screen 5", domeCards, saveDomeCards, true, screens.find(s => s.id === 5) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
-              </div>
               </section>
             );
           }
@@ -2590,15 +2161,15 @@ const App: React.FC = () => {
                 {import.meta.env.DEV && !isMobile && (
                   <div className="absolute top-24 right-6 lg:top-6 lg:right-6 z-50 pointer-events-auto flex items-center gap-3">
                     <button
-                      onClick={() => setIsConsoleOpen10(!isConsoleOpen10)}
+                      onClick={() => setActiveConsoleScreenId(activeConsoleScreenId === 6 ? null : 6)}
                       className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[11px] font-mono tracking-widest uppercase transition-all duration-300 shadow-lg cursor-pointer backdrop-blur-md ${
-                        isConsoleOpen10 
+                        activeConsoleScreenId === 6 
                           ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 border-amber-550 font-bold' 
                           : 'bg-zinc-900/90 text-zinc-300 border-zinc-800 hover:text-white hover:border-zinc-700 hover:bg-zinc-850'
                       }`}
                     >
-                      <Settings className={`w-3.5 h-3.5 ${isConsoleOpen10 ? 'animate-spin' : ''}`} />
-                      <span>{isConsoleOpen10 ? "HIDE CONSOLE / 隐藏控制台" : "CARD CONSOLE / 打开卡片控制台"}</span>
+                      <Settings className={`w-3.5 h-3.5 ${activeConsoleScreenId === 6 ? 'animate-spin' : ''}`} />
+                      <span>{activeConsoleScreenId === 6 ? "HIDE CONSOLE / 隐藏控制台" : "CARD CONSOLE / 打开卡片控制台"}</span>
                     </button>
                   </div>
                 )}
@@ -2617,7 +2188,7 @@ const App: React.FC = () => {
                         className="w-full flex flex-col gap-3 mt-2 md:mt-4"
                       >
                         {/* Title and Instruction Header */}
-                        <div className="hidden text-center space-y-3 mb-2 mt-1 md:mt-2">
+                        <div className="text-center space-y-3 mb-2 mt-1 md:mt-2">
                           <motion.span 
                             initial={{ opacity: 0, scale: 0.9 }}
                             whileInView={{ opacity: 1, scale: 1 }}
@@ -2718,10 +2289,6 @@ const App: React.FC = () => {
                   </AnimatePresence>
                 </div>
 
-                {/* Reusable Dome Console drawer */}
-              <div className="hidden md:block">
-                {renderGenericConsole(isConsoleOpen10, setIsConsoleOpen10, "SLIDER CARD CONSOLE (SCREEN 6) / 移动卡片控制台 (第6屏)", "Configure sliding diagnostic cards and metadata on Screen 6", trialCards, saveTrialCards, false, screens.find(s => s.id === 6) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
-              </div>
               </section>
             );
           }
@@ -2778,15 +2345,15 @@ const App: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <button
                             id="console-toggle-btn"
-                            onClick={() => setIsConsoleOpen3(!isConsoleOpen3)}
+                            onClick={() => setActiveConsoleScreenId(activeConsoleScreenId === 3 ? null : 3)}
                             className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[11px] font-mono tracking-widest uppercase transition-all duration-300 shadow-md cursor-pointer ${
-                              isConsoleOpen3 
+                              activeConsoleScreenId === 3 
                                 ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 border-amber-550 font-bold' 
                                 : 'bg-zinc-900/90 text-zinc-300 border-zinc-800 hover:text-white hover:border-zinc-700 hover:bg-zinc-850'
                             }`}
                           >
-                            <Settings className={`w-3.5 h-3.5 ${isConsoleOpen3 ? 'animate-spin' : ''}`} />
-                            <span>{isConsoleOpen3 ? "HIDE CONSOLE / 隐藏控制台" : "CARD CONSOLE / 打开控制台"}</span>
+                            <Settings className={`w-3.5 h-3.5 ${activeConsoleScreenId === 3 ? 'animate-spin' : ''}`} />
+                            <span>{activeConsoleScreenId === 3 ? "HIDE CONSOLE / 隐藏控制台" : "CARD CONSOLE / 打开控制台"}</span>
                           </button>
                         </div>
                       )}
@@ -2875,11 +2442,6 @@ const App: React.FC = () => {
                         Current Frame: {marqueeCards.length} Syndrome Cells • Auto Scroll: Left to Right (Hover to Pause)
                       </div>
                     </div>
-
-                    {/* ⚙️ Interactive Card Syndrome Console (Only visible on Screen 3, slide-over layout) */}
-                  <div className="hidden md:block">
-                    {renderGenericConsole(isConsoleOpen3, setIsConsoleOpen3, "MARQUEE CONSOLE (SCREEN 3) / 走马灯控制台 (第3屏)", "Configure sliding noise matrices on Screen 3 (Third Slide)", marqueeCards, saveMarqueeCards, false, screens.find(s => s.id === 3) || screens[0], (updated) => setScreens(prev => prev.map(s => s.id === updated.id ? updated : s)))}
-                  </div>
 
                   </div>
                 ) : (

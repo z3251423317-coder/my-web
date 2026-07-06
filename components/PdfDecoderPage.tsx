@@ -97,19 +97,36 @@ const DEFAULT_PDF_URL = "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com
 // Default curated PDF page screenshots/scans to make the experience extremely realistic and high-fidelity
 const INITIAL_RELATIONSHIP_CARDS: RelationshipCard[] = [
   {
-    id: 1782974086095,
-    title: "11",
+    id: "rel-1783354475690",
+    title: "2.基于日常吵架原因与深度聊天之间的几种可能性研究（WXJB-2668-002）",
     cat: "自定义分析 / Custom",
     desc: "自定义创建的情感供需分析卡片。",
     imageUrl: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop",
-    pdfUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/1.%E6%AD%A4%E4%B8%BA%E7%94%98%E9%A5%B4%EF%BC%8C%E5%BD%BC%E4%B9%8B%E8%8B%A6%E8%8D%AF%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E8%AE%BA%E4%B8%8D%E5%90%88%E9%80%82%E7%9A%84%E8%83%8C%E5%90%8E%E4%BA%B2%E5%AF%86%E5%85%B3%E7%B3%BB%E4%B8%AD%E6%83%85%E6%84%9F%E4%BE%9B%E9%9C%80%E7%9A%84%E7%BB%93%E6%9E%84%E6%80%A7%E5%A4%B1%E8%A1%A1%EF%BC%88WXJB-2663-001%EF%BC%89.pdf",
+    pdfUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E6%9E%84%E7%9F%B3%E6%96%87%E6%A1%A3/2.%E5%9F%BA%E4%BA%8E%E6%97%A5%E5%B8%B8%E5%90%B5%E6%9E%B6%E5%8E%9F%E5%9B%A0%E4%B8%8E%E6%B7%B1%E5%BA%A6%E8%81%8A%E5%A4%A9%E4%B9%8B%E9%97%B4%E7%9A%84%E5%87%A0%E7%A7%8D%E5%8F%AF%E8%83%BD%E6%80%A7%E7%A0%94%E7%A9%B6%EF%BC%88WXJB-2668-002%EF%BC%89.pdf",
     pdfPageImages: [
       "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=1200&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop"
     ],
     imbalanceScore: 50,
     notes: "可编辑深度论文研读笔记或分析心得...",
-    lastUpdated: "2026-07-02 06:34",
+    lastUpdated: "2026-07-06 16:14",
+    audioModules: [],
+    colorType: "indigo"
+  },
+  {
+    id: "rel-1783354155744",
+    title: "1.此为甘饴，彼之苦药——论不合适的背后亲密关系中情感供需的结构性失衡（WXJB-2663-001）",
+    cat: "自定义分析 / Custom",
+    desc: "自定义创建的情感供需分析卡片。",
+    imageUrl: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop",
+    pdfUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E6%9E%84%E7%9F%B3%E6%96%87%E6%A1%A3/1.%E6%AD%A4%E4%B8%BA%E7%94%98%E9%A5%B4%EF%BC%8C%E5%BD%BC%E4%B9%8B%E8%8B%A6%E8%8D%AF%E2%80%94%E2%80%94%E2%80%94%E8%AE%BA%E4%B8%8D%E5%90%88%E9%80%82%E7%9A%84%E8%83%8C%E5%90%8E%E4%BA%B2%E5%AF%86%E5%85%B3%E7%B3%BB%E4%B8%AD%E6%83%85%E6%84%9F%E4%BE%9B%E9%9C%80%E7%9A%84%E7%BB%93%E6%9E%84%E6%80%A7%E5%A4%B1%E8%A1%A1%EF%BC%88WXJB-2663-001%EF%BC%89.pdf",
+    pdfPageImages: [
+      "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop"
+    ],
+    imbalanceScore: 50,
+    notes: "可编辑深度论文研读笔记或分析心得...",
+    lastUpdated: "2026-07-06 16:09",
     audioModules: [
       {
         id: "mod-1783061786526",
@@ -123,32 +140,7 @@ const INITIAL_RELATIONSHIP_CARDS: RelationshipCard[] = [
         user: "管理员"
       }
     ],
-    colorType: "emerald",
-    isEncrypted: true,
-    password: "123456"
-  },
-  {
-    id: 1782974086096,
-    title: "123",
-    cat: "CORE SYSTEM",
-    desc: "Predicts noise errors dynamically using neural inference thresholds.",
-    imageUrl: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop",
-    colorType: "teal",
-    isEncrypted: true,
-    password: "123456"
-  },
-  {
-    id: 1783074363142,
-    title: "Untitled New Research Unit",
-    cat: "Pending Analysis",
-    desc: "Comprehensive analysis description here...",
-    imageUrl: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800&auto=format&fit=crop",
-    colorType: "indigo",
-    imbalanceScore: 50,
-    audioModules: [],
-    pdfPageImages: [],
-    notes: "Initial research notes...",
-    lastUpdated: "2026-07-03 10:26"
+    colorType: "emerald"
   }
 ];
 
@@ -817,7 +809,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
                   
                   <button
                     onClick={() => {
-                      if (window.confirm("确定要恢复列表为默认的 3 张卡片吗？这会覆盖当前的所有自定义改动。")) {
+                      if (window.confirm("确定要恢复列表为默认的 2 张卡片吗？这会覆盖当前的所有自定义改动。")) {
                         saveCards(INITIAL_RELATIONSHIP_CARDS);
                         setSelectedCard(null);
                       }
@@ -826,7 +818,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
                     onPointerDown={e => e.stopPropagation()}
                   >
                     <RefreshCw className="w-3 h-3" />
-                    <span>恢复默认的 3 张卡片</span>
+                    <span>恢复默认的 2 张卡片</span>
                   </button>
                 </div>
 
@@ -938,31 +930,29 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
             </div>
 
             <div className="flex-1 flex items-center justify-center p-4 relative" onClick={(e) => e.stopPropagation()}>
-              <motion.div
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                onDragEnd={(e, info) => {
-                  if (info.offset.x < -100) { // Swipe left
-                    if (fullscreenSource.type === 'pdfjs') {
-                      setPdfjsCurrentPage(prev => Math.min(pdfjsTotalPages, prev + 1));
-                    }
-                  } else if (info.offset.x > 100) { // Swipe right
-                    if (fullscreenSource.type === 'pdfjs') {
-                      setPdfjsCurrentPage(prev => Math.max(1, prev - 1));
-                    }
-                  }
-                }}
-                className="max-h-[85vh] max-w-[90vw] overflow-hidden rounded-xl shadow-2xl border border-zinc-900/80 bg-zinc-950 flex items-center justify-center"
-              >
-                {/* Main Content (Canvas for PDF.js, Image otherwise) */}
-                {fullscreenSource.type === 'pdfjs' ? (
+              {/* Prev Button */}
+              {fullscreenSource.type === 'pdfjs' && (
+                <button 
+                  disabled={pdfjsCurrentPage <= 1}
+                  onClick={(e) => { e.stopPropagation(); setPdfjsCurrentPage(prev => Math.max(1, prev - 1)); }}
+                  className="absolute left-4 p-4 rounded-full bg-black/80 text-white border border-zinc-850 hover:bg-zinc-900 hover:scale-105 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer z-10"
+                >
+                  <ChevronLeft className="w-8 h-8" />
+                </button>
+              )}
+
+              {/* Main Content (Canvas for PDF.js, Image otherwise) */}
+              {fullscreenSource.type === 'pdfjs' ? (
+                <div className="max-h-[85vh] max-w-[90vw] overflow-auto rounded-xl shadow-2xl border border-zinc-900/80 bg-zinc-950">
                   <canvas 
                     ref={pdfFullscreenCanvasRef} 
-                    className="max-h-[85vh] max-w-full object-contain cursor-grab active:cursor-grabbing hover:opacity-90 transition-all"
+                    className="max-h-[85vh] max-w-full block cursor-zoom-out hover:opacity-90 transition-all"
                     onClick={() => setFullscreenSource(null)}
                     title="点击画布返回"
                   />
-                ) : (
+                </div>
+              ) : (
+                <div className="max-h-[85vh] max-w-[90vw] overflow-auto rounded-xl shadow-2xl border border-zinc-900/80 bg-zinc-950 flex items-center justify-center">
                   <img 
                     src={fullscreenSource.url} 
                     alt="Enlarged reading resource" 
@@ -971,8 +961,19 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
                     className="max-h-[85vh] max-w-full object-contain cursor-zoom-out hover:opacity-90 active:scale-98 transition-all"
                     title="点击图片返回"
                   />
-                )}
-              </motion.div>
+                </div>
+              )}
+
+              {/* Next Button */}
+              {fullscreenSource.type === 'pdfjs' && (
+                <button 
+                  disabled={pdfjsCurrentPage >= pdfjsTotalPages}
+                  onClick={(e) => { e.stopPropagation(); setPdfjsCurrentPage(prev => Math.min(pdfjsTotalPages, prev + 1)); }}
+                  className="absolute right-4 p-4 rounded-full bg-black/80 text-white border border-zinc-850 hover:bg-zinc-900 hover:scale-105 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer z-10"
+                >
+                  <ChevronRight className="w-8 h-8" />
+                </button>
+              )}
             </div>
 
             <div className="text-center text-xs text-zinc-500 font-mono pb-2">
@@ -1135,7 +1136,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
                  {/* PDF Content Viewer Frame (Sliders showing Page Images from PDF or Live PDF Embed) */}
                 <div className="space-y-3">
                   {/* View Mode Header - Only showing Live PDF */}
-                  <div className="hidden flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-zinc-950/60 p-2.5 rounded-xl border border-zinc-850/80 animate-fadeIn">
+                  <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-zinc-950/60 p-2.5 rounded-xl border border-zinc-850/80 animate-fadeIn">
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4 text-amber-500" />
                       <span className="text-xs font-mono font-bold text-zinc-200">在线原著 PDF 阅读器</span>
@@ -1154,7 +1155,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
                     {/* Embed Interactive Live PDF document with dynamic engine selectors */}
                     <div className="w-full h-full flex flex-col bg-zinc-950">
                       {/* Engine Selector Header */}
-                      <div className="hidden flex flex-col sm:flex-row sm:items-center justify-between p-2 bg-zinc-900/50 border-b border-zinc-800 gap-2 text-[10px] text-zinc-400 font-mono">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between p-2 bg-zinc-900/50 border-b border-zinc-800 gap-2 text-[10px] text-zinc-400 font-mono">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="text-zinc-500">阅读渲染引擎:</span>
                           <button
