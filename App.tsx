@@ -535,18 +535,20 @@ const App: React.FC = () => {
     const load = async (manual = false) => {
       if (manual && isMounted) setIsRetryingDb(true);
 
-      // If direct Firestore listener is already active and push-updating, we don't need the polling fetch
-      if (directFirestoreActive && !manual) {
-        if (isMounted) setIsRetryingDb(false);
-        return;
-      }
-
       try {
         const res = await fetch(getApiUrl('/api/config') + '?t=' + Date.now());
         if (res.ok) {
           const contentType = res.headers.get('content-type') || '';
           if (contentType.includes('application/json')) {
             const data = await res.json();
+            
+            // Clean up direct Firestore if it was active to save client resources
+            if (unsubFirestore) {
+              unsubFirestore();
+              unsubFirestore = null;
+            }
+            directFirestoreActive = false;
+
             updateConfig(data, manual);
             if (isMounted) setIsRetryingDb(false);
             return;
