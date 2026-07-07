@@ -27,7 +27,8 @@ import { AudioSecondaryPage } from './components/AudioSecondaryPage';
 import ShinyText from './components/ShinyText';
 import { MusicPlayer } from './components/MusicPlayer';
 import { db } from './firebase-config';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import defaultUserData from './user_data.json';
 
 import { DEFAULT_MARQUEE_CARDS, DEFAULT_QUANTUM_CARDS, DEFAULT_DOME_CARDS, MarqueeCard } from './src/cardData';
 
@@ -445,13 +446,15 @@ const App: React.FC = () => {
     }
     return DEFAULT_SCREENS;
   });
-    const [configLoaded, setConfigLoaded] = useState(false);
+  const [configLoaded, setConfigLoaded] = useState(false);
   const [dbConnected, setDbConnected] = useState<boolean | null>(null);
+  const [isDbEmpty, setIsDbEmpty] = useState<boolean>(false);
+  const [isInitializingDb, setIsInitializingDb] = useState<boolean>(false);
   const [dbErrorMsg, setDbErrorMsg] = useState<string>("");
   const [isRetryingDb, setIsRetryingDb] = useState<boolean>(false);
   const [showDbDiagnostics, setShowDbDiagnostics] = useState<boolean>(false);
 
-  const loadConfigRef = useRef<() => Promise<void>>();
+  const loadConfigRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
   useEffect(() => {
     let isMounted = true;
@@ -467,6 +470,7 @@ const App: React.FC = () => {
             const data = await res.json();
             if (!isMounted) return;
             setDbConnected(true);
+            setIsDbEmpty(false);
             setDbErrorMsg("");
             if (data.screens) setScreens(data.screens);
             if (data.pillNavItems) setPillNavItems(data.pillNavItems);
@@ -500,6 +504,7 @@ const App: React.FC = () => {
             if (docSnap.exists()) {
               const data = docSnap.data();
               setDbConnected(true);
+              setIsDbEmpty(false);
               setDbErrorMsg("");
               if (data.screens) setScreens(data.screens);
               if (data.pillNavItems) setPillNavItems(data.pillNavItems);
@@ -509,8 +514,18 @@ const App: React.FC = () => {
               if (data.trialCards) setTrialCards(data.trialCards);
               if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
             } else {
-              setDbConnected(false);
-              setDbErrorMsg("No config document found at 'app_config/master'.");
+              setDbConnected(true); // Connected but configuration document is missing
+              setIsDbEmpty(true);
+              setDbErrorMsg("No config document found at 'app_config/master'. 您需要初始化云端数据。");
+              // Fallback to local default data so the site works!
+              const fallback = defaultUserData as any;
+              if (fallback.screens) setScreens(fallback.screens);
+              if (fallback.pillNavItems) setPillNavItems(fallback.pillNavItems);
+              if (fallback.marqueeCards) setMarqueeCards(fallback.marqueeCards);
+              if (fallback.sphereCards) setSphereCards(fallback.sphereCards);
+              if (fallback.domeCards) setDomeCards(fallback.domeCards);
+              if (fallback.trialCards) setTrialCards(fallback.trialCards);
+              if (fallback.relationshipCards) setRelationshipCards(fallback.relationshipCards);
             }
             setConfigLoaded(true);
             setIsRetryingDb(false);
@@ -518,6 +533,7 @@ const App: React.FC = () => {
             console.error("Direct Firestore subscription error:", firestoreErr);
             if (isMounted) {
               setDbConnected(false);
+              setIsDbEmpty(false);
               setDbErrorMsg(firestoreErr.message || String(firestoreErr));
               setConfigLoaded(true);
               setIsRetryingDb(false);
@@ -527,6 +543,7 @@ const App: React.FC = () => {
           console.error("Direct Firestore initialization failed:", fErr);
           if (isMounted) {
             setDbConnected(false);
+            setIsDbEmpty(false);
             setDbErrorMsg(fErr.message || String(fErr));
             setConfigLoaded(true);
             setIsRetryingDb(false);
@@ -2102,15 +2119,17 @@ const App: React.FC = () => {
         </div>
             ) : null}
 
-      {/* Mobile DB Status Dot */}
-      {isMobile && dbConnected !== null && (
+      {/* DB Status Dot (Visible on both Mobile and Desktop) */}
+      {dbConnected !== null && (
         <div 
           onClick={() => setShowDbDiagnostics(true)}
-          className="fixed top-6 right-6 z-[100] flex items-center gap-1.5 px-3 py-1.5 bg-zinc-950/85 border border-zinc-800/80 hover:bg-zinc-900 rounded-full text-[10px] font-mono tracking-wider text-zinc-300 backdrop-blur shadow-lg transition-all cursor-pointer pointer-events-auto active:scale-95 select-none"
-          title={dbConnected ? "Database Connected / 数据库已连接" : "Database Disconnected / 数据库已断开"}
+          className="fixed top-6 right-6 z-[100] flex items-center gap-1.5 px-3 py-1.5 bg-zinc-950/85 border border-zinc-800/80 hover:bg-zinc-900 rounded-full text-[10px] font-mono tracking-wider text-zinc-300 backdrop-blur shadow-lg transition-all cursor-pointer pointer-events-auto active:scale-95 select-none animate-fade-in"
+          title={dbConnected ? (isDbEmpty ? "Database Connected, but Master Config Empty" : "Database Connected") : "Database Disconnected"}
         >
-          <div className={`w-2 h-2 rounded-full ${dbConnected ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'}`}></div>
-          <span className="text-zinc-400 font-bold">DB: {dbConnected ? 'OK' : 'ERR'}</span>
+          <div className={`w-2 h-2 rounded-full ${!dbConnected ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]' : isDbEmpty ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)] animate-pulse' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]'}`}></div>
+          <span className="text-zinc-400 font-bold">
+            DB: {!dbConnected ? 'ERR' : isDbEmpty ? 'EMPTY' : 'OK'}
+          </span>
         </div>
       )}
 
@@ -2138,8 +2157,8 @@ const App: React.FC = () => {
             <div className="space-y-3.5 mb-5 text-xs">
               <div className="flex justify-between items-center bg-zinc-950/40 p-2 rounded-lg border border-zinc-850">
                 <span className="text-zinc-400">连接状态:</span>
-                <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${dbConnected ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
-                  {dbConnected ? '已连接 (CONNECTED)' : '已断开 (DISCONNECTED)'}
+                <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${!dbConnected ? 'bg-red-500/10 text-red-400 border border-red-500/20' : isDbEmpty ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}`}>
+                  {!dbConnected ? '已断开 (DISCONNECTED)' : isDbEmpty ? '已连接 (空库/EMPTY)' : '已连接 (CONNECTED)'}
                 </span>
               </div>
 
@@ -2161,7 +2180,42 @@ const App: React.FC = () => {
                 </div>
               )}
 
-              {dbConnected && (
+              {dbConnected && isDbEmpty && (
+                <div className="flex flex-col gap-1.5 bg-amber-950/20 border border-amber-900/30 p-2.5 rounded-lg">
+                  <span className="text-amber-400 font-semibold flex items-center gap-1">
+                    <AlertTriangle className="w-3.5 h-3.5" /> 数据库配置未初始化:
+                  </span>
+                  <p className="text-[10px] leading-relaxed text-zinc-350">
+                    已成功建立 Firebase 连接，但是在指定的数据库和项目位置中未检测到配置文档 `app_config/master`。目前已自动为您加载了本地默认配置（网站可正常运行）。
+                  </p>
+                  <button
+                    onClick={async () => {
+                      setIsInitializingDb(true);
+                      try {
+                        const { doc, setDoc } = await import('firebase/firestore');
+                        await setDoc(doc(db, "app_config", "master"), defaultUserData);
+                        setIsDbEmpty(false);
+                        if (loadConfigRef.current) {
+                          await loadConfigRef.current();
+                        }
+                        alert("数据库初始化成功！所有页面数据已成功写入并同步至您的云端 Firestore。");
+                      } catch (err: any) {
+                        console.error("Failed to initialize database:", err);
+                        alert("初始化失败: " + (err.message || String(err)));
+                      } finally {
+                        setIsInitializingDb(false);
+                      }
+                    }}
+                    disabled={isInitializingDb}
+                    className="w-full py-2 bg-amber-600 hover:bg-amber-500 disabled:bg-amber-800 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-lg active:scale-95 cursor-pointer pointer-events-auto"
+                  >
+                    <UploadCloud className={`w-3.5 h-3.5 ${isInitializingDb ? 'animate-spin' : ''}`} />
+                    {isInitializingDb ? '正在初始化...' : '💡 一键写入默认数据到云端'}
+                  </button>
+                </div>
+              )}
+
+              {dbConnected && !isDbEmpty && (
                 <div className="flex flex-col gap-1.5 bg-emerald-950/20 border border-emerald-900/30 p-2.5 rounded-lg text-emerald-300">
                   <span className="font-semibold flex items-center gap-1 text-emerald-400">
                     <CheckCircle className="w-3.5 h-3.5" /> 运行状态良好
