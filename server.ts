@@ -63,6 +63,9 @@ async function startServer() {
 
   
   app.get("/api/config", async (req, res) => {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
     try {
       const docSnap = await getDoc(doc(db, "app_config", "master"));
       if (docSnap.exists()) {

@@ -122,7 +122,7 @@ export default function Admin() {
     setLoading(true);
     setMessage('');
     try {
-      const res = await fetch(getApiUrl('/api/config'));
+      const res = await fetch(getApiUrl('/api/config') + '?t=' + Date.now());
       if (res.ok) {
         const contentType = res.headers.get('content-type') || '';
         if (contentType.includes('application/json')) {

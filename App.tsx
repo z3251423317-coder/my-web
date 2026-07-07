@@ -499,13 +499,34 @@ const App: React.FC = () => {
 
       if (data.timestamp !== lastTimestamp) {
         lastTimestamp = data.timestamp || "";
-        if (data.screens) setScreens(data.screens);
-        if (data.pillNavItems) setPillNavItems(data.pillNavItems);
-        if (data.marqueeCards) setMarqueeCards(data.marqueeCards);
-        if (data.sphereCards) setSphereCards(data.sphereCards);
-        if (data.domeCards) setDomeCards(data.domeCards);
-        if (data.trialCards) setTrialCards(data.trialCards);
-        if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
+        if (data.screens) {
+          setScreens(data.screens);
+          try { localStorage.setItem("alphaqubit_custom_screens_v11", JSON.stringify(data.screens)); } catch (e) { console.error(e); }
+        }
+        if (data.pillNavItems) {
+          setPillNavItems(data.pillNavItems);
+          try { localStorage.setItem("alphaqubit_pill_nav_items_v5", JSON.stringify(data.pillNavItems)); } catch (e) { console.error(e); }
+        }
+        if (data.marqueeCards) {
+          setMarqueeCards(data.marqueeCards);
+          try { localStorage.setItem("alphaqubit_marquee_cards", JSON.stringify(data.marqueeCards)); } catch (e) { console.error(e); }
+        }
+        if (data.sphereCards) {
+          setSphereCards(data.sphereCards);
+          try { localStorage.setItem("alphaqubit_sphere_cards", JSON.stringify(data.sphereCards)); } catch (e) { console.error(e); }
+        }
+        if (data.domeCards) {
+          setDomeCards(data.domeCards);
+          try { localStorage.setItem("alphaqubit_dome_cards", JSON.stringify(data.domeCards)); } catch (e) { console.error(e); }
+        }
+        if (data.trialCards) {
+          setTrialCards(data.trialCards);
+          try { localStorage.setItem("alphaqubit_trial_cards", JSON.stringify(data.trialCards)); } catch (e) { console.error(e); }
+        }
+        if (data.relationshipCards) {
+          setRelationshipCards(data.relationshipCards);
+          try { localStorage.setItem("alphaqubit_relationship_cards_v5", JSON.stringify(data.relationshipCards)); } catch (e) { console.error(e); }
+        }
       }
       setConfigLoaded(true);
     };
@@ -520,7 +541,7 @@ const App: React.FC = () => {
       }
 
       try {
-        const res = await fetch(getApiUrl('/api/config'));
+        const res = await fetch(getApiUrl('/api/config') + '?t=' + Date.now());
         if (res.ok) {
           const contentType = res.headers.get('content-type') || '';
           if (contentType.includes('application/json')) {
