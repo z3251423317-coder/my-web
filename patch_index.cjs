@@ -1,4 +1,5 @@
-/**
+const fs = require('fs');
+const content = `/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
 */
@@ -20,4 +21,6 @@ root.render(
   <React.StrictMode>
     {isAdmin ? <Admin /> : <App />}
   </React.StrictMode>
-);
+);`;
+
+fs.writeFileSync('index.tsx', content);

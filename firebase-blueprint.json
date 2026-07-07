@@ -1,0 +1,23 @@
+{
+  "collections": [
+    {
+      "name": "app_config",
+      "description": "Stores the global configuration for the application.",
+      "documents": [
+        {
+          "id": "master",
+          "fields": [
+            { "name": "screens", "type": "array", "description": "Array of screen configurations." },
+            { "name": "pillNavItems", "type": "array", "description": "Array of pill navigation items." },
+            { "name": "marqueeCards", "type": "array", "description": "Array of marquee cards." },
+            { "name": "sphereCards", "type": "array", "description": "Array of sphere cards." },
+            { "name": "domeCards", "type": "array", "description": "Array of dome cards." },
+            { "name": "trialCards", "type": "array", "description": "Array of trial cards." },
+            { "name": "relationshipCards", "type": "array", "description": "Array of relationship cards." },
+            { "name": "updatedAt", "type": "timestamp", "description": "When the config was last updated." }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -429,51 +429,23 @@ const App: React.FC = () => {
     }
   }
 
-  const [screens, setScreens] = useState<ScreenData[]>(() => {
-    const saved = localStorage.getItem("alphaqubit_custom_screens_v11");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (!parsed.some((s: any) => s.id === 9)) {
-          localStorage.removeItem("alphaqubit_custom_screens_v11");
-          return DEFAULT_SCREENS;
-        }
-        // Force update screen 3 to new values
-        const migrated = parsed.map((s: any) => {
-          if (s.id === 1) {
-            return {
-              ...s,
-              bgTypeMobile: "video",
-              bgUrlMobile: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E4%B8%80%E8%84%9A%E8%B8%A9%E5%88%B0%E6%B0%B4%E5%9D%91%E9%87%8C%E7%9A%84%E6%8A%96%E9%9F%B3%20-%20%E6%8A%96%E9%9F%B3.mp4"
-            };
-          }
-          if (s.id === 2) {
-            return {
-              ...s,
-              bgTypeMobile: "video",
-              bgUrlMobile: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/2.mp4",
-              bgOpacity: 55
-            };
-          }
-          if (s.id === 3) {
-            return {
-              ...s,
-              title: "无限进步",
-              description: "以矛盾观审视生活，用实践完成自我迭代",
-              bgType: "video",
-              bgUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E4%B8%80%E8%84%9A%E8%B8%A9%E5%88%B0%E6%B0%B4%E5%9D%91%E9%87%8C%E7%9A%84%E6%8A%96%E9%9F%B3%20-%20%E6%8A%96%E9%9F%B3.mp4",
-              bgTypeMobile: "video",
-              bgUrlMobile: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E4%B8%89%E5%B1%8F%E7%A7%BB%E5%8A%A8%E7%AB%AF.mp4"
-            };
-          }
-          return s;
-        });
-        localStorage.setItem("alphaqubit_custom_screens_v11", JSON.stringify(migrated));
-        return migrated;
-      } catch (e) { console.error(e); }
-    }
-    return DEFAULT_SCREENS;
-  });
+  const [screens, setScreens] = useState<ScreenData[]>(DEFAULT_SCREENS);
+  const [configLoaded, setConfigLoaded] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/config')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.screens) setScreens(data.screens);
+        if (data && data.pillNavItems) setPillNavItems(data.pillNavItems);
+        // We could dispatch event or update context for cards if needed, but for now we'll just handle screens and nav here.
+        setConfigLoaded(true);
+      })
+      .catch(err => {
+        console.error("Failed to load config from server", err);
+        setConfigLoaded(true);
+      });
+  }, []);
 
   const [activeId, setActiveId] = useState<number>(1);
 
@@ -1968,7 +1940,19 @@ const App: React.FC = () => {
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-zinc-950 select-none flex flex-col font-sans">
+      {!configLoaded && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-zinc-950">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+        </div>
+      )}
       
+      <a 
+        href="/admin" 
+        className="absolute bottom-6 right-6 z-[9999] px-4 py-2 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-full text-sm backdrop-blur shadow-lg border border-zinc-700/50 transition-all font-medium pointer-events-auto"
+      >
+        进入后台 (Admin)
+      </a>
+
       {/* PillNav centered navigation header - only displayed on the first screen */}
       {activeId === 1 ? (
         <PillNav 
@@ -1992,7 +1976,7 @@ const App: React.FC = () => {
           pillTextColor="#ffffff"
           hoveredPillTextColor="#000000"
         />
-      ) : (
+      ) : !isMobile ? (
         /* Floating Brand Badge (Minimal & Floating) - Only on other screens to keep focus clean */
         <div 
           onClick={() => scrollToScreen(1)} 
@@ -2001,49 +1985,51 @@ const App: React.FC = () => {
           <div className="w-6 h-6 rounded bg-indigo-600 flex items-center justify-center text-white font-serif font-black text-sm pb-px shadow">α</div>
           <span className="font-display font-semibold tracking-widest text-[11px] text-zinc-200">ALPHAQUBIT</span>
         </div>
-      )}
+      ) : null}
 
       {/* Elegant, Minimalist Page-Level Navigation Suite (Fixed on Display Page) */}
-      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2 pointer-events-auto">
-        {/* Screen Counter Badge */}
-        <div className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-full font-mono text-[9px] tracking-widest text-zinc-200 font-bold backdrop-blur-md shadow-lg select-none">
-          {activeId.toString().padStart(2, '0')} / {screens.length.toString().padStart(2, '0')}
+      {!isMobile && (
+        <div className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2 pointer-events-auto">
+          {/* Screen Counter Badge */}
+          <div className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-full font-mono text-[9px] tracking-widest text-zinc-200 font-bold backdrop-blur-md shadow-lg select-none">
+            {activeId.toString().padStart(2, '0')} / {screens.length.toString().padStart(2, '0')}
+          </div>
+
+          {/* Up/Prev Button */}
+          <button 
+            onClick={() => {
+              if (scrollingTo !== null) return;
+              const currentIndex = screens.findIndex(s => s.id === activeId);
+              if (currentIndex > 0) {
+                const prevId = screens[currentIndex - 1].id;
+                scrollToScreen(prevId);
+              }
+            }}
+            disabled={activeId === screens[0]?.id || scrollingTo !== null}
+            title="Previous Screen / 上一屏"
+            className="p-2.5 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 rounded-full backdrop-blur-md text-zinc-300 hover:text-white transition-all cursor-pointer shadow-lg disabled:opacity-30 disabled:pointer-events-none active:scale-90"
+          >
+            <ChevronUp className="w-4 h-4" />
+          </button>
+
+          {/* Down/Next Button */}
+          <button 
+            onClick={() => {
+              if (scrollingTo !== null) return;
+              const currentIndex = screens.findIndex(s => s.id === activeId);
+              if (currentIndex < screens.length - 1) {
+                const nextId = screens[currentIndex + 1].id;
+                scrollToScreen(nextId);
+              }
+            }}
+            disabled={activeId === screens[screens.length - 1]?.id || scrollingTo !== null}
+            title="Next Screen / 下一屏"
+            className="p-2.5 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 rounded-full backdrop-blur-md text-zinc-300 hover:text-white transition-all cursor-pointer shadow-lg disabled:opacity-30 disabled:pointer-events-none active:scale-90"
+          >
+            <ChevronDown className="w-4 h-4" />
+          </button>
         </div>
-
-        {/* Up/Prev Button */}
-        <button 
-          onClick={() => {
-            if (scrollingTo !== null) return;
-            const currentIndex = screens.findIndex(s => s.id === activeId);
-            if (currentIndex > 0) {
-              const prevId = screens[currentIndex - 1].id;
-              scrollToScreen(prevId);
-            }
-          }}
-          disabled={activeId === screens[0]?.id || scrollingTo !== null}
-          title="Previous Screen / 上一屏"
-          className="p-2.5 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 rounded-full backdrop-blur-md text-zinc-300 hover:text-white transition-all cursor-pointer shadow-lg disabled:opacity-30 disabled:pointer-events-none active:scale-90"
-        >
-          <ChevronUp className="w-4 h-4" />
-        </button>
-
-        {/* Down/Next Button */}
-        <button 
-          onClick={() => {
-            if (scrollingTo !== null) return;
-            const currentIndex = screens.findIndex(s => s.id === activeId);
-            if (currentIndex < screens.length - 1) {
-              const nextId = screens[currentIndex + 1].id;
-              scrollToScreen(nextId);
-            }
-          }}
-          disabled={activeId === screens[screens.length - 1]?.id || scrollingTo !== null}
-          title="Next Screen / 下一屏"
-          className="p-2.5 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 rounded-full backdrop-blur-md text-zinc-300 hover:text-white transition-all cursor-pointer shadow-lg disabled:opacity-30 disabled:pointer-events-none active:scale-90"
-        >
-          <ChevronDown className="w-4 h-4" />
-        </button>
-      </div>
+      )}
 
       {/* Developer Settings Control Panel (Only visible in DEV, draggable, clean and elegant) */}
       {!isMobile && (

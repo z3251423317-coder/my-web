@@ -45,6 +45,31 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
+  const fs = await import("fs");
+  const configPath = path.join(process.cwd(), "user_data.json");
+
+  app.get("/api/config", (req, res) => {
+    try {
+      if (fs.existsSync(configPath)) {
+        const data = fs.readFileSync(configPath, "utf8");
+        res.json(JSON.parse(data));
+      } else {
+        res.status(404).json({ error: "Config not found" });
+      }
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/config", (req, res) => {
+    try {
+      fs.writeFileSync(configPath, JSON.stringify(req.body, null, 2), "utf8");
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

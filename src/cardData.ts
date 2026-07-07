@@ -72,15 +72,30 @@ export const DEFAULT_QUANTUM_CARDS: MarqueeCard[] = [
 export const DEFAULT_MARQUEE_CARDS: MarqueeCard[] = [
   {
     "id": 1,
-    "title": "我的图",
+    "title": "化工厂规划局",
     "cat": "HARDWARE ENGINE",
     "desc": "Automated drift correction module optimizing microwave pulses.",
     "url": "",
-    "colorType": "indigo"
+    "colorType": "indigo",
+    "isEncrypted": true,
+    "password": "1111",
+    "audioModules": [
+      {
+        "id": "mod-1783356448860",
+        "name": "1111",
+        "audioUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%BD%95%E9%9F%B3%E6%96%87%E4%BB%B6/%E6%9C%B1%E8%B4%B5%E5%93%B2/26.07.01.mp3",
+        "duration": "02:30",
+        "rating": 5,
+        "status": "启用",
+        "createdAt": "2026年7月7日 上午12:47:28",
+        "updatedAt": "2026年7月7日 上午12:47:28",
+        "user": "管理员"
+      }
+    ]
   },
   {
     "id": 2,
-    "title": "一",
+    "title": "附件一",
     "cat": "METRIC ANALYZIS",
     "desc": "High-density scintillation tracking mapping background radiation.",
     "url": "",
@@ -88,7 +103,7 @@ export const DEFAULT_MARQUEE_CARDS: MarqueeCard[] = [
   },
   {
     "id": 3,
-    "title": "二得体",
+    "title": "价格库",
     "cat": "OPTIMIZER",
     "desc": "Parallel graph perfect matcher solving threshold parameters.",
     "url": "",

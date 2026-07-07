@@ -1,0 +1,474 @@
+{
+  "version": "1.0_master",
+  "timestamp": "2026-07-07T12:51:47.224Z",
+  "screens": [
+    {
+      "id": 1,
+      "label": "01. Title Hero",
+      "title": "塑造",
+      "subtitle": "我不在执迷寻找\n我是谁由我自己塑造",
+      "description": "A state-of-the-art recurrent, transformer-based neural network model that learns to decode surface code errors with unprecedented reliability on real quantum processors.",
+      "bgType": "video",
+      "bgUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%8F%91%E7%8E%B0%E6%9B%B4%E5%A4%9A%E7%B2%BE%E5%BD%A9%E8%A7%86%E9%A2%91%20-%20%E6%8A%96%E9%9F%B3%E6%90%9C%E7%B4%A2.mp4",
+      "bgTypeMobile": "video",
+      "bgUrlMobile": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E4%B8%80%E8%84%9A%E8%B8%A9%E5%88%B0%E6%B0%B4%E5%9D%91%E9%87%8C%E7%9A%84%E6%8A%96%E9%9F%B3%20-%20%E6%8A%96%E9%9F%B3.mp4",
+      "overlayOpacity": 45,
+      "overlayBlur": 0,
+      "tintColor": "slate",
+      "align": "left",
+      "ctaText": "Discover the Science",
+      "ctaUrl": "#screen-2",
+      "bgMusicUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    },
+    {
+      "id": 2,
+      "label": "02. Relationship Ecology",
+      "title": "甘露与苦药：亲密关系生态解析",
+      "subtitle": "论不合适背后亲密关系中情感供需的结构性失衡 (WXJB-2663-001)",
+      "description": "点击下方按钮，进入专门为您构建的情感特征失衡解析看板。深度剖析付出者与接受者之间单向情感输出与接收的结构性逆差，将爱之“甘露”化作解构彼此亲密关系的微观密钥。",
+      "bgType": "gradient",
+      "bgUrl": "linear-gradient(to right, #0f172a, #050b14)",
+      "bgTypeMobile": "video",
+      "bgUrlMobile": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/2.mp4",
+      "bgOpacity": 55,
+      "overlayOpacity": 20,
+      "overlayBlur": 0,
+      "tintColor": "none",
+      "align": "left",
+      "ctaText": "进入情感供需看板 / DECODE NOW",
+      "ctaUrl": "#screen-3",
+      "bgMusicUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    },
+    {
+      "id": 3,
+      "label": "03. Recursive Brain",
+      "title": "无限进步",
+      "subtitle": "Parsing complex spatial & temporal error clusters",
+      "description": "以矛盾观审视生活，用实践完成自我迭代",
+      "bgType": "video",
+      "bgUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E4%B8%80%E8%84%9A%E8%B8%A9%E5%88%B0%E6%B0%B4%E5%9D%91%E9%87%8C%E7%9A%84%E6%8A%96%E9%9F%B3%20-%20%E6%8A%96%E9%9F%B3.mp4",
+      "bgTypeMobile": "video",
+      "bgUrlMobile": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E4%B8%89%E5%B1%8F%E7%A7%BB%E5%8A%A8%E7%AB%AF.mp4",
+      "overlayOpacity": 70,
+      "overlayBlur": 3,
+      "tintColor": "indigo",
+      "align": "right",
+      "ctaText": "Explore Architecture",
+      "ctaUrl": "#screen-4",
+      "bgMusicUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    },
+    {
+      "id": 4,
+      "label": "04. Benchmarks",
+      "title": "Empirical Precision Gains",
+      "subtitle": "Lower logical error rates across code distances",
+      "description": "AlphaQubit outscores modern industry-standard algorithms, like Minimum-Weight Perfect Matching (MWPM), on all standard scales. Click the dynamic distances (3, 5, or 11) to study absolute error decay.",
+      "bgType": "image",
+      "bgUrl": "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=2000&auto=format&fit=crop",
+      "overlayOpacity": 40,
+      "overlayBlur": 0,
+      "tintColor": "none",
+      "align": "center",
+      "ctaText": "See Live Data Sheets",
+      "ctaUrl": "#screen-5"
+    },
+    {
+      "id": 5,
+      "label": "05. Hardware Lab",
+      "title": "Deep In-Processor Trial",
+      "subtitle": "Sycamore Superconducting Processor Deployment",
+      "description": "We validate our model against real physical data generated directly on Google's Sycamore quantum computer, yielding pristine predictions even on highly complex, asymmetric error signals.",
+      "bgType": "image",
+      "bgUrl": "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=2000&auto=format&fit=crop",
+      "overlayOpacity": 50,
+      "overlayBlur": 0,
+      "tintColor": "none",
+      "align": "left",
+      "ctaText": "Hardware Specs",
+      "ctaUrl": "#screen-6"
+    },
+    {
+      "id": 6,
+      "label": "06. Interactive Trial Deck",
+      "title": "Sycamore Syndrome Diagnostic Suite",
+      "subtitle": "Real-time spatial error patterns and physical latency metrics",
+      "description": "Click any card in the continuous right-to-left feed to lock onto the signal, analyze real-time spatial error patterns, and review physical latency metrics.",
+      "bgType": "image",
+      "bgUrl": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=2000",
+      "overlayOpacity": 30,
+      "overlayBlur": 0,
+      "tintColor": "none",
+      "align": "center",
+      "ctaText": "Launch Diagnostics",
+      "ctaUrl": "#screen-7"
+    },
+    {
+      "id": 7,
+      "label": "07. Global Roadmap",
+      "title": "Evolution of Quantum Systems",
+      "subtitle": "Timeline of the fault-tolerance horizon",
+      "description": "Our blueprint stretches over key functional eras—from initial noisy hardware calibration (Phase 1) to scalable error correction (Phase 3) and full multi-thousand physical cubyte computational systems (Phase 4).",
+      "bgType": "image",
+      "bgUrl": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2000",
+      "overlayOpacity": 75,
+      "overlayBlur": 1,
+      "tintColor": "slate",
+      "align": "center",
+      "ctaText": "Join Team Pathway",
+      "ctaUrl": "#screen-8"
+    },
+    {
+      "id": 8,
+      "label": "08. Perspective",
+      "title": "Revolutionary Foundations",
+      "subtitle": "The word from our leadership team",
+      "description": "By utilizing direct machine-learned patterns over simulated templates, we break past theoretical algorithm boundaries, making physical quantum computers appear substantially cleaner than their physical components indicate.",
+      "bgType": "image",
+      "bgUrl": "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2000&auto=format&fit=crop",
+      "overlayOpacity": 80,
+      "overlayBlur": 2,
+      "tintColor": "gold",
+      "align": "left",
+      "ctaText": "Read Joint Publication",
+      "ctaUrl": "#screen-9"
+    },
+    {
+      "id": 9,
+      "label": "09. Access Point",
+      "title": "Connect with AlphaQubit",
+      "subtitle": "Enter the fault-tolerant era today",
+      "description": "Be the first to access our open-source research code pipelines, test your customs models, or initiate corporate research partnerships with our high-performance simulation grid.",
+      "bgType": "image",
+      "bgUrl": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=2000",
+      "overlayOpacity": 65,
+      "overlayBlur": 4,
+      "tintColor": "slate",
+      "align": "center",
+      "ctaText": "Subscribe to Bulletins",
+      "ctaUrl": "#"
+    }
+  ],
+  "pillNavItems": [
+    {
+      "label": "首页",
+      "href": "#screen-1"
+    },
+    {
+      "label": "无限进步",
+      "href": "#screen-3"
+    },
+    {
+      "label": "建设中",
+      "href": "#screen-5"
+    },
+    {
+      "label": "建设中",
+      "href": "#screen-6"
+    },
+    {
+      "label": "建设中",
+      "href": "#screen-7"
+    }
+  ],
+  "marqueeCards": [
+    {
+      "id": 1,
+      "title": "化工厂规划局",
+      "cat": "HARDWARE ENGINE",
+      "desc": "Automated drift correction module optimizing microwave pulses.",
+      "url": "",
+      "colorType": "indigo",
+      "isEncrypted": true,
+      "password": "1111",
+      "audioModules": [
+        {
+          "id": "mod-1783356448860",
+          "name": "1111",
+          "audioUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%BD%95%E9%9F%B3%E6%96%87%E4%BB%B6/%E6%9C%B1%E8%B4%B5%E5%93%B2/26.07.01.mp3",
+          "duration": "02:30",
+          "rating": 5,
+          "status": "启用",
+          "createdAt": "2026年7月7日 上午12:47:28",
+          "updatedAt": "2026年7月7日 上午12:47:28",
+          "user": "管理员"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "附件一",
+      "cat": "METRIC ANALYZIS",
+      "desc": "High-density scintillation tracking mapping background radiation.",
+      "url": "",
+      "colorType": "rose"
+    },
+    {
+      "id": 3,
+      "title": "价格库",
+      "cat": "OPTIMIZER",
+      "desc": "Parallel graph perfect matcher solving threshold parameters.",
+      "url": "",
+      "colorType": "amber"
+    }
+  ],
+  "sphereCards": [
+    {
+      "id": 1,
+      "title": "化工厂规划局",
+      "cat": "HARDWARE ENGINE",
+      "desc": "Automated drift correction module optimizing microwave pulses.",
+      "url": "",
+      "colorType": "indigo",
+      "isEncrypted": true,
+      "password": "1111",
+      "audioModules": [
+        {
+          "id": "mod-1783356448860",
+          "name": "1111",
+          "audioUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%BD%95%E9%9F%B3%E6%96%87%E4%BB%B6/%E6%9C%B1%E8%B4%B5%E5%93%B2/26.07.01.mp3",
+          "duration": "02:30",
+          "rating": 5,
+          "status": "启用",
+          "createdAt": "2026年7月7日 上午12:47:28",
+          "updatedAt": "2026年7月7日 上午12:47:28",
+          "user": "管理员"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "附件一",
+      "cat": "METRIC ANALYZIS",
+      "desc": "High-density scintillation tracking mapping background radiation.",
+      "url": "",
+      "colorType": "rose"
+    },
+    {
+      "id": 3,
+      "title": "价格库",
+      "cat": "OPTIMIZER",
+      "desc": "Parallel graph perfect matcher solving threshold parameters.",
+      "url": "",
+      "colorType": "amber"
+    }
+  ],
+  "domeCards": [
+    {
+      "id": 1,
+      "title": "就哭敷一敷",
+      "cat": "HARDWARE ENGINE",
+      "desc": "Automated drift correction module optimizing microwave pulses.",
+      "url": "",
+      "colorType": "indigo"
+    },
+    {
+      "id": 2,
+      "title": " 明白健不健康",
+      "cat": "METRIC ANALYZIS",
+      "desc": "High-density scintillation tracking mapping background radiation.",
+      "url": "",
+      "colorType": "rose"
+    }
+  ],
+  "trialCards": [
+    {
+      "id": 1,
+      "title": "每日打卡（个人篇）",
+      "cat": "HARDWARE ENGINE",
+      "desc": "Automated drift correction module optimizing microwave pulses.",
+      "url": "",
+      "colorType": "indigo",
+      "audioModules": [
+        {
+          "id": "mod-1783428155417",
+          "name": "26.07.01",
+          "audioUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%BD%95%E9%9F%B3%E6%96%87%E4%BB%B6/%E6%9C%B1%E8%B4%B5%E5%93%B2/26.07.01.mp3",
+          "duration": "",
+          "rating": 1,
+          "status": "启用",
+          "createdAt": "2026年7月7日 下午8:42:35",
+          "updatedAt": "2026年7月7日 下午8:42:35",
+          "user": "管理员"
+        },
+        {
+          "id": "mod-1783428178616",
+          "name": "26.07.02",
+          "audioUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%BD%95%E9%9F%B3%E6%96%87%E4%BB%B6/%E6%9C%B1%E8%B4%B5%E5%93%B2/26.07.02.MP3",
+          "duration": "",
+          "rating": 1,
+          "status": "启用",
+          "createdAt": "2026年7月7日 下午8:42:58",
+          "updatedAt": "2026年7月7日 下午8:42:58",
+          "user": "管理员"
+        },
+        {
+          "id": "mod-1783428191460",
+          "name": "26.07.03",
+          "audioUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%BD%95%E9%9F%B3%E6%96%87%E4%BB%B6/%E6%9C%B1%E8%B4%B5%E5%93%B2/26.07.03.m4a",
+          "duration": "",
+          "rating": 1,
+          "status": "启用",
+          "createdAt": "2026年7月7日 下午8:43:11",
+          "updatedAt": "2026年7月7日 下午8:43:11",
+          "user": "管理员"
+        },
+        {
+          "id": "mod-1783428205461",
+          "name": "26.07.04",
+          "audioUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%BD%95%E9%9F%B3%E6%96%87%E4%BB%B6/%E6%9C%B1%E8%B4%B5%E5%93%B2/26.07.04.m4a",
+          "duration": "",
+          "rating": 1,
+          "status": "启用",
+          "createdAt": "2026年7月7日 下午8:43:25",
+          "updatedAt": "2026年7月7日 下午8:43:25",
+          "user": "管理员"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "每日打卡（小爽篇）",
+      "cat": "METRIC ANALYZIS",
+      "desc": "High-density scintillation tracking mapping background radiation.",
+      "url": "",
+      "colorType": "rose",
+      "isEncrypted": true,
+      "password": "0613",
+      "audioModules": [
+        {
+          "id": "mod-1783428249905",
+          "name": "26.07.01",
+          "audioUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%BD%95%E9%9F%B3%E6%96%87%E4%BB%B6/%E7%8E%8B%E7%85%9C%E7%88%BD/26.7.1.m4a",
+          "duration": "",
+          "rating": 1,
+          "status": "启用",
+          "createdAt": "2026年7月7日 下午8:44:09",
+          "updatedAt": "2026年7月7日 下午8:44:09",
+          "user": "管理员"
+        },
+        {
+          "id": "mod-1783428280477",
+          "name": "26.07.02",
+          "audioUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%BD%95%E9%9F%B3%E6%96%87%E4%BB%B6/%E7%8E%8B%E7%85%9C%E7%88%BD/26.7.2.m4a",
+          "duration": "",
+          "rating": 1,
+          "status": "启用",
+          "createdAt": "2026年7月7日 下午8:44:40",
+          "updatedAt": "2026年7月7日 下午8:44:40",
+          "user": "管理员"
+        },
+        {
+          "id": "mod-1783428301797",
+          "name": "26.07.03",
+          "audioUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%BD%95%E9%9F%B3%E6%96%87%E4%BB%B6/%E7%8E%8B%E7%85%9C%E7%88%BD/26.7.3.MP3",
+          "duration": "",
+          "rating": 1,
+          "status": "启用",
+          "createdAt": "2026年7月7日 下午8:45:01",
+          "updatedAt": "2026年7月7日 下午8:45:01",
+          "user": "管理员"
+        },
+        {
+          "id": "mod-1783428381669",
+          "name": "26.07.05",
+          "audioUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%BD%95%E9%9F%B3%E6%96%87%E4%BB%B6/%E7%8E%8B%E7%85%9C%E7%88%BD/26.7.5.m4a",
+          "duration": "",
+          "rating": 1,
+          "status": "启用",
+          "createdAt": "2026年7月7日 下午8:46:21",
+          "updatedAt": "2026年7月7日 下午8:46:21",
+          "user": "管理员"
+        },
+        {
+          "id": "mod-1783428403294",
+          "name": "26.07.06",
+          "audioUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%BD%95%E9%9F%B3%E6%96%87%E4%BB%B6/%E7%8E%8B%E7%85%9C%E7%88%BD/26.7.6.m4a",
+          "duration": "",
+          "rating": 1,
+          "status": "启用",
+          "createdAt": "2026年7月7日 下午8:46:43",
+          "updatedAt": "2026年7月7日 下午8:46:43",
+          "user": "管理员"
+        }
+      ]
+    }
+  ],
+  "relationshipCards": [
+    {
+      "id": "rel-1783398268342",
+      "title": "哈哈哈",
+      "cat": "自定义分析 / Custom",
+      "desc": "自定义创建的情感供需分析卡片。",
+      "imageUrl": "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop",
+      "pdfUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/1.%E6%AD%A4%E4%B8%BA%E7%94%98%E9%A5%B4%EF%BC%8C%E5%BD%BC%E4%B9%8B%E8%8B%A6%E8%8D%AF%E2%80%94%E2%80%94%E2%80%94%E8%AE%BA%E4%B8%8D%E5%90%88%E9%80%82%E7%9A%84%E8%83%8C%E5%90%8E%E4%BA%B2%E5%AF%86%E5%85%B3%E7%B3%BB%E4%B8%AD%E6%83%85%E6%84%9F%E4%BE%9B%E9%9C%80%E7%9A%84%E7%BB%93%E6%9E%84%E6%80%A7%E5%A4%B1%E8%A1%A1%EF%BC%88WXJB-2663-001%EF%BC%89.pdf",
+      "pdfPageImages": [
+        "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop"
+      ],
+      "imbalanceScore": 50,
+      "notes": "可编辑深度论文研读笔记或分析心得...",
+      "lastUpdated": "2026-07-07 04:24"
+    },
+    {
+      "id": "rel-1783398259726",
+      "title": "测试",
+      "cat": "自定义分析 / Custom",
+      "desc": "自定义创建的情感供需分析卡片。",
+      "imageUrl": "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop",
+      "pdfUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/1.%E6%AD%A4%E4%B8%BA%E7%94%98%E9%A5%B4%EF%BC%8C%E5%BD%BC%E4%B9%8B%E8%8B%A6%E8%8D%AF%E2%80%94%E2%80%94%E2%80%94%E8%AE%BA%E4%B8%8D%E5%90%88%E9%80%82%E7%9A%84%E8%83%8C%E5%90%8E%E4%BA%B2%E5%AF%86%E5%85%B3%E7%B3%BB%E4%B8%AD%E6%83%85%E6%84%9F%E4%BE%9B%E9%9C%80%E7%9A%84%E7%BB%93%E6%9E%84%E6%80%A7%E5%A4%B1%E8%A1%A1%EF%BC%88WXJB-2663-001%EF%BC%89.pdf",
+      "pdfPageImages": [
+        "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop"
+      ],
+      "imbalanceScore": 50,
+      "notes": "可编辑深度论文研读笔记或分析心得...",
+      "lastUpdated": "2026-07-07 04:24"
+    },
+    {
+      "id": "rel-1783354475690",
+      "title": "2.基于日常吵架原因与深度聊天之间的几种可能性研究（WXJB-2668-002）",
+      "cat": "自定义分析 / Custom",
+      "desc": "自定义创建的情感供需分析卡片。",
+      "imageUrl": "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop",
+      "pdfUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E6%9E%84%E7%9F%B3%E6%96%87%E6%A1%A3/2.%E5%9F%BA%E4%BA%8E%E6%97%A5%E5%B8%B8%E5%90%B5%E6%9E%B6%E5%8E%9F%E5%9B%A0%E4%B8%8E%E6%B7%B1%E5%BA%A6%E8%81%8A%E5%A4%A9%E4%B9%8B%E9%97%B4%E7%9A%84%E5%87%A0%E7%A7%8D%E5%8F%AF%E8%83%BD%E6%80%A7%E7%A0%94%E7%A9%B6%EF%BC%88WXJB-2668-002%EF%BC%89.pdf",
+      "pdfPageImages": [
+        "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop"
+      ],
+      "imbalanceScore": 50,
+      "notes": "可编辑深度论文研读笔记或分析心得...",
+      "lastUpdated": "2026-07-06 16:14",
+      "audioModules": [],
+      "colorType": "indigo"
+    },
+    {
+      "id": "rel-1783354155744",
+      "title": "1.此为甘饴，彼之苦药——论不合适的背后亲密关系中情感供需的结构性失衡（WXJB-2663-001）",
+      "cat": "自定义分析 / Custom",
+      "desc": "自定义创建的情感供需分析卡片。",
+      "imageUrl": "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop",
+      "pdfUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E6%9E%84%E7%9F%B3%E6%96%87%E6%A1%A3/1.%E6%AD%A4%E4%B8%BA%E7%94%98%E9%A5%B4%EF%BC%8C%E5%BD%BC%E4%B9%8B%E8%8B%A6%E8%8D%AF%E2%80%94%E2%80%94%E8%AE%BA%E4%B8%8D%E5%90%88%E9%80%82%E7%9A%84%E8%83%8C%E5%90%8E%E4%BA%B2%E5%AF%86%E5%85%B3%E7%B3%BB%E4%B8%AD%E6%83%85%E6%84%9F%E4%BE%9B%E9%9C%80%E7%9A%84%E7%BB%93%E6%9E%84%E6%80%A7%E5%A4%B1%E8%A1%A1%EF%BC%88WXJB-2663-001%EF%BC%89.pdf",
+      "pdfPageImages": [
+        "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop"
+      ],
+      "imbalanceScore": 50,
+      "notes": "可编辑深度论文研读笔记或分析心得...",
+      "lastUpdated": "2026-07-06 16:09",
+      "audioModules": [
+        {
+          "id": "mod-1783061786526",
+          "name": "11",
+          "audioUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%BD%95%E9%9F%B3%E6%96%87%E4%BB%B6/%E6%9C%B1%E8%B4%B5%E5%93%B2/26.07.01.mp3",
+          "duration": "02:30",
+          "rating": 5,
+          "status": "启用",
+          "createdAt": "2026年7月3日 下午2:56:26",
+          "updatedAt": "2026年7月3日 下午2:56:26",
+          "user": "管理员"
+        }
+      ],
+      "colorType": "emerald"
+    }
+  ]
+}
