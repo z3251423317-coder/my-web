@@ -3,6 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/* =================================================================================
+ * ■ SECTION 1: IMPORTS & THIRD-PARTY LIBRARIES
+ * ================================================================================= */
+
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HeroScene, QuantumComputerScene } from './components/QuantumScene';
@@ -31,6 +35,10 @@ import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import defaultUserData from './user_data.json';
 
 import { DEFAULT_MARQUEE_CARDS, DEFAULT_QUANTUM_CARDS, DEFAULT_DOME_CARDS, MarqueeCard } from './src/cardData';
+
+/* =================================================================================
+ * ■ SECTION 2: CONSTANTS, DEFAULT CONFIGURATIONS & COMPONENT SCHEMAS
+ * ================================================================================= */
 
 const getCardColorAndIcon = (colorType: string = "blue") => {
   switch (colorType.toLowerCase()) {
@@ -417,6 +425,10 @@ const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style }) => {
 
 const DEFAULT_DATA_FINGERPRINT = "fp_v23_" + JSON.stringify(DEFAULT_MARQUEE_CARDS).length + "_" + JSON.stringify(DEFAULT_SCREENS).length + "_" + JSON.stringify(DEFAULT_QUANTUM_CARDS).length;
 
+/* =================================================================================
+ * ■ SECTION 3: CORE REACT COMPONENT & ROOT STATES
+ * ================================================================================= */
+
 const App: React.FC = () => {
   // Clear localStorage if code-defined defaults change to solve stale data issues from the root
   if (typeof window !== "undefined") {
@@ -456,9 +468,13 @@ const App: React.FC = () => {
 
   const loadConfigRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
+  /* =================================================================================
+   * ■ SECTION 4: FIREBASE SYNC ENGINE & AUTO-INITIALIZATION
+   * ================================================================================= */
+
   useEffect(() => {
     let isMounted = true;
-    let unsubFirestore: (() => void) | null = null;
+    let lastTimestamp = "";
 
     const load = async (manual = false) => {
       if (manual && isMounted) setIsRetryingDb(true);
@@ -469,43 +485,14 @@ const App: React.FC = () => {
           if (contentType.includes('application/json')) {
             const data = await res.json();
             if (!isMounted) return;
+            
             setDbConnected(true);
             setIsDbEmpty(false);
             setDbErrorMsg("");
-            if (data.screens) setScreens(data.screens);
-            if (data.pillNavItems) setPillNavItems(data.pillNavItems);
-            if (data.marqueeCards) setMarqueeCards(data.marqueeCards);
-            if (data.sphereCards) setSphereCards(data.sphereCards);
-            if (data.domeCards) setDomeCards(data.domeCards);
-            if (data.trialCards) setTrialCards(data.trialCards);
-            if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
-            if (isMounted) {
-              setConfigLoaded(true);
-              setIsRetryingDb(false);
-            }
-            return; // Success, we don't need direct Firestore fallback!
-          }
-        }
-        throw new Error("Proxy API /api/config returned invalid content-type / not OK");
-      } catch (err: any) {
-        console.warn("API Proxy '/api/config' failed or returned non-JSON, trying direct Firestore connection...", err);
-        
-        if (!isMounted) return;
 
-        // If direct subscription is already established, don't re-create it
-        if (unsubFirestore) {
-          if (isMounted) setIsRetryingDb(false);
-          return;
-        }
-
-        try {
-          unsubFirestore = onSnapshot(doc(db, 'app_config', 'master'), (docSnap) => {
-            if (!isMounted) return;
-            if (docSnap.exists()) {
-              const data = docSnap.data();
-              setDbConnected(true);
-              setIsDbEmpty(false);
-              setDbErrorMsg("");
+            // Only update the state if the timestamp is different or it's a manual reload
+            if (data.timestamp !== lastTimestamp || manual) {
+              lastTimestamp = data.timestamp || "";
               if (data.screens) setScreens(data.screens);
               if (data.pillNavItems) setPillNavItems(data.pillNavItems);
               if (data.marqueeCards) setMarqueeCards(data.marqueeCards);
@@ -513,79 +500,57 @@ const App: React.FC = () => {
               if (data.domeCards) setDomeCards(data.domeCards);
               if (data.trialCards) setTrialCards(data.trialCards);
               if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
-            } else {
-              setDbConnected(true); // Connected but configuration document is missing
-              setIsDbEmpty(true);
-              setDbErrorMsg("No config document found at 'app_config/master'. 正在为您自动初始化云端默认数据...");
-              
-              // Automatically write local default data to Firebase Firestore
-              setDoc(doc(db, "app_config", "master"), defaultUserData)
-                .then(() => {
-                  console.log("Firestore successfully auto-seeded with default configuration.");
-                  setIsDbEmpty(false);
-                })
-                .catch((err) => {
-                  console.error("Failed to auto-seed Firestore config:", err);
-                });
-
-              // Fallback to local default data so the site works immediately!
-              const fallback = defaultUserData as any;
-              if (fallback.screens) setScreens(fallback.screens);
-              if (fallback.pillNavItems) setPillNavItems(fallback.pillNavItems);
-              if (fallback.marqueeCards) setMarqueeCards(fallback.marqueeCards);
-              if (fallback.sphereCards) setSphereCards(fallback.sphereCards);
-              if (fallback.domeCards) setDomeCards(fallback.domeCards);
-              if (fallback.trialCards) setTrialCards(fallback.trialCards);
-              if (fallback.relationshipCards) setRelationshipCards(fallback.relationshipCards);
             }
-            setConfigLoaded(true);
-            setIsRetryingDb(false);
-          }, (firestoreErr) => {
-            console.error("Direct Firestore subscription error:", firestoreErr);
+            
             if (isMounted) {
-              setDbConnected(false);
-              setIsDbEmpty(false);
-              setDbErrorMsg(firestoreErr.message || String(firestoreErr));
               setConfigLoaded(true);
               setIsRetryingDb(false);
             }
-          });
-        } catch (fErr: any) {
-          console.error("Direct Firestore initialization failed:", fErr);
-          if (isMounted) {
-            setDbConnected(false);
-            setIsDbEmpty(false);
-            setDbErrorMsg(fErr.message || String(fErr));
-            setConfigLoaded(true);
-            setIsRetryingDb(false);
+            return;
           }
+        }
+        throw new Error("Proxy API /api/config returned invalid content-type / not OK");
+      } catch (err: any) {
+        console.warn("API Proxy '/api/config' failed, falling back to local defaults...", err);
+        
+        if (!isMounted) return;
+        
+        // Show offline fallback info if we have never loaded anything successfully
+        if (!lastTimestamp) {
+          const fallback = defaultUserData as any;
+          if (fallback.screens) setScreens(fallback.screens);
+          if (fallback.pillNavItems) setPillNavItems(fallback.pillNavItems);
+          if (fallback.marqueeCards) setMarqueeCards(fallback.marqueeCards);
+          if (fallback.sphereCards) setSphereCards(fallback.sphereCards);
+          if (fallback.domeCards) setDomeCards(fallback.domeCards);
+          if (fallback.trialCards) setTrialCards(fallback.trialCards);
+          if (fallback.relationshipCards) setRelationshipCards(fallback.relationshipCards);
+          
+          setDbConnected(false);
+          setDbErrorMsg("网络请求失败，正在加载离线配置缓存。请检查您的连接！");
+          setConfigLoaded(true);
+        }
+        if (isMounted) {
+          setIsRetryingDb(false);
         }
       }
     };
 
     loadConfigRef.current = () => {
-      // Manual retry: clean up old firestore subscription first to force a fresh test
-      if (unsubFirestore) {
-        unsubFirestore();
-        unsubFirestore = null;
-      }
       return load(true);
     };
 
+    // Initial load
     load();
+    
+    // Poll every 3 seconds to get seamless real-time updates!
     const interval = setInterval(() => {
-      // Periodically attempt to refresh via proxy only if direct snapshot isn't listening or active
-      if (!unsubFirestore) {
-        load();
-      }
-    }, 10000);
+      load();
+    }, 3000);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
-      if (unsubFirestore) {
-        unsubFirestore();
-      }
     };
   }, []);
 
@@ -998,6 +963,10 @@ const App: React.FC = () => {
   useEffect(() => {
     // The copy toast is now manually closed by the user to ensure they have enough time to copy the content.
   }, [copyToast]);
+
+  /* =================================================================================
+   * ■ SECTION 5: CARDS & MODULES DATA MANIPULATION (CRUD ENGINE)
+   * ================================================================================= */
 
   const addMarqueeCard = () => {
     const nextId = marqueeCards.length > 0 ? Math.max(...marqueeCards.map(c => c.id)) + 1 : 1;
@@ -2081,6 +2050,10 @@ const App: React.FC = () => {
     );
   };
 
+  /* =================================================================================
+   * ■ SECTION 6: MAIN LAYOUT, DOM TREE & SCREEN-BY-SCREEN RENDERING
+   * ================================================================================= */
+
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-zinc-950 select-none flex flex-col font-sans">
       {!configLoaded && (
@@ -2203,13 +2176,20 @@ const App: React.FC = () => {
                     onClick={async () => {
                       setIsInitializingDb(true);
                       try {
-                        const { doc, setDoc } = await import('firebase/firestore');
-                        await setDoc(doc(db, "app_config", "master"), defaultUserData);
-                        setIsDbEmpty(false);
-                        if (loadConfigRef.current) {
-                          await loadConfigRef.current();
+                        const res = await fetch('/api/config', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(defaultUserData)
+                        });
+                        if (res.ok) {
+                          setIsDbEmpty(false);
+                          if (loadConfigRef.current) {
+                            await loadConfigRef.current();
+                          }
+                          alert("数据库初始化成功！所有页面数据已成功写入并同步至您的云端 Firestore。");
+                        } else {
+                          throw new Error("接口返回状态码: " + res.status);
                         }
-                        alert("数据库初始化成功！所有页面数据已成功写入并同步至您的云端 Firestore。");
                       } catch (err: any) {
                         console.error("Failed to initialize database:", err);
                         alert("初始化失败: " + (err.message || String(err)));
@@ -3241,6 +3221,10 @@ const App: React.FC = () => {
           </button>
         ))}
       </div>
+
+      /* =================================================================================
+       * ■ SECTION 7: INTERACTIVE EDITOR FLOATING DRAWERS & MODALS
+       * ================================================================================= */
 
       {/* Interactive Editor Floating Drawer Control Panel */}
       {editorOpen && (
