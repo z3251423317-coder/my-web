@@ -475,61 +475,97 @@ const App: React.FC = () => {
   useEffect(() => {
     let isMounted = true;
     let lastTimestamp = "";
+    let unsubFirestore: (() => void) | null = null;
+    let directFirestoreActive = false;
+
+    const updateConfig = (data: any) => {
+      if (!isMounted) return;
+      setDbConnected(true);
+      setIsDbEmpty(false);
+      setDbErrorMsg("");
+
+      if (data.timestamp !== lastTimestamp) {
+        lastTimestamp = data.timestamp || "";
+        if (data.screens) setScreens(data.screens);
+        if (data.pillNavItems) setPillNavItems(data.pillNavItems);
+        if (data.marqueeCards) setMarqueeCards(data.marqueeCards);
+        if (data.sphereCards) setSphereCards(data.sphereCards);
+        if (data.domeCards) setDomeCards(data.domeCards);
+        if (data.trialCards) setTrialCards(data.trialCards);
+        if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
+      }
+      setConfigLoaded(true);
+    };
 
     const load = async (manual = false) => {
       if (manual && isMounted) setIsRetryingDb(true);
+
+      // If direct Firestore listener is already active and push-updating, we don't need the polling fetch
+      if (directFirestoreActive && !manual) {
+        if (isMounted) setIsRetryingDb(false);
+        return;
+      }
+
       try {
         const res = await fetch('/api/config');
         if (res.ok) {
           const contentType = res.headers.get('content-type') || '';
           if (contentType.includes('application/json')) {
             const data = await res.json();
-            if (!isMounted) return;
-            
-            setDbConnected(true);
-            setIsDbEmpty(false);
-            setDbErrorMsg("");
-
-            // Only update the state if the timestamp is different or it's a manual reload
-            if (data.timestamp !== lastTimestamp || manual) {
-              lastTimestamp = data.timestamp || "";
-              if (data.screens) setScreens(data.screens);
-              if (data.pillNavItems) setPillNavItems(data.pillNavItems);
-              if (data.marqueeCards) setMarqueeCards(data.marqueeCards);
-              if (data.sphereCards) setSphereCards(data.sphereCards);
-              if (data.domeCards) setDomeCards(data.domeCards);
-              if (data.trialCards) setTrialCards(data.trialCards);
-              if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
-            }
-            
-            if (isMounted) {
-              setConfigLoaded(true);
-              setIsRetryingDb(false);
-            }
+            updateConfig(data);
+            if (isMounted) setIsRetryingDb(false);
             return;
           }
         }
         throw new Error("Proxy API /api/config returned invalid content-type / not OK");
       } catch (err: any) {
-        console.warn("API Proxy '/api/config' failed, falling back to local defaults...", err);
+        console.warn("API Proxy '/api/config' failed, trying direct Firestore listener...", err);
         
         if (!isMounted) return;
-        
-        // Show offline fallback info if we have never loaded anything successfully
-        if (!lastTimestamp) {
-          const fallback = defaultUserData as any;
-          if (fallback.screens) setScreens(fallback.screens);
-          if (fallback.pillNavItems) setPillNavItems(fallback.pillNavItems);
-          if (fallback.marqueeCards) setMarqueeCards(fallback.marqueeCards);
-          if (fallback.sphereCards) setSphereCards(fallback.sphereCards);
-          if (fallback.domeCards) setDomeCards(fallback.domeCards);
-          if (fallback.trialCards) setTrialCards(fallback.trialCards);
-          if (fallback.relationshipCards) setRelationshipCards(fallback.relationshipCards);
-          
-          setDbConnected(false);
-          setDbErrorMsg("网络请求失败，正在加载离线配置缓存。请检查您的连接！");
-          setConfigLoaded(true);
+
+        // Try direct Firestore connection if proxy is not working (e.g. running statically on Cloudflare Pages)
+        if (!unsubFirestore) {
+          try {
+            unsubFirestore = onSnapshot(doc(db, 'app_config', 'master'), (docSnap) => {
+              if (!isMounted) return;
+              if (docSnap.exists()) {
+                directFirestoreActive = true;
+                updateConfig(docSnap.data());
+              } else {
+                setIsDbEmpty(true);
+                updateConfig(defaultUserData);
+                setDoc(doc(db, 'app_config', 'master'), defaultUserData).catch(console.error);
+              }
+              if (isMounted) setIsRetryingDb(false);
+            }, (firestoreErr) => {
+              console.error("Direct Firestore subscription error:", firestoreErr);
+              directFirestoreActive = false;
+              if (isMounted) {
+                setDbConnected(false);
+                setDbErrorMsg("API代理加载失败且无法直接连接云端数据库。若在境内直接访问，请开启 VPN 科学上网以连接 Firestore 云端。");
+                setIsRetryingDb(false);
+                
+                // Fallback to local default data if we haven't successfully loaded anything
+                if (!lastTimestamp) {
+                  updateConfig(defaultUserData);
+                  setDbConnected(false);
+                  setDbErrorMsg("正在使用本地离线数据。若要同步云端，请确保 VPN 已开启且能直连 Firebase。");
+                }
+              }
+            });
+          } catch (fErr: any) {
+            console.error("Direct Firestore subscription init failed:", fErr);
+            directFirestoreActive = false;
+          }
         }
+
+        // Immediate fallback to defaults if we have never successfully loaded any configuration yet
+        if (!lastTimestamp && !directFirestoreActive) {
+          updateConfig(defaultUserData);
+          setDbConnected(false);
+          setDbErrorMsg("云端 API 代理已断开。若使用静态发布环境，请确保您的浏览器已开启 VPN 代理以直连 Firestore 数据库。");
+        }
+        
         if (isMounted) {
           setIsRetryingDb(false);
         }
@@ -537,6 +573,12 @@ const App: React.FC = () => {
     };
 
     loadConfigRef.current = () => {
+      // Force direct Firestore recreation on manual retry if it was in a bad state
+      if (unsubFirestore) {
+        unsubFirestore();
+        unsubFirestore = null;
+      }
+      directFirestoreActive = false;
       return load(true);
     };
 
@@ -551,6 +593,9 @@ const App: React.FC = () => {
     return () => {
       isMounted = false;
       clearInterval(interval);
+      if (unsubFirestore) {
+        unsubFirestore();
+      }
     };
   }, []);
 

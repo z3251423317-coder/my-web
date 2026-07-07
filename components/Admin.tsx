@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { db } from '../firebase-config';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { 
   Layers, Palette, Shield, Zap, ChevronLeft, ChevronRight, HelpCircle, 
   RefreshCw, CheckCircle, Database, AlertCircle, Play, Pause, Save, 
@@ -122,9 +124,23 @@ export default function Admin() {
       }
       throw new Error("Proxy API not available or invalid format");
     } catch (err: any) {
-      console.warn("API proxy load failed, fallback to local defaults...", err);
-      importConfig(defaultUserData);
-      showToast('拉取云端数据失败，已载入本地默认配置缓存。请检查您的网络连接！', 'error');
+      console.warn("API proxy load failed, trying direct Firestore get...", err);
+      try {
+        const docSnap = await getDoc(doc(db, 'app_config', 'master'));
+        if (docSnap.exists()) {
+          importConfig(docSnap.data());
+          showToast('数据载入成功 (直接连接 Firestore)', 'success');
+        } else {
+          // Auto-seed or fallback to defaultUserData
+          importConfig(defaultUserData);
+          showToast('加载了本地默认配置。云端数据为空，已重写为原装配置。', 'info');
+          await setDoc(doc(db, 'app_config', 'master'), defaultUserData);
+        }
+      } catch (fErr: any) {
+        console.error("Direct Firestore load failed:", fErr);
+        importConfig(defaultUserData);
+        showToast('云端拉取失败：未开启 VPN 或后端服务异常，已载入本地默认配置。', 'error');
+      }
       setLoading(false);
     }
   };
@@ -188,8 +204,14 @@ export default function Admin() {
       }
       throw new Error("Proxy API returned error status: " + res.status);
     } catch (proxyErr: any) {
-      console.error("API proxy save failed:", proxyErr);
-      showToast('同步至云端失败: ' + (proxyErr.message || String(proxyErr)), 'error');
+      console.warn("API proxy save failed, trying direct Firestore write...", proxyErr);
+      try {
+        await setDoc(doc(db, 'app_config', 'master'), data);
+        showToast('发布成功！已直接通过 Web 写入云端 Firestore。所有客户端将在 3 秒内自动更新。', 'success');
+      } catch (fWriteErr: any) {
+        console.error("Direct Firestore write failed:", fWriteErr);
+        showToast('发布保存失败: 请检查网络、VPN，或确保后端在线 (' + (fWriteErr.message || String(fWriteErr)) + ')', 'error');
+      }
     }
     setSaving(false);
   };
