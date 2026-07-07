@@ -36,6 +36,19 @@ import defaultUserData from './user_data.json';
 
 import { DEFAULT_MARQUEE_CARDS, DEFAULT_QUANTUM_CARDS, DEFAULT_DOME_CARDS, MarqueeCard } from './src/cardData';
 
+export const getApiUrl = (path: string): string => {
+  // If we are running on localhost:3000 or any .run.app url (development or shared mode), use relative path
+  if (
+    window.location.hostname === 'localhost' || 
+    window.location.hostname.endsWith('.run.app')
+  ) {
+    return path;
+  }
+  // Otherwise, route directly to the Cloud Run server backend so it works seamlessly on external static deployments like Cloudflare Pages!
+  const backendBase = "https://ais-pre-yetfot5czpg4jvijdbagkd-917286201428.asia-east1.run.app";
+  return `${backendBase}${path}`;
+};
+
 /* =================================================================================
  * ■ SECTION 2: CONSTANTS, DEFAULT CONFIGURATIONS & COMPONENT SCHEMAS
  * ================================================================================= */
@@ -507,7 +520,7 @@ const App: React.FC = () => {
       }
 
       try {
-        const res = await fetch('/api/config');
+        const res = await fetch(getApiUrl('/api/config'));
         if (res.ok) {
           const contentType = res.headers.get('content-type') || '';
           if (contentType.includes('application/json')) {
@@ -2194,7 +2207,7 @@ const App: React.FC = () => {
               <div className="flex flex-col gap-1 bg-zinc-950/40 p-2 rounded-lg border border-zinc-850">
                 <span className="text-zinc-400">请求端点:</span>
                 <span className="font-mono text-[10px] text-zinc-300 select-all overflow-x-auto whitespace-nowrap scrollbar-none">
-                  GET {window.location.origin}/api/config
+                  GET {getApiUrl('/api/config')}
                 </span>
               </div>
 
@@ -2221,7 +2234,7 @@ const App: React.FC = () => {
                     onClick={async () => {
                       setIsInitializingDb(true);
                       try {
-                        const res = await fetch('/api/config', {
+                        const res = await fetch(getApiUrl('/api/config'), {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify(defaultUserData)

@@ -9,6 +9,19 @@ import {
 } from 'lucide-react';
 import defaultUserData from '../user_data.json';
 
+const getApiUrl = (path: string): string => {
+  // If we are running on localhost:3000 or any .run.app url (development or shared mode), use relative path
+  if (
+    window.location.hostname === 'localhost' || 
+    window.location.hostname.endsWith('.run.app')
+  ) {
+    return path;
+  }
+  // Otherwise, route directly to the Cloud Run server backend so it works seamlessly on external static deployments like Cloudflare Pages!
+  const backendBase = "https://ais-pre-yetfot5czpg4jvijdbagkd-917286201428.asia-east1.run.app";
+  return `${backendBase}${path}`;
+};
+
 // Define TS interfaces for safety
 interface PillNavItem {
   id: string;
@@ -109,7 +122,7 @@ export default function Admin() {
     setLoading(true);
     setMessage('');
     try {
-      const res = await fetch('/api/config');
+      const res = await fetch(getApiUrl('/api/config'));
       if (res.ok) {
         const contentType = res.headers.get('content-type') || '';
         if (contentType.includes('application/json')) {
@@ -191,7 +204,7 @@ export default function Admin() {
     setSaving(true);
     const data = exportConfig();
     try {
-      const res = await fetch('/api/config', {
+      const res = await fetch(getApiUrl('/api/config'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -483,7 +496,7 @@ export default function Admin() {
                       if (window.confirm("这会直接清除云端并重写本地自带的默认数据配置文件到云端，确定吗？")) {
                         setSaving(true);
                         try {
-                          const res = await fetch('/api/config', {
+                          const res = await fetch(getApiUrl('/api/config'), {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(defaultUserData)
