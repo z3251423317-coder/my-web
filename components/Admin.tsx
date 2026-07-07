@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebase-config';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+
 
 export default function Admin() {
   const [jsonStr, setJsonStr] = useState('');
@@ -8,11 +7,13 @@ export default function Admin() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
+  
   useEffect(() => {
-    getDoc(doc(db, 'app_config', 'master'))
-      .then(docSnap => {
-        if (docSnap.exists()) {
-          setJsonStr(JSON.stringify(docSnap.data(), null, 2));
+    fetch('/api/config')
+      .then(res => res.json())
+      .then(data => {
+        if (data && !data.error) {
+          setJsonStr(JSON.stringify(data, null, 2));
         } else {
           setJsonStr('{\n  "screens": [],\n  "pillNavItems": []\n}');
         }
@@ -25,19 +26,33 @@ export default function Admin() {
       });
   }, []);
 
+
+  
   const handleSave = async () => {
     setSaving(true);
     setMessage('');
     try {
       const data = JSON.parse(jsonStr);
       data.updatedAt = new Date().toISOString();
-      await setDoc(doc(db, 'app_config', 'master'), data);
-      setMessage('保存成功！前端刷新或直接切换页面即可看到最新内容。');
+      
+      const res = await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      if (res.ok) {
+        setMessage('保存成功！前端刷新或直接切换页面即可看到最新内容。');
+      } else {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Unknown error');
+      }
     } catch (err: any) {
       setMessage('保存失败，请检查 JSON 格式是否正确: ' + err.message);
     }
     setSaving(false);
   };
+
 
   if (loading) {
     return <div className="p-8 text-white bg-zinc-950 h-screen">加载中...</div>;

@@ -1,5 +1,3 @@
-import { db } from './firebase-config';
-import { doc, onSnapshot } from 'firebase/firestore';
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -431,28 +429,54 @@ const App: React.FC = () => {
     }
   }
 
-  const [screens, setScreens] = useState<ScreenData[]>(DEFAULT_SCREENS);
+  const [screens, setScreens] = useState<ScreenData[]>(() => {
+    const saved = localStorage.getItem("alphaqubit_custom_screens_v11");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch (e) {
+        console.error("Failed to parse screens from localStorage", e);
+      }
+    }
+    return DEFAULT_SCREENS;
+  });
   const [configLoaded, setConfigLoaded] = useState(false);
 
+  
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'app_config', 'master'), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data.screens) setScreens(data.screens);
-        if (data.pillNavItems) setPillNavItems(data.pillNavItems);
-        if (data.marqueeCards) setMarqueeCards(data.marqueeCards);
-        if (data.sphereCards) setSphereCards(data.sphereCards);
-        if (data.domeCards) setDomeCards(data.domeCards);
-        if (data.trialCards) setTrialCards(data.trialCards);
-        if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
+    let isMounted = true;
+    const loadConfig = async () => {
+      try {
+        const res = await fetch('/api/config');
+        if (res.ok) {
+          const data = await res.json();
+          if (!isMounted) return;
+          if (data.screens) setScreens(data.screens);
+          if (data.pillNavItems) setPillNavItems(data.pillNavItems);
+          if (data.marqueeCards) setMarqueeCards(data.marqueeCards);
+          if (data.sphereCards) setSphereCards(data.sphereCards);
+          if (data.domeCards) setDomeCards(data.domeCards);
+          if (data.trialCards) setTrialCards(data.trialCards);
+          if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
+        }
+      } catch (err) {
+        console.error("Failed to load config via proxy", err);
+      } finally {
+        if (isMounted) setConfigLoaded(true);
       }
-      setConfigLoaded(true);
-    }, (err) => {
-      console.error("Failed to load config from Firebase", err);
-      setConfigLoaded(true);
-    });
-    return () => unsub();
+    };
+    
+    loadConfig();
+    const interval = setInterval(loadConfig, 10000); // Poll every 10 seconds for updates
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
+
 
   const [activeId, setActiveId] = useState<number>(1);
 
