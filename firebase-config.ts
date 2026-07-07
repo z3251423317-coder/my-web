@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { initializeFirestore, doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCceyO1xnOhRvx_Sf2j3eNzPRXDGU_mVqw",
@@ -12,4 +12,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const firestoreDatabaseId = "ai-studio-alphaqubitvisual-3e69a2ec-7863-4267-90fa-728f0abaa893";
-export const db = getFirestore(app, firestoreDatabaseId);
+export const db = initializeFirestore(app, {
+  experimentalForceLongPolling: true
+}, firestoreDatabaseId);

@@ -5,7 +5,7 @@ import axios from "axios";
 import cors from "cors";
 
 import { initializeApp } from "firebase/app";
-import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import { initializeFirestore, doc, getDocFromServer, setDoc } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.VITE_FIREBASE_API_KEY || "AIzaSyCceyO1xnOhRvx_Sf2j3eNzPRXDGU_mVqw",
@@ -17,7 +17,9 @@ const firebaseConfig = {
 };
 const fbApp = initializeApp(firebaseConfig);
 const firestoreDatabaseId = "ai-studio-alphaqubitvisual-3e69a2ec-7863-4267-90fa-728f0abaa893";
-const db = getFirestore(fbApp, firestoreDatabaseId);
+const db = initializeFirestore(fbApp, {
+  experimentalForceLongPolling: true
+}, firestoreDatabaseId);
 
 
 async function startServer() {
@@ -89,7 +91,7 @@ async function startServer() {
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");
     try {
-      const docSnap = await getDoc(doc(db, "app_config", "master"));
+      const docSnap = await getDocFromServer(doc(db, "app_config", "master"));
       if (docSnap.exists()) {
         res.json(docSnap.data());
       } else {
