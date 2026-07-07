@@ -443,21 +443,25 @@ const App: React.FC = () => {
     }
     return DEFAULT_SCREENS;
   });
-  const [configLoaded, setConfigLoaded] = useState(false);
-
-  
-  
+    const [configLoaded, setConfigLoaded] = useState(false);
   const [dbConnected, setDbConnected] = useState<boolean | null>(null);
+  const [dbErrorMsg, setDbErrorMsg] = useState<string>("");
+  const [isRetryingDb, setIsRetryingDb] = useState<boolean>(false);
+  const [showDbDiagnostics, setShowDbDiagnostics] = useState<boolean>(false);
+
+  const loadConfigRef = useRef<() => Promise<void>>();
 
   useEffect(() => {
     let isMounted = true;
-    const loadConfig = async () => {
+    const load = async (manual = false) => {
+      if (manual && isMounted) setIsRetryingDb(true);
       try {
         const res = await fetch('/api/config');
         if (res.ok) {
           const data = await res.json();
           if (!isMounted) return;
           setDbConnected(true);
+          setDbErrorMsg("");
           if (data.screens) setScreens(data.screens);
           if (data.pillNavItems) setPillNavItems(data.pillNavItems);
           if (data.marqueeCards) setMarqueeCards(data.marqueeCards);
@@ -466,17 +470,29 @@ const App: React.FC = () => {
           if (data.trialCards) setTrialCards(data.trialCards);
           if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
         } else {
-          if (isMounted) setDbConnected(false);
+          if (isMounted) {
+            setDbConnected(false);
+            setDbErrorMsg(`HTTP ${res.status} ${res.statusText}`);
+          }
         }
       } catch (err) {
         console.error("Failed to load config via proxy", err);
-        if (isMounted) setDbConnected(false);
+        if (isMounted) {
+          setDbConnected(false);
+          setDbErrorMsg(err.message || String(err));
+        }
       } finally {
-        if (isMounted) setConfigLoaded(true);
+        if (isMounted) {
+          setConfigLoaded(true);
+          setIsRetryingDb(false);
+        }
       }
     };
-    loadConfig();
-    const interval = setInterval(loadConfig, 10000); // Poll every 10 seconds for updates
+
+    loadConfigRef.current = () => load(true);
+
+    load();
+    const interval = setInterval(() => load(), 10000); // Poll every 10 seconds for updates
     return () => {
       isMounted = false;
       clearInterval(interval);
@@ -2026,8 +2042,96 @@ const App: React.FC = () => {
 
       {/* Mobile DB Status Dot */}
       {isMobile && dbConnected !== null && (
-        <div className="fixed top-6 right-6 z-[100] flex items-center justify-center pointer-events-none" title={dbConnected ? "Database Connected" : "Database Disconnected"}>
-          <div className={`w-2.5 h-2.5 rounded-full ${dbConnected ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'}`}></div>
+        <div 
+          onClick={() => setShowDbDiagnostics(true)}
+          className="fixed top-6 right-6 z-[100] flex items-center gap-1.5 px-3 py-1.5 bg-zinc-950/85 border border-zinc-800/80 hover:bg-zinc-900 rounded-full text-[10px] font-mono tracking-wider text-zinc-300 backdrop-blur shadow-lg transition-all cursor-pointer pointer-events-auto active:scale-95 select-none"
+          title={dbConnected ? "Database Connected / 数据库已连接" : "Database Disconnected / 数据库已断开"}
+        >
+          <div className={`w-2 h-2 rounded-full ${dbConnected ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'}`}></div>
+          <span className="text-zinc-400 font-bold">DB: {dbConnected ? 'OK' : 'ERR'}</span>
+        </div>
+      )}
+
+      {/* Diagnostics Panel Modal */}
+      {showDbDiagnostics && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-zinc-950/85 backdrop-blur-sm pointer-events-auto">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-sm p-5 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col text-zinc-300 font-sans"
+          >
+            <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4 text-indigo-400" />
+                <h3 className="font-bold text-white text-sm">数据库网络连接诊断</h3>
+              </div>
+              <button 
+                onClick={() => setShowDbDiagnostics(false)}
+                className="p-1 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3.5 mb-5 text-xs">
+              <div className="flex justify-between items-center bg-zinc-950/40 p-2 rounded-lg border border-zinc-850">
+                <span className="text-zinc-400">连接状态:</span>
+                <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${dbConnected ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                  {dbConnected ? '已连接 (CONNECTED)' : '已断开 (DISCONNECTED)'}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-1 bg-zinc-950/40 p-2 rounded-lg border border-zinc-850">
+                <span className="text-zinc-400">请求端点:</span>
+                <span className="font-mono text-[10px] text-zinc-300 select-all overflow-x-auto whitespace-nowrap scrollbar-none">
+                  GET {window.location.origin}/api/config
+                </span>
+              </div>
+
+              {!dbConnected && (
+                <div className="flex flex-col gap-1.5 bg-red-950/20 border border-red-900/30 p-2.5 rounded-lg">
+                  <span className="text-red-400 font-semibold flex items-center gap-1">
+                    <AlertTriangle className="w-3.5 h-3.5" /> 错误诊断原因:
+                  </span>
+                  <p className="font-mono text-[10px] text-red-350 break-all leading-relaxed bg-red-950/40 p-2 rounded border border-red-900/20">
+                    {dbErrorMsg || "网络连接超时或被墙。由于您在中国大陆区，直连 Firebase 可能会受到 DNS 污染或网络封锁。建议开启 VPN 后点击下方重试，或者检查代理设置。"}
+                  </p>
+                </div>
+              )}
+
+              {dbConnected && (
+                <div className="flex flex-col gap-1.5 bg-emerald-950/20 border border-emerald-900/30 p-2.5 rounded-lg text-emerald-300">
+                  <span className="font-semibold flex items-center gap-1 text-emerald-400">
+                    <CheckCircle className="w-3.5 h-3.5" /> 运行状态良好
+                  </span>
+                  <p className="text-[10px] leading-relaxed">
+                    所有数据已通过国内中转代理服务器 (Cloud Run Node.js App) 实时同步至 Firebase Firestore。
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  if (loadConfigRef.current) {
+                    loadConfigRef.current();
+                  }
+                }}
+                disabled={isRetryingDb}
+                className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-lg active:scale-95 cursor-pointer"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isRetryingDb ? 'animate-spin' : ''}`} />
+                {isRetryingDb ? '正在重试...' : '重新检测连接'}
+              </button>
+              <button
+                onClick={() => setShowDbDiagnostics(false)}
+                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl text-xs font-semibold transition-all cursor-pointer"
+              >
+                关闭
+              </button>
+            </div>
+          </motion.div>
         </div>
       )}
 
