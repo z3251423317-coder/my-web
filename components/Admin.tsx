@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { db } from '../firebase-config';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export default function Admin() {
   const [jsonStr, setJsonStr] = useState('');
@@ -8,10 +9,13 @@ export default function Admin() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    fetch('/api/config')
-      .then(res => res.json())
-      .then(data => {
-        setJsonStr(JSON.stringify(data, null, 2));
+    getDoc(doc(db, 'app_config', 'master'))
+      .then(docSnap => {
+        if (docSnap.exists()) {
+          setJsonStr(JSON.stringify(docSnap.data(), null, 2));
+        } else {
+          setJsonStr('{\n  "screens": [],\n  "pillNavItems": []\n}');
+        }
         setLoading(false);
       })
       .catch(err => {
@@ -26,8 +30,9 @@ export default function Admin() {
     setMessage('');
     try {
       const data = JSON.parse(jsonStr);
-      await axios.post('/api/config', data);
-      setMessage('保存成功！前端刷新即可看到最新内容。');
+      data.updatedAt = new Date().toISOString();
+      await setDoc(doc(db, 'app_config', 'master'), data);
+      setMessage('保存成功！前端刷新或直接切换页面即可看到最新内容。');
     } catch (err: any) {
       setMessage('保存失败，请检查 JSON 格式是否正确: ' + err.message);
     }
@@ -51,12 +56,12 @@ export default function Admin() {
           >
             {saving ? '保存中...' : '保存更改 (Save)'}
           </button>
-          <a href="/" target="_blank" className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded transition-all">
-            查看网站 (View Site)
+          <a href="/" className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded transition-all">
+            返回主页 (Back to Home)
           </a>
         </div>
       </div>
-      <p className="mb-4 text-zinc-400">在这里直接修改 JSON 数据。确保格式正确（必须是合法的 JSON）。修改后点击“保存更改”，前台页面刷新即可生效。</p>
+      <p className="mb-4 text-zinc-400">在这里直接修改 JSON 数据。修改后点击“保存更改”，主站所有端都会自动实时更新（利用 Firebase 实时同步技术）。</p>
       <textarea
         value={jsonStr}
         onChange={(e) => setJsonStr(e.target.value)}

@@ -22,11 +22,11 @@ async function upload() {
     await setDoc(doc(db, 'app_config', 'master'), {
       screens: userData.screens,
       pillNavItems: userData.pillNavItems,
-      marqueeCards: userData.marqueeCards,
-      sphereCards: userData.sphereCards,
-      domeCards: userData.domeCards,
-      trialCards: userData.trialCards,
-      relationshipCards: userData.relationshipCards,
+      marqueeCards: userData.marqueeCards || [],
+      sphereCards: userData.sphereCards || [],
+      domeCards: userData.domeCards || [],
+      trialCards: userData.trialCards || [],
+      relationshipCards: userData.relationshipCards || [],
       updatedAt: new Date().toISOString()
     });
     console.log("Successfully uploaded to Firestore!");

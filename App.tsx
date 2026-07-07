@@ -1,3 +1,5 @@
+import { db } from './firebase-config';
+import { doc, onSnapshot } from 'firebase/firestore';
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -433,18 +435,23 @@ const App: React.FC = () => {
   const [configLoaded, setConfigLoaded] = useState(false);
 
   useEffect(() => {
-    fetch('/api/config')
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.screens) setScreens(data.screens);
-        if (data && data.pillNavItems) setPillNavItems(data.pillNavItems);
-        // We could dispatch event or update context for cards if needed, but for now we'll just handle screens and nav here.
-        setConfigLoaded(true);
-      })
-      .catch(err => {
-        console.error("Failed to load config from server", err);
-        setConfigLoaded(true);
-      });
+    const unsub = onSnapshot(doc(db, 'app_config', 'master'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.screens) setScreens(data.screens);
+        if (data.pillNavItems) setPillNavItems(data.pillNavItems);
+        if (data.marqueeCards) setMarqueeCards(data.marqueeCards);
+        if (data.sphereCards) setSphereCards(data.sphereCards);
+        if (data.domeCards) setDomeCards(data.domeCards);
+        if (data.trialCards) setTrialCards(data.trialCards);
+        if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
+      }
+      setConfigLoaded(true);
+    }, (err) => {
+      console.error("Failed to load config from Firebase", err);
+      setConfigLoaded(true);
+    });
+    return () => unsub();
   }, []);
 
   const [activeId, setActiveId] = useState<number>(1);
