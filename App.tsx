@@ -446,6 +446,9 @@ const App: React.FC = () => {
   const [configLoaded, setConfigLoaded] = useState(false);
 
   
+  
+  const [dbConnected, setDbConnected] = useState<boolean | null>(null);
+
   useEffect(() => {
     let isMounted = true;
     const loadConfig = async () => {
@@ -454,6 +457,7 @@ const App: React.FC = () => {
         if (res.ok) {
           const data = await res.json();
           if (!isMounted) return;
+          setDbConnected(true);
           if (data.screens) setScreens(data.screens);
           if (data.pillNavItems) setPillNavItems(data.pillNavItems);
           if (data.marqueeCards) setMarqueeCards(data.marqueeCards);
@@ -461,14 +465,16 @@ const App: React.FC = () => {
           if (data.domeCards) setDomeCards(data.domeCards);
           if (data.trialCards) setTrialCards(data.trialCards);
           if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
+        } else {
+          if (isMounted) setDbConnected(false);
         }
       } catch (err) {
         console.error("Failed to load config via proxy", err);
+        if (isMounted) setDbConnected(false);
       } finally {
         if (isMounted) setConfigLoaded(true);
       }
     };
-    
     loadConfig();
     const interval = setInterval(loadConfig, 10000); // Poll every 10 seconds for updates
     return () => {
@@ -2016,7 +2022,14 @@ const App: React.FC = () => {
           <div className="w-6 h-6 rounded bg-indigo-600 flex items-center justify-center text-white font-serif font-black text-sm pb-px shadow">α</div>
           <span className="font-display font-semibold tracking-widest text-[11px] text-zinc-200">ALPHAQUBIT</span>
         </div>
-      ) : null}
+            ) : null}
+
+      {/* Mobile DB Status Dot */}
+      {isMobile && dbConnected !== null && (
+        <div className="fixed top-6 right-6 z-[100] flex items-center justify-center pointer-events-none" title={dbConnected ? "Database Connected" : "Database Disconnected"}>
+          <div className={`w-2.5 h-2.5 rounded-full ${dbConnected ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'}`}></div>
+        </div>
+      )}
 
       {/* Elegant, Minimalist Page-Level Navigation Suite (Fixed on Display Page) */}
       <div className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2 pointer-events-auto">
