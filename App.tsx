@@ -516,8 +516,19 @@ const App: React.FC = () => {
             } else {
               setDbConnected(true); // Connected but configuration document is missing
               setIsDbEmpty(true);
-              setDbErrorMsg("No config document found at 'app_config/master'. 您需要初始化云端数据。");
-              // Fallback to local default data so the site works!
+              setDbErrorMsg("No config document found at 'app_config/master'. 正在为您自动初始化云端默认数据...");
+              
+              // Automatically write local default data to Firebase Firestore
+              setDoc(doc(db, "app_config", "master"), defaultUserData)
+                .then(() => {
+                  console.log("Firestore successfully auto-seeded with default configuration.");
+                  setIsDbEmpty(false);
+                })
+                .catch((err) => {
+                  console.error("Failed to auto-seed Firestore config:", err);
+                });
+
+              // Fallback to local default data so the site works immediately!
               const fallback = defaultUserData as any;
               if (fallback.screens) setScreens(fallback.screens);
               if (fallback.pillNavItems) setPillNavItems(fallback.pillNavItems);
