@@ -1955,7 +1955,7 @@ const App: React.FC = () => {
       
       <a 
         href="/admin" 
-        className="absolute bottom-6 right-6 z-[9999] px-4 py-2 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-full text-sm backdrop-blur shadow-lg border border-zinc-700/50 transition-all font-medium pointer-events-auto"
+        className="absolute bottom-6 left-6 z-[9999] px-4 py-2 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-full text-sm backdrop-blur shadow-lg border border-zinc-700/50 transition-all font-medium pointer-events-auto"
       >
         进入后台 (Admin)
       </a>
@@ -1995,8 +1995,7 @@ const App: React.FC = () => {
       ) : null}
 
       {/* Elegant, Minimalist Page-Level Navigation Suite (Fixed on Display Page) */}
-      {!isMobile && (
-        <div className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2 pointer-events-auto">
+      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2 pointer-events-auto">
           {/* Screen Counter Badge */}
           <div className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-full font-mono text-[9px] tracking-widest text-zinc-200 font-bold backdrop-blur-md shadow-lg select-none">
             {activeId.toString().padStart(2, '0')} / {screens.length.toString().padStart(2, '0')}
@@ -2036,7 +2035,7 @@ const App: React.FC = () => {
             <ChevronDown className="w-4 h-4" />
           </button>
         </div>
-      )}
+      
 
       {/* Developer Settings Control Panel (Only visible in DEV, draggable, clean and elegant) */}
       {!isMobile && (
