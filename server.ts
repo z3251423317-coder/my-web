@@ -6,8 +6,6 @@ import cors from "cors";
 
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
-import { initializeApp as initAdminApp, applicationDefault } from "firebase-admin/app";
-import { getFirestore as getAdminFirestore } from "firebase-admin/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.VITE_FIREBASE_API_KEY || "AIzaSyCceyO1xnOhRvx_Sf2j3eNzPRXDGU_mVqw",
@@ -20,18 +18,6 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const firestoreDatabaseId = "ai-studio-alphaqubitvisual-3e69a2ec-7863-4267-90fa-728f0abaa893";
 const db = getFirestore(fbApp, firestoreDatabaseId);
-
-let adminDb: any = null;
-try {
-  const adminApp = initAdminApp({
-    credential: applicationDefault(),
-    projectId: "upheld-mountain-fk91c"
-  }, "admin-app-server");
-  adminDb = getAdminFirestore(adminApp, firestoreDatabaseId);
-  console.log("[Firebase Admin] Successfully connected to database:", firestoreDatabaseId);
-} catch (e) {
-  console.warn("[Firebase Admin] Failed to initialize Admin SDK. Falling back to Web SDK.", e);
-}
 
 
 async function startServer() {
@@ -103,15 +89,6 @@ async function startServer() {
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");
     try {
-      if (adminDb) {
-        const docRef = adminDb.collection("app_config").doc("master");
-        const docSnap = await docRef.get();
-        if (docSnap.exists) {
-          res.json(docSnap.data());
-          return;
-        }
-      }
-      
       const docSnap = await getDoc(doc(db, "app_config", "master"));
       if (docSnap.exists()) {
         res.json(docSnap.data());
@@ -129,12 +106,6 @@ async function startServer() {
       const data = req.body;
       data.updatedAt = new Date().toISOString();
       
-      if (adminDb) {
-        await adminDb.collection("app_config").doc("master").set(data);
-        res.json({ success: true });
-        return;
-      }
-
       await setDoc(doc(db, "app_config", "master"), data);
       res.json({ success: true });
     } catch (error: any) {
