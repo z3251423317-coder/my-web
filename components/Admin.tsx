@@ -10,10 +10,12 @@ import {
 import defaultUserData from '../user_data.json';
 
 const getApiUrl = (path: string): string => {
-  // If we are running on localhost:3000 or any .run.app url (development or shared mode), use relative path
+  // If we are running on localhost:3000, any .run.app url, or any Google sandbox preview domain, use relative path
   if (
     window.location.hostname === 'localhost' || 
-    window.location.hostname.endsWith('.run.app')
+    window.location.hostname.endsWith('.run.app') ||
+    window.location.hostname.endsWith('.googleusercontent.com') ||
+    window.location.hostname.endsWith('.google.com')
   ) {
     return path;
   }

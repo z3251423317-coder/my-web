@@ -37,10 +37,12 @@ import defaultUserData from './user_data.json';
 import { DEFAULT_MARQUEE_CARDS, DEFAULT_QUANTUM_CARDS, DEFAULT_DOME_CARDS, MarqueeCard } from './src/cardData';
 
 export const getApiUrl = (path: string): string => {
-  // If we are running on localhost:3000 or any .run.app url (development or shared mode), use relative path
+  // If we are running on localhost:3000, any .run.app url, or any Google sandbox preview domain, use relative path
   if (
     window.location.hostname === 'localhost' || 
-    window.location.hostname.endsWith('.run.app')
+    window.location.hostname.endsWith('.run.app') ||
+    window.location.hostname.endsWith('.googleusercontent.com') ||
+    window.location.hostname.endsWith('.google.com')
   ) {
     return path;
   }
@@ -498,7 +500,7 @@ const App: React.FC = () => {
       setDbErrorMsg("");
 
       const currentTimestamp = data.timestamp || data.updatedAt || "";
-      if (currentTimestamp !== lastTimestamp || force) {
+      if (currentTimestamp !== lastTimestamp || !configLoaded || force) {
         lastTimestamp = currentTimestamp;
         if (data.screens) {
           setScreens(data.screens);
