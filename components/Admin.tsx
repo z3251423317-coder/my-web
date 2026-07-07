@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-
+import { db } from '../firebase-config';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export default function Admin() {
   const [jsonStr, setJsonStr] = useState('');
@@ -7,27 +8,42 @@ export default function Admin() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
-  
   useEffect(() => {
-    fetch('/api/config')
-      .then(res => res.json())
-      .then(data => {
-        if (data && !data.error) {
-          setJsonStr(JSON.stringify(data, null, 2));
-        } else {
-          setJsonStr('{\n  "screens": [],\n  "pillNavItems": []\n}');
+    const loadConfig = async () => {
+      try {
+        const res = await fetch('/api/config');
+        if (res.ok) {
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const data = await res.json();
+            if (data && !data.error) {
+              setJsonStr(JSON.stringify(data, null, 2));
+              setLoading(false);
+              return;
+            }
+          }
+        }
+        throw new Error("Proxy API not available or invalid format");
+      } catch (err) {
+        console.warn("API proxy load failed, falling back to direct Firestore get...", err);
+        try {
+          const docSnap = await getDoc(doc(db, 'app_config', 'master'));
+          if (docSnap.exists()) {
+            setJsonStr(JSON.stringify(docSnap.data(), null, 2));
+          } else {
+            setJsonStr('{\n  "screens": [],\n  "pillNavItems": []\n}');
+          }
+        } catch (fErr: any) {
+          console.error("Direct Firestore load failed:", fErr);
+          setMessage('加载失败: ' + (fErr.message || String(fErr)));
         }
         setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setMessage('加载失败');
-        setLoading(false);
-      });
+      }
+    };
+
+    loadConfig();
   }, []);
 
-
-  
   const handleSave = async () => {
     setSaving(true);
     setMessage('');
@@ -35,24 +51,36 @@ export default function Admin() {
       const data = JSON.parse(jsonStr);
       data.updatedAt = new Date().toISOString();
       
-      const res = await fetch('/api/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      
-      if (res.ok) {
-        setMessage('保存成功！前端刷新或直接切换页面即可看到最新内容。');
-      } else {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Unknown error');
+      try {
+        const res = await fetch('/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        
+        if (res.ok) {
+          setMessage('保存成功！前端刷新或直接切换页面即可看到最新内容。');
+          setSaving(false);
+          return;
+        }
+        throw new Error("Proxy API returned error status: " + res.status);
+      } catch (proxyErr) {
+        console.warn("API proxy save failed, falling back to direct Firestore write...", proxyErr);
+        
+        try {
+          // Fallback to direct Firestore write
+          await setDoc(doc(db, 'app_config', 'master'), data);
+          setMessage('保存成功！数据已直接同步到云端 Firestore。');
+        } catch (fWriteErr: any) {
+          console.error("Direct Firestore write failed:", fWriteErr);
+          throw new Error("Direct Firestore write failed: " + (fWriteErr.message || String(fWriteErr)));
+        }
       }
     } catch (err: any) {
       setMessage('保存失败，请检查 JSON 格式是否正确: ' + err.message);
     }
     setSaving(false);
   };
-
 
   if (loading) {
     return <div className="p-8 text-white bg-zinc-950 h-screen">加载中...</div>;

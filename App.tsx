@@ -26,6 +26,8 @@ import { PdfDecoderPage } from './components/PdfDecoderPage';
 import { AudioSecondaryPage } from './components/AudioSecondaryPage';
 import ShinyText from './components/ShinyText';
 import { MusicPlayer } from './components/MusicPlayer';
+import { db } from './firebase-config';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 import { DEFAULT_MARQUEE_CARDS, DEFAULT_QUANTUM_CARDS, DEFAULT_DOME_CARDS, MarqueeCard } from './src/cardData';
 
@@ -453,49 +455,109 @@ const App: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
+    let unsubFirestore: (() => void) | null = null;
+
     const load = async (manual = false) => {
       if (manual && isMounted) setIsRetryingDb(true);
       try {
         const res = await fetch('/api/config');
         if (res.ok) {
-          const data = await res.json();
-          if (!isMounted) return;
-          setDbConnected(true);
-          setDbErrorMsg("");
-          if (data.screens) setScreens(data.screens);
-          if (data.pillNavItems) setPillNavItems(data.pillNavItems);
-          if (data.marqueeCards) setMarqueeCards(data.marqueeCards);
-          if (data.sphereCards) setSphereCards(data.sphereCards);
-          if (data.domeCards) setDomeCards(data.domeCards);
-          if (data.trialCards) setTrialCards(data.trialCards);
-          if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
-        } else {
-          if (isMounted) {
-            setDbConnected(false);
-            setDbErrorMsg(`HTTP ${res.status} ${res.statusText}`);
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const data = await res.json();
+            if (!isMounted) return;
+            setDbConnected(true);
+            setDbErrorMsg("");
+            if (data.screens) setScreens(data.screens);
+            if (data.pillNavItems) setPillNavItems(data.pillNavItems);
+            if (data.marqueeCards) setMarqueeCards(data.marqueeCards);
+            if (data.sphereCards) setSphereCards(data.sphereCards);
+            if (data.domeCards) setDomeCards(data.domeCards);
+            if (data.trialCards) setTrialCards(data.trialCards);
+            if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
+            if (isMounted) {
+              setConfigLoaded(true);
+              setIsRetryingDb(false);
+            }
+            return; // Success, we don't need direct Firestore fallback!
           }
         }
-      } catch (err) {
-        console.error("Failed to load config via proxy", err);
-        if (isMounted) {
-          setDbConnected(false);
-          setDbErrorMsg(err.message || String(err));
+        throw new Error("Proxy API /api/config returned invalid content-type / not OK");
+      } catch (err: any) {
+        console.warn("API Proxy '/api/config' failed or returned non-JSON, trying direct Firestore connection...", err);
+        
+        if (!isMounted) return;
+
+        // If direct subscription is already established, don't re-create it
+        if (unsubFirestore) {
+          if (isMounted) setIsRetryingDb(false);
+          return;
         }
-      } finally {
-        if (isMounted) {
-          setConfigLoaded(true);
-          setIsRetryingDb(false);
+
+        try {
+          unsubFirestore = onSnapshot(doc(db, 'app_config', 'master'), (docSnap) => {
+            if (!isMounted) return;
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              setDbConnected(true);
+              setDbErrorMsg("");
+              if (data.screens) setScreens(data.screens);
+              if (data.pillNavItems) setPillNavItems(data.pillNavItems);
+              if (data.marqueeCards) setMarqueeCards(data.marqueeCards);
+              if (data.sphereCards) setSphereCards(data.sphereCards);
+              if (data.domeCards) setDomeCards(data.domeCards);
+              if (data.trialCards) setTrialCards(data.trialCards);
+              if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
+            } else {
+              setDbConnected(false);
+              setDbErrorMsg("No config document found at 'app_config/master'.");
+            }
+            setConfigLoaded(true);
+            setIsRetryingDb(false);
+          }, (firestoreErr) => {
+            console.error("Direct Firestore subscription error:", firestoreErr);
+            if (isMounted) {
+              setDbConnected(false);
+              setDbErrorMsg(firestoreErr.message || String(firestoreErr));
+              setConfigLoaded(true);
+              setIsRetryingDb(false);
+            }
+          });
+        } catch (fErr: any) {
+          console.error("Direct Firestore initialization failed:", fErr);
+          if (isMounted) {
+            setDbConnected(false);
+            setDbErrorMsg(fErr.message || String(fErr));
+            setConfigLoaded(true);
+            setIsRetryingDb(false);
+          }
         }
       }
     };
 
-    loadConfigRef.current = () => load(true);
+    loadConfigRef.current = () => {
+      // Manual retry: clean up old firestore subscription first to force a fresh test
+      if (unsubFirestore) {
+        unsubFirestore();
+        unsubFirestore = null;
+      }
+      return load(true);
+    };
 
     load();
-    const interval = setInterval(() => load(), 10000); // Poll every 10 seconds for updates
+    const interval = setInterval(() => {
+      // Periodically attempt to refresh via proxy only if direct snapshot isn't listening or active
+      if (!unsubFirestore) {
+        load();
+      }
+    }, 10000);
+
     return () => {
       isMounted = false;
       clearInterval(interval);
+      if (unsubFirestore) {
+        unsubFirestore();
+      }
     };
   }, []);
 
