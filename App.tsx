@@ -491,14 +491,15 @@ const App: React.FC = () => {
     let unsubFirestore: (() => void) | null = null;
     let directFirestoreActive = false;
 
-    const updateConfig = (data: any) => {
+    const updateConfig = (data: any, force = false) => {
       if (!isMounted) return;
       setDbConnected(true);
       setIsDbEmpty(false);
       setDbErrorMsg("");
 
-      if (data.timestamp !== lastTimestamp) {
-        lastTimestamp = data.timestamp || "";
+      const currentTimestamp = data.timestamp || data.updatedAt || "";
+      if (currentTimestamp !== lastTimestamp || force) {
+        lastTimestamp = currentTimestamp;
         if (data.screens) {
           setScreens(data.screens);
           try { localStorage.setItem("alphaqubit_custom_screens_v11", JSON.stringify(data.screens)); } catch (e) { console.error(e); }
@@ -546,7 +547,7 @@ const App: React.FC = () => {
           const contentType = res.headers.get('content-type') || '';
           if (contentType.includes('application/json')) {
             const data = await res.json();
-            updateConfig(data);
+            updateConfig(data, manual);
             if (isMounted) setIsRetryingDb(false);
             return;
           }
@@ -564,10 +565,10 @@ const App: React.FC = () => {
               if (!isMounted) return;
               if (docSnap.exists()) {
                 directFirestoreActive = true;
-                updateConfig(docSnap.data());
+                updateConfig(docSnap.data(), manual);
               } else {
                 setIsDbEmpty(true);
-                updateConfig(defaultUserData);
+                updateConfig(defaultUserData, manual);
                 setDoc(doc(db, 'app_config', 'master'), defaultUserData).catch(console.error);
               }
               if (isMounted) setIsRetryingDb(false);
@@ -581,7 +582,7 @@ const App: React.FC = () => {
                 
                 // Fallback to local default data if we haven't successfully loaded anything
                 if (!lastTimestamp) {
-                  updateConfig(defaultUserData);
+                  updateConfig(defaultUserData, manual);
                   setDbConnected(false);
                   setDbErrorMsg("正在使用本地离线数据。若要同步云端，请确保 VPN 已开启且能直连 Firebase。");
                 }
@@ -595,7 +596,7 @@ const App: React.FC = () => {
 
         // Immediate fallback to defaults if we have never successfully loaded any configuration yet
         if (!lastTimestamp && !directFirestoreActive) {
-          updateConfig(defaultUserData);
+          updateConfig(defaultUserData, manual);
           setDbConnected(false);
           setDbErrorMsg("云端 API 代理已断开。若使用静态发布环境，请确保您的浏览器已开启 VPN 代理以直连 Firestore 数据库。");
         }

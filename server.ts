@@ -34,22 +34,44 @@ async function startServer() {
       return res.status(400).send("Missing url parameter");
     }
 
-    console.log(`[Proxy] Attempting to fetch: ${pdfUrl}`);
+    let finalUrl = pdfUrl;
+    try {
+      finalUrl = encodeURI(decodeURI(pdfUrl));
+    } catch (e) {
+      console.warn("[Proxy] URI decode/encode failed, keeping original:", e);
+    }
+
+    // Auto-correct missing "构石文档/" folder in Tencent COS urls
+    if (
+      finalUrl.includes("wangzhan-1379786748.cos") && 
+      !finalUrl.includes("构石文档") && 
+      !finalUrl.includes("%E6%9E%84%E7%9F%B3%E6%96%87%E6%A1%A3") && 
+      !finalUrl.includes("%e6%9e%84%e7%9f%b3%e6%96%87%e6%a1%a3")
+    ) {
+      const domainIndex = finalUrl.indexOf("myqcloud.com/");
+      if (domainIndex !== -1) {
+        const insertPos = domainIndex + "myqcloud.com/".length;
+        finalUrl = finalUrl.slice(0, insertPos) + "%E6%9E%84%E7%9F%B3%E6%96%87%E6%A1%A3/" + finalUrl.slice(insertPos);
+        console.log(`[Proxy] Auto-corrected missing subfolder path: ${finalUrl}`);
+      }
+    }
+
+    console.log(`[Proxy] Attempting to fetch: ${finalUrl}`);
 
     try {
-      const response = await axios.get(pdfUrl, {
+      const response = await axios.get(finalUrl, {
         responseType: "arraybuffer",
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
         },
       });
 
-      console.log(`[Proxy] Success: ${pdfUrl} (Size: ${response.data.byteLength})`);
+      console.log(`[Proxy] Success: ${finalUrl} (Size: ${response.data.byteLength})`);
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.send(response.data);
     } catch (error: any) {
-      console.error(`[Proxy] Error fetching ${pdfUrl}:`, error.message);
+      console.error(`[Proxy] Error fetching ${finalUrl}:`, error.message);
       if (error.response) {
         console.error(`[Proxy] Status: ${error.response.status}`);
       }
