@@ -13,7 +13,7 @@ import {
   Video as VideoIcon, Sparkles, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, Send, MapPin, 
   Phone, Globe, Copy, RefreshCw, Palette, UploadCloud, AlertTriangle, CheckCircle,
   Trash2, Plus, Minus, ExternalLink, Code, GripVertical, Smartphone, Music, Settings,
-  Search, Star, Play, Pause, Edit3, Lock
+  Search, Star, Play, Pause, Edit3, Lock, Database, Download, Upload
 } from 'lucide-react';
 import { ScreenData, BackgroundType, RelationshipCard } from './types';
 import PillNav, { PillNavItem } from './components/PillNav';
@@ -27,7 +27,7 @@ import { AudioSecondaryPage } from './components/AudioSecondaryPage';
 import ShinyText from './components/ShinyText';
 import { MusicPlayer } from './components/MusicPlayer';
 
-import { DEFAULT_MARQUEE_CARDS, DEFAULT_QUANTUM_CARDS, MarqueeCard } from './src/cardData';
+import { DEFAULT_MARQUEE_CARDS, DEFAULT_QUANTUM_CARDS, DEFAULT_DOME_CARDS, MarqueeCard } from './src/cardData';
 
 const getCardColorAndIcon = (colorType: string = "blue") => {
   switch (colorType.toLowerCase()) {
@@ -48,149 +48,149 @@ const getCardColorAndIcon = (colorType: string = "blue") => {
 /// Default Screen Templates
 const DEFAULT_SCREENS: ScreenData[] = [
   {
-    id: 1,
-    label: "01. Title Hero",
-    title: "塑造",
-    subtitle: "我不在执迷寻找\n我是谁由我自己塑造",
-    description: "A state-of-the-art recurrent, transformer-based neural network model that learns to decode surface code errors with unprecedented reliability on real quantum processors.",
-    bgType: "video",
-    bgUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%8F%91%E7%8E%B0%E6%9B%B4%E5%A4%9A%E7%B2%BE%E5%BD%A9%E8%A7%86%E9%A2%91%20-%20%E6%8A%96%E9%9F%B3%E6%90%9C%E7%B4%A2.mp4",
-    bgTypeMobile: "video",
-    bgUrlMobile: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E4%B8%80%E8%84%9A%E8%B8%A9%E5%88%B0%E6%B0%B4%E5%9D%91%E9%87%8C%E7%9A%84%E6%8A%96%E9%9F%B3%20-%20%E6%8A%96%E9%9F%B3.mp4",
-    overlayOpacity: 45,
-    overlayBlur: 0,
-    tintColor: "slate",
-    align: "left",
-    ctaText: "Discover the Science",
-    ctaUrl: "#screen-2",
-    bgMusicUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    "id": 1,
+    "label": "01. Title Hero",
+    "title": "塑造",
+    "subtitle": "我不在执迷寻找\n我是谁由我自己塑造",
+    "description": "A state-of-the-art recurrent, transformer-based neural network model that learns to decode surface code errors with unprecedented reliability on real quantum processors.",
+    "bgType": "video",
+    "bgUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%8F%91%E7%8E%B0%E6%9B%B4%E5%A4%9A%E7%B2%BE%E5%BD%A9%E8%A7%86%E9%A2%91%20-%20%E6%8A%96%E9%9F%B3%E6%90%9C%E7%B4%A2.mp4",
+    "bgTypeMobile": "video",
+    "bgUrlMobile": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E4%B8%80%E8%84%9A%E8%B8%A9%E5%88%B0%E6%B0%B4%E5%9D%91%E9%87%8C%E7%9A%84%E6%8A%96%E9%9F%B3%20-%20%E6%8A%96%E9%9F%B3.mp4",
+    "overlayOpacity": 45,
+    "overlayBlur": 0,
+    "tintColor": "slate",
+    "align": "left",
+    "ctaText": "Discover the Science",
+    "ctaUrl": "#screen-2",
+    "bgMusicUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
   },
   {
-    id: 2,
-    label: "02. Relationship Ecology",
-    title: "甘露与苦药：亲密关系生态解析",
-    subtitle: "论不合适背后亲密关系中情感供需的结构性失衡 (WXJB-2663-001)",
-    description: "点击下方按钮，进入专门为您构建的情感特征失衡解析看板。深度剖析付出者与接受者之间单向情感输出与接收的结构性逆差，将爱之“甘露”化作解构彼此亲密关系的微观密钥。",
-    bgType: "gradient",
-    bgUrl: "linear-gradient(to right, #0f172a, #050b14)",
-    bgTypeMobile: "video",
-    bgUrlMobile: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/2.mp4",
-    bgOpacity: 55,
-    overlayOpacity: 20,
-    overlayBlur: 0,
-    tintColor: "none",
-    align: "left",
-    ctaText: "进入情感供需看板 / DECODE NOW",
-    ctaUrl: "#screen-3",
-    bgMusicUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    "id": 2,
+    "label": "02. Relationship Ecology",
+    "title": "甘露与苦药：亲密关系生态解析",
+    "subtitle": "论不合适背后亲密关系中情感供需的结构性失衡 (WXJB-2663-001)",
+    "description": "点击下方按钮，进入专门为您构建的情感特征失衡解析看板。深度剖析付出者与接受者之间单向情感输出与接收的结构性逆差，将爱之“甘露”化作解构彼此亲密关系的微观密钥。",
+    "bgType": "gradient",
+    "bgUrl": "linear-gradient(to right, #0f172a, #050b14)",
+    "bgTypeMobile": "video",
+    "bgUrlMobile": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/2.mp4",
+    "bgOpacity": 55,
+    "overlayOpacity": 20,
+    "overlayBlur": 0,
+    "tintColor": "none",
+    "align": "left",
+    "ctaText": "进入情感供需看板 / DECODE NOW",
+    "ctaUrl": "#screen-3",
+    "bgMusicUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
   },
   {
-    id: 3,
-    label: "03. Recursive Brain",
-    title: "无限进步",
-    subtitle: "Parsing complex spatial & temporal error clusters",
-    description: "以矛盾观审视生活，用实践完成自我迭代",
-    bgType: "video",
-    bgUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E4%B8%80%E8%84%9A%E8%B8%A9%E5%88%B0%E6%B0%B4%E5%9D%91%E9%87%8C%E7%9A%84%E6%8A%96%E9%9F%B3%20-%20%E6%8A%96%E9%9F%B3.mp4",
-    bgTypeMobile: "video",
-    bgUrlMobile: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E4%B8%89%E5%B1%8F%E7%A7%BB%E5%8A%A8%E7%AB%AF.mp4",
-    overlayOpacity: 70,
-    overlayBlur: 3,
-    tintColor: "indigo",
-    align: "right",
-    ctaText: "Explore Architecture",
-    ctaUrl: "#screen-4",
-    bgMusicUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    "id": 3,
+    "label": "03. Recursive Brain",
+    "title": "无限进步",
+    "subtitle": "Parsing complex spatial & temporal error clusters",
+    "description": "以矛盾观审视生活，用实践完成自我迭代",
+    "bgType": "video",
+    "bgUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E4%B8%80%E8%84%9A%E8%B8%A9%E5%88%B0%E6%B0%B4%E5%9D%91%E9%87%8C%E7%9A%84%E6%8A%96%E9%9F%B3%20-%20%E6%8A%96%E9%9F%B3.mp4",
+    "bgTypeMobile": "video",
+    "bgUrlMobile": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E4%B8%89%E5%B1%8F%E7%A7%BB%E5%8A%A8%E7%AB%AF.mp4",
+    "overlayOpacity": 70,
+    "overlayBlur": 3,
+    "tintColor": "indigo",
+    "align": "right",
+    "ctaText": "Explore Architecture",
+    "ctaUrl": "#screen-4",
+    "bgMusicUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
   },
   {
-    id: 4,
-    label: "04. Benchmarks",
-    title: "Empirical Precision Gains",
-    subtitle: "Lower logical error rates across code distances",
-    description: "AlphaQubit outscores modern industry-standard algorithms, like Minimum-Weight Perfect Matching (MWPM), on all standard scales. Click the dynamic distances (3, 5, or 11) to study absolute error decay.",
-    bgType: "image",
-    bgUrl: "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=2000&auto=format&fit=crop",
-    overlayOpacity: 40,
-    overlayBlur: 0,
-    tintColor: "none",
-    align: "center",
-    ctaText: "See Live Data Sheets",
-    ctaUrl: "#screen-5"
+    "id": 4,
+    "label": "04. Benchmarks",
+    "title": "Empirical Precision Gains",
+    "subtitle": "Lower logical error rates across code distances",
+    "description": "AlphaQubit outscores modern industry-standard algorithms, like Minimum-Weight Perfect Matching (MWPM), on all standard scales. Click the dynamic distances (3, 5, or 11) to study absolute error decay.",
+    "bgType": "image",
+    "bgUrl": "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=2000&auto=format&fit=crop",
+    "overlayOpacity": 40,
+    "overlayBlur": 0,
+    "tintColor": "none",
+    "align": "center",
+    "ctaText": "See Live Data Sheets",
+    "ctaUrl": "#screen-5"
   },
   {
-    id: 5,
-    label: "05. Hardware Lab",
-    title: "Deep In-Processor Trial",
-    subtitle: "Sycamore Superconducting Processor Deployment",
-    description: "We validate our model against real physical data generated directly on Google's Sycamore quantum computer, yielding pristine predictions even on highly complex, asymmetric error signals.",
-    bgType: "image",
-    bgUrl: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=2000&auto=format&fit=crop",
-    overlayOpacity: 50,
-    overlayBlur: 0,
-    tintColor: "none",
-    align: "left",
-    ctaText: "Hardware Specs",
-    ctaUrl: "#screen-6"
+    "id": 5,
+    "label": "05. Hardware Lab",
+    "title": "Deep In-Processor Trial",
+    "subtitle": "Sycamore Superconducting Processor Deployment",
+    "description": "We validate our model against real physical data generated directly on Google's Sycamore quantum computer, yielding pristine predictions even on highly complex, asymmetric error signals.",
+    "bgType": "image",
+    "bgUrl": "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=2000&auto=format&fit=crop",
+    "overlayOpacity": 50,
+    "overlayBlur": 0,
+    "tintColor": "none",
+    "align": "left",
+    "ctaText": "Hardware Specs",
+    "ctaUrl": "#screen-6"
   },
   {
-    id: 6,
-    label: "06. Interactive Trial Deck",
-    title: "Sycamore Syndrome Diagnostic Suite",
-    subtitle: "Real-time spatial error patterns and physical latency metrics",
-    description: "Click any card in the continuous right-to-left feed to lock onto the signal, analyze real-time spatial error patterns, and review physical latency metrics.",
-    bgType: "image",
-    bgUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=2000",
-    overlayOpacity: 30,
-    overlayBlur: 0,
-    tintColor: "none",
-    align: "center",
-    ctaText: "Launch Diagnostics",
-    ctaUrl: "#screen-7"
+    "id": 6,
+    "label": "06. Interactive Trial Deck",
+    "title": "Sycamore Syndrome Diagnostic Suite",
+    "subtitle": "Real-time spatial error patterns and physical latency metrics",
+    "description": "Click any card in the continuous right-to-left feed to lock onto the signal, analyze real-time spatial error patterns, and review physical latency metrics.",
+    "bgType": "image",
+    "bgUrl": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=2000",
+    "overlayOpacity": 30,
+    "overlayBlur": 0,
+    "tintColor": "none",
+    "align": "center",
+    "ctaText": "Launch Diagnostics",
+    "ctaUrl": "#screen-7"
   },
   {
-    id: 7,
-    label: "07. Global Roadmap",
-    title: "Evolution of Quantum Systems",
-    subtitle: "Timeline of the fault-tolerance horizon",
-    description: "Our blueprint stretches over key functional eras—from initial noisy hardware calibration (Phase 1) to scalable error correction (Phase 3) and full multi-thousand physical cubyte computational systems (Phase 4).",
-    bgType: "image",
-    bgUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2000",
-    overlayOpacity: 75,
-    overlayBlur: 1,
-    tintColor: "slate",
-    align: "center",
-    ctaText: "Join Team Pathway",
-    ctaUrl: "#screen-8"
+    "id": 7,
+    "label": "07. Global Roadmap",
+    "title": "Evolution of Quantum Systems",
+    "subtitle": "Timeline of the fault-tolerance horizon",
+    "description": "Our blueprint stretches over key functional eras—from initial noisy hardware calibration (Phase 1) to scalable error correction (Phase 3) and full multi-thousand physical cubyte computational systems (Phase 4).",
+    "bgType": "image",
+    "bgUrl": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2000",
+    "overlayOpacity": 75,
+    "overlayBlur": 1,
+    "tintColor": "slate",
+    "align": "center",
+    "ctaText": "Join Team Pathway",
+    "ctaUrl": "#screen-8"
   },
   {
-    id: 8,
-    label: "08. Perspective",
-    title: "Revolutionary Foundations",
-    subtitle: "The word from our leadership team",
-    description: "By utilizing direct machine-learned patterns over simulated templates, we break past theoretical algorithm boundaries, making physical quantum computers appear substantially cleaner than their physical components indicate.",
-    bgType: "image",
-    bgUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2000&auto=format&fit=crop",
-    overlayOpacity: 80,
-    overlayBlur: 2,
-    tintColor: "gold",
-    align: "left",
-    ctaText: "Read Joint Publication",
-    ctaUrl: "#screen-9"
+    "id": 8,
+    "label": "08. Perspective",
+    "title": "Revolutionary Foundations",
+    "subtitle": "The word from our leadership team",
+    "description": "By utilizing direct machine-learned patterns over simulated templates, we break past theoretical algorithm boundaries, making physical quantum computers appear substantially cleaner than their physical components indicate.",
+    "bgType": "image",
+    "bgUrl": "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2000&auto=format&fit=crop",
+    "overlayOpacity": 80,
+    "overlayBlur": 2,
+    "tintColor": "gold",
+    "align": "left",
+    "ctaText": "Read Joint Publication",
+    "ctaUrl": "#screen-9"
   },
   {
-    id: 9,
-    label: "09. Access Point",
-    title: "Connect with AlphaQubit",
-    subtitle: "Enter the fault-tolerant era today",
-    description: "Be the first to access our open-source research code pipelines, test your customs models, or initiate corporate research partnerships with our high-performance simulation grid.",
-    bgType: "image",
-    bgUrl: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=2000",
-    overlayOpacity: 65,
-    overlayBlur: 4,
-    tintColor: "slate",
-    align: "center",
-    ctaText: "Subscribe to Bulletins",
-    ctaUrl: "#"
+    "id": 9,
+    "label": "09. Access Point",
+    "title": "Connect with AlphaQubit",
+    "subtitle": "Enter the fault-tolerant era today",
+    "description": "Be the first to access our open-source research code pipelines, test your customs models, or initiate corporate research partnerships with our high-performance simulation grid.",
+    "bgType": "image",
+    "bgUrl": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=2000",
+    "overlayOpacity": 65,
+    "overlayBlur": 4,
+    "tintColor": "slate",
+    "align": "center",
+    "ctaText": "Subscribe to Bulletins",
+    "ctaUrl": "#"
   }
 ];
 
@@ -491,12 +491,27 @@ const App: React.FC = () => {
       } catch (e) { console.error(e); }
     }
     return [
-      { label: "首页", href: "#screen-1" },
-      { label: "无限进步", href: "#screen-3" },
-      { label: "建设中", href: "#screen-5" },
-      { label: "建设中", href: "#screen-6" },
-      { label: "建设中", href: "#screen-7" },
-    ];
+      {
+            "label": "首页",
+            "href": "#screen-1"
+      },
+      {
+            "label": "无限进步",
+            "href": "#screen-3"
+      },
+      {
+            "label": "建设中",
+            "href": "#screen-5"
+      },
+      {
+            "label": "建设中",
+            "href": "#screen-6"
+      },
+      {
+            "label": "建设中",
+            "href": "#screen-7"
+      }
+];
   });
 
   const savePillNavItemsToStorage = (updated: PillNavItem[]) => {
@@ -630,7 +645,7 @@ const App: React.FC = () => {
         console.error("Failed to parse saved dome cards", e);
       }
     }
-    return JSON.parse(JSON.stringify(DEFAULT_QUANTUM_CARDS));
+    return JSON.parse(JSON.stringify(DEFAULT_DOME_CARDS));
   });
 
   const saveDomeCards = (updated: MarqueeCard[]) => {
@@ -847,6 +862,8 @@ const App: React.FC = () => {
   }, [editorOpen]);
 
   const [copyToast, setCopyToast] = useState<string | null>(null);
+  const [showMasterBackupModal, setShowMasterBackupModal] = useState<boolean>(false);
+  const [importJsonInput, setImportJsonInput] = useState<string>("");
 
   const [isMobile, setIsMobile] = useState<boolean>(false);
   useEffect(() => {
@@ -864,10 +881,7 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (copyToast) {
-      const t = setTimeout(() => setCopyToast(null), 3500);
-      return () => clearTimeout(t);
-    }
+    // The copy toast is now manually closed by the user to ensure they have enough time to copy the content.
   }, [copyToast]);
 
   const addMarqueeCard = () => {
@@ -1156,6 +1170,80 @@ const App: React.FC = () => {
     if (pack) {
       saveToStorage(pack.screens);
       alert(`已成功应用「${pack.name}」主题预设模板！`);
+    }
+  };
+
+  const handleExportMasterConfig = () => {
+    const masterData = {
+      version: "1.0_master",
+      timestamp: new Date().toISOString(),
+      screens: screens,
+      pillNavItems: pillNavItems,
+      marqueeCards: marqueeCards,
+      sphereCards: sphereCards,
+      domeCards: domeCards,
+      trialCards: trialCards,
+      relationshipCards: relationshipCards,
+    };
+    const codeStr = JSON.stringify(masterData, null, 2);
+    setCopyToast(codeStr);
+  };
+
+  const handleImportMasterConfig = (jsonStr: string) => {
+    try {
+      const parsed = JSON.parse(jsonStr);
+      if (!parsed || typeof parsed !== "object") {
+        alert("格式错误！必须为合法的 JSON 对象。");
+        return false;
+      }
+      
+      let importCount = 0;
+      if (Array.isArray(parsed.screens) && parsed.screens.length > 0) {
+        setScreens(parsed.screens);
+        localStorage.setItem("alphaqubit_custom_screens_v11", JSON.stringify(parsed.screens));
+        importCount++;
+      }
+      if (Array.isArray(parsed.pillNavItems) && parsed.pillNavItems.length > 0) {
+        setPillNavItems(parsed.pillNavItems);
+        localStorage.setItem("alphaqubit_pill_nav_items_v5", JSON.stringify(parsed.pillNavItems));
+        importCount++;
+      }
+      if (Array.isArray(parsed.marqueeCards) && parsed.marqueeCards.length > 0) {
+        setMarqueeCards(parsed.marqueeCards);
+        localStorage.setItem("alphaqubit_marquee_cards", JSON.stringify(parsed.marqueeCards));
+        importCount++;
+      }
+      if (Array.isArray(parsed.sphereCards) && parsed.sphereCards.length > 0) {
+        setSphereCards(parsed.sphereCards);
+        localStorage.setItem("alphaqubit_sphere_cards", JSON.stringify(parsed.sphereCards));
+        importCount++;
+      }
+      if (Array.isArray(parsed.domeCards) && parsed.domeCards.length > 0) {
+        setDomeCards(parsed.domeCards);
+        localStorage.setItem("alphaqubit_dome_cards", JSON.stringify(parsed.domeCards));
+        importCount++;
+      }
+      if (Array.isArray(parsed.trialCards) && parsed.trialCards.length > 0) {
+        setTrialCards(parsed.trialCards);
+        localStorage.setItem("alphaqubit_trial_cards", JSON.stringify(parsed.trialCards));
+        importCount++;
+      }
+      if (Array.isArray(parsed.relationshipCards) && parsed.relationshipCards.length > 0) {
+        setRelationshipCards(parsed.relationshipCards);
+        localStorage.setItem("alphaqubit_relationship_cards_v5", JSON.stringify(parsed.relationshipCards));
+        importCount++;
+      }
+
+      if (importCount > 0) {
+        alert(`🎉 一键全局配置导入成功！已成功应用并同步了 ${importCount} 个核心模块的自定义数据！`);
+        return true;
+      } else {
+        alert("未能在此 JSON 中找到可识别的模块。请确保导入的配置是由「导出全局大师备份」生成的合法数据。");
+        return false;
+      }
+    } catch (e) {
+      alert(`导入解析失败，请检查 JSON 格式是否完整：\n${e instanceof Error ? e.message : '未知错误'}`);
+      return false;
     }
   };
 
@@ -1958,7 +2046,7 @@ const App: React.FC = () => {
       </div>
 
       {/* Developer Settings Control Panel (Only visible in DEV, draggable, clean and elegant) */}
-      {import.meta.env.DEV && !isMobile && (
+      {!isMobile && (
         <motion.div 
           drag
           dragMomentum={false}
@@ -2139,7 +2227,7 @@ const App: React.FC = () => {
                 className="snap-start snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
               >
                 {/* Floating controls specifically for Screen 4 to toggle the drawer */}
-                {import.meta.env.DEV && !isMobile && (
+                {!isMobile && (
                   <div className="absolute top-20 right-6 lg:top-6 lg:right-44 z-50 pointer-events-auto flex items-center gap-3">
                     <button
                       onClick={() => setActiveConsoleScreenId(activeConsoleScreenId === 4 ? null : 4)}
@@ -2202,7 +2290,7 @@ const App: React.FC = () => {
                 className="snap-start snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
               >
                 {/* Floating controls specifically for Screen 5 to toggle the dome drawer */}
-                {import.meta.env.DEV && !isMobile && (
+                {!isMobile && (
                   <div className="absolute top-24 right-6 lg:top-6 lg:right-6 z-50 pointer-events-auto flex items-center gap-3">
                     <button
                       onClick={() => setActiveConsoleScreenId(activeConsoleScreenId === 5 ? null : 5)}
@@ -2253,7 +2341,7 @@ const App: React.FC = () => {
                 className="snap-start snap-always relative w-full min-h-screen lg:h-screen overflow-hidden flex items-center justify-center bg-transparent"
               >
                 {/* Floating controls specifically for Screen 6 to toggle the console drawer */}
-                {import.meta.env.DEV && !isMobile && (
+                {!isMobile && (
                   <div className="absolute top-24 right-6 lg:top-6 lg:right-6 z-50 pointer-events-auto flex items-center gap-3">
                     <button
                       onClick={() => setActiveConsoleScreenId(activeConsoleScreenId === 6 ? null : 6)}
@@ -2436,7 +2524,7 @@ const App: React.FC = () => {
                       </motion.div>
 
                       {/* Controls Toggle Trigger (Visible only on this screen, fulfilling user's '控制台只在该页显示') */}
-                      {import.meta.env.DEV && !isMobile && (
+                      {!isMobile && (
                         <div className="flex items-center gap-3">
                           <button
                             id="console-toggle-btn"
@@ -3578,14 +3666,23 @@ const App: React.FC = () => {
           {/* Quick operations footer footer */}
           <div className="p-3 bg-zinc-950 border-t border-zinc-800 flex flex-col gap-3 bg-zinc-950/90 text-[10px] font-mono">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-2.5">
-              <div className="flex gap-4">
+              <div className="flex gap-4 justify-between w-full">
                 <button 
                   onClick={handleResetToDefault}
-                  className="flex items-center gap-1 text-zinc-500 hover:text-red-400 transition-colors"
+                  className="flex items-center gap-1 text-zinc-500 hover:text-red-400 transition-colors cursor-pointer"
                   title="Clears local storage and resets configuration to the hardcoded base setup"
                 >
                   <RotateCcw className="w-3 h-3" />
                   <span>初始化标准模板 (RESET)</span>
+                </button>
+
+                <button 
+                  onClick={() => setShowMasterBackupModal(true)}
+                  className="flex items-center gap-1.5 px-2 py-1 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black rounded-md transition-all cursor-pointer hover:scale-[1.03]"
+                  title="一键备份或导入全局配置，解决多端不同步"
+                >
+                  <Database className="w-3.5 h-3.5" />
+                  <span>一键全局备份/恢复 (SYNC)</span>
                 </button>
               </div>
             </div>
@@ -3757,6 +3854,119 @@ const App: React.FC = () => {
         mobileMusicUrl={activeScreen.mobileMusicUrl}
         isMobile={isMobile}
       />
+
+      {/* Global Sync Floating Button - Always Visible (Hidden on Mobile) */}
+      {!isMobile && (
+        <button
+          onClick={() => setShowMasterBackupModal(true)}
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black rounded-full shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all cursor-pointer hover:scale-[1.03] active:scale-95"
+          title="一键全局备份/恢复 (SYNC)"
+        >
+          <Database className="w-4 h-4" />
+          <span className="text-xs uppercase tracking-wider">全局配置备份/恢复 (SYNC)</span>
+        </button>
+      )}
+
+      {/* Global Master Config Modal / 全局配置备份与恢复 */}
+      <AnimatePresence>
+        {showMasterBackupModal && (
+          <div className="fixed inset-0 bg-zinc-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4 select-text">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-6 flex flex-col gap-4 text-left text-zinc-300"
+            >
+              <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl">
+                    <Database className="w-5 h-5 flex-shrink-0" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-white text-sm">一键全局数据管理 / MASTER CONFIG SYNC</h3>
+                    <p className="text-[11px] text-zinc-500 font-sans">一键备份、导出、恢复或导入所有分屏背景、卡片、导航和连线</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowMasterBackupModal(false)}
+                  className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-white transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-2">
+                {/* Export Side */}
+                <div className="space-y-3 p-4 bg-zinc-950/50 border border-zinc-850 rounded-xl flex flex-col justify-between">
+                  <div>
+                    <h4 className="text-white font-bold text-xs flex items-center gap-1.5">
+                      <Download className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>第一步：备份当前页面修改</span>
+                    </h4>
+                    <p className="text-[10px] text-zinc-500 mt-1 leading-normal font-sans">
+                      将你修改过的 9 个分屏背景、所有分析卡片、PillNav 菜单和连线，一键生成为一个唯一的 Master JSON 码并复制到剪贴板。
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleExportMasterConfig();
+                      setShowMasterBackupModal(false);
+                    }}
+                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-550 text-white rounded-lg text-xs font-bold tracking-widest uppercase transition-all shadow-md active:scale-95 cursor-pointer"
+                  >
+                    生成并复制全局 Master JSON
+                  </button>
+                </div>
+
+                {/* Import Side */}
+                <div className="space-y-3 p-4 bg-zinc-950/50 border border-zinc-850 rounded-xl flex flex-col justify-between">
+                  <div>
+                    <h4 className="text-white font-bold text-xs flex items-center gap-1.5">
+                      <Upload className="w-3.5 h-3.5 text-sky-400" />
+                      <span>第二步：从 Master 备份中恢复</span>
+                    </h4>
+                    <p className="text-[10px] text-zinc-500 mt-1 leading-normal font-sans">
+                      直接粘贴你之前备份的 Master JSON，或者从 AI 助手处获取的新配置 JSON，一键恢复至当前浏览器！
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <textarea
+                      placeholder="在此处粘贴 Master JSON 配置..."
+                      value={importJsonInput}
+                      onChange={(e) => setImportJsonInput(e.target.value)}
+                      className="w-full h-16 p-2 bg-zinc-900 border border-zinc-850 rounded text-[10px] font-mono text-zinc-300 focus:outline-none focus:border-sky-500 leading-normal"
+                    />
+                    <button
+                      onClick={() => {
+                        if (!importJsonInput.trim()) {
+                          alert("请先粘贴有效的 JSON 配置代码！");
+                          return;
+                        }
+                        const success = handleImportMasterConfig(importJsonInput);
+                        if (success) {
+                          setImportJsonInput("");
+                          setShowMasterBackupModal(false);
+                        }
+                      }}
+                      className="w-full py-2.5 bg-sky-600 hover:bg-sky-550 text-white rounded-lg text-xs font-bold tracking-widest uppercase transition-all shadow-md active:scale-95 cursor-pointer"
+                    >
+                      安全导入并一键恢复
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3 bg-zinc-950 border border-zinc-850 rounded-xl text-[10px] text-zinc-500 leading-normal flex items-start gap-1.5 font-sans">
+                <HelpCircle className="w-4 h-4 flex-shrink-0 text-amber-500" />
+                <span>
+                  💡 <b>大师提示：</b>当你需要 AI 助手同步你更改的多个模块，或者你在新电脑上打开网页时，
+                  只要用这个一键全局 Master JSON 就可以了！AI 助手在接到你发给它的全局 Master JSON 后，也会一次性直接更新所有代码里的 static 默认配置，再也不用担心多页面不同步、一修改其他屏丢失或重置的烦恼！
+                </span>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
       
     </div>
   );

@@ -798,7 +798,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
         }}
       >
         {/* Floating Draggable Controller */}
-        {import.meta.env.DEV && !isMobile && (
+        {!isMobile && (
           <motion.div
             drag
             dragMomentum={false}

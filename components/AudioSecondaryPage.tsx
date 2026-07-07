@@ -26,8 +26,18 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
   const [activeAudioObj, setActiveAudioObj] = useState<HTMLAudioElement | null>(null);
   
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const [searchTerm, setSearchTerm] = useState('');
-  const [isControllerOpen, setIsControllerOpen] = useState(import.meta.env.DEV);
+  const [isControllerOpen, setIsControllerOpen] = useState(!isMobile);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Encryption states
@@ -238,7 +248,7 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
                       <h2 className="text-2xl font-display font-bold">音频矩阵</h2>
                       <p className="text-sm text-zinc-500 mt-1">独立管理该卡片下的所有音频资源及反馈数据</p>
                    </div>
-                   {import.meta.env.DEV && (
+                   {!isMobile && (
                      <button 
                         onClick={() => setIsControllerOpen(!isControllerOpen)}
                         className={`md:hidden flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${isControllerOpen ? 'bg-amber-500 text-zinc-950' : 'bg-zinc-900 border border-zinc-800 text-zinc-400'}`}
@@ -468,7 +478,7 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
                       </div>
                    </div>
 
-                   {import.meta.env.DEV && (
+                   {!isMobile && (
                      <div className="pt-6 border-t border-white/5">
                         <button 
                           onClick={() => {
