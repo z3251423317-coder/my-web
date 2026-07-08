@@ -2110,8 +2110,8 @@ const App: React.FC = () => {
         </div>
             ) : null}
 
-      {/* DB Status Dot (Visible on both Mobile and Desktop) */}
-      {dbConnected !== null && (
+      {/* DB Status Dot (Only visible inside AI Studio Dev/Localhost) */}
+      {dbConnected !== null && isAiStudio && (
         <div 
           onClick={() => setShowDbDiagnostics(true)}
           className="fixed top-6 right-6 z-[100] flex items-center gap-1.5 px-3 py-1.5 bg-zinc-950/85 border border-zinc-800/80 hover:bg-zinc-900 rounded-full text-[10px] font-mono tracking-wider text-zinc-300 backdrop-blur shadow-lg transition-all cursor-pointer pointer-events-auto active:scale-95 select-none animate-fade-in"
