@@ -71,7 +71,7 @@
   position: relative;
   background-blend-mode: color-dodge, normal, normal, normal;
   animation: glow-bg 12s linear infinite;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
   transition: transform 0.8s cubic-bezier(0.2, 1, 0.2, 1), box-shadow 0.8s cubic-bezier(0.2, 1, 0.2, 1);
   transform: translateZ(0) rotateX(0deg) rotateY(0deg);
   background: rgba(255, 255, 255, 0.03);

@@ -37,7 +37,7 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ musicUrl, mobileMusicU
   };
 
   return (
-    <div className="fixed top-20 right-4 mt-[-50px] mr-[10px] z-[1000] flex items-center gap-2">
+    <div className="fixed top-20 right-4 mt-[-20px] mr-[10px] z-[1000] flex items-center gap-2">
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}

@@ -51,6 +51,7 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
   }, []);
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [isReversed, setIsReversed] = useState(false);
   const [isControllerOpen, setIsControllerOpen] = useState(!isMobile);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
@@ -168,9 +169,12 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
     }
   };
 
-  const filteredModules = audioModules.filter(m => 
+  const filteredModules = [...audioModules].filter(m => 
     m.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  if (isReversed) {
+    filteredModules.reverse();
+  }
 
   return (
     <AnimatePresence>
@@ -240,6 +244,13 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
                 />
              </div>
              <div className="flex items-center gap-2 border-l border-white/10 pl-6">
+                <button 
+                   onClick={() => setIsReversed(!isReversed)}
+                   className={`p-1.5 rounded-lg transition-colors ${isReversed ? 'bg-amber-500 text-zinc-950' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
+                   title="倒序显示"
+                >
+                   <RefreshCw className="w-4 h-4 rotate-180" />
+                </button>
                 <button 
                    onClick={() => setViewMode('grid')}
                    className={`p-1.5 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-amber-500 text-zinc-950' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
