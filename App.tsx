@@ -478,13 +478,13 @@ const App: React.FC = () => {
 
     const load = async (manual = false) => {
       if (manual && isMounted) setIsRetryingDb(true);
+      
       try {
-        const res = await fetch('/api/config');
-        if (res.ok) {
-          const contentType = res.headers.get('content-type') || '';
-          if (contentType.includes('application/json')) {
-            const data = await res.json();
-            if (!isMounted) return;
+        const remoteRes = await fetch("https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/user_data.json");
+        
+        if (remoteRes.ok) {
+          const data = await remoteRes.json();
+          if (isMounted) {
             setDbConnected(true);
             setIsDbEmpty(false);
             setDbErrorMsg("");
@@ -495,86 +495,32 @@ const App: React.FC = () => {
             if (data.domeCards) setDomeCards(data.domeCards);
             if (data.trialCards) setTrialCards(data.trialCards);
             if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
-            if (isMounted) {
-              setConfigLoaded(true);
-              setIsRetryingDb(false);
-            }
-            return; // Success, we don't need direct Firestore fallback!
+            setConfigLoaded(true);
+            setIsRetryingDb(false);
+            console.log("Configuration loaded successfully from remote URL.");
+            return;
           }
         }
-        throw new Error("Proxy API /api/config returned invalid content-type / not OK");
+        throw new Error("Failed to fetch from remote URL");
       } catch (err: any) {
-        console.warn("API Proxy '/api/config' failed or returned non-JSON, trying direct Firestore connection...", err);
+        console.error("Failed to load remote configuration, falling back to local defaults...", err);
         
-        if (!isMounted) return;
-
-        // If direct subscription is already established, don't re-create it
-        if (unsubFirestore) {
-          if (isMounted) setIsRetryingDb(false);
-          return;
-        }
-
-        try {
-          unsubFirestore = onSnapshot(doc(db, 'app_config', 'master'), (docSnap) => {
-            if (!isMounted) return;
-            if (docSnap.exists()) {
-              const data = docSnap.data();
-              setDbConnected(true);
-              setIsDbEmpty(false);
-              setDbErrorMsg("");
-              if (data.screens) setScreens(data.screens);
-              if (data.pillNavItems) setPillNavItems(data.pillNavItems);
-              if (data.marqueeCards) setMarqueeCards(data.marqueeCards);
-              if (data.sphereCards) setSphereCards(data.sphereCards);
-              if (data.domeCards) setDomeCards(data.domeCards);
-              if (data.trialCards) setTrialCards(data.trialCards);
-              if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
-            } else {
-              setDbConnected(true); // Connected but configuration document is missing
-              setIsDbEmpty(true);
-              setDbErrorMsg("No config document found at 'app_config/master'. 正在为您自动初始化云端默认数据...");
-              
-              // Automatically write local default data to Firebase Firestore
-              setDoc(doc(db, "app_config", "master"), defaultUserData)
-                .then(() => {
-                  console.log("Firestore successfully auto-seeded with default configuration.");
-                  setIsDbEmpty(false);
-                })
-                .catch((err) => {
-                  console.error("Failed to auto-seed Firestore config:", err);
-                });
-
-              // Fallback to local default data so the site works immediately!
-              const fallback = defaultUserData as any;
-              if (fallback.screens) setScreens(fallback.screens);
-              if (fallback.pillNavItems) setPillNavItems(fallback.pillNavItems);
-              if (fallback.marqueeCards) setMarqueeCards(fallback.marqueeCards);
-              if (fallback.sphereCards) setSphereCards(fallback.sphereCards);
-              if (fallback.domeCards) setDomeCards(fallback.domeCards);
-              if (fallback.trialCards) setTrialCards(fallback.trialCards);
-              if (fallback.relationshipCards) setRelationshipCards(fallback.relationshipCards);
-            }
-            setConfigLoaded(true);
-            setIsRetryingDb(false);
-          }, (firestoreErr) => {
-            console.error("Direct Firestore subscription error:", firestoreErr);
-            if (isMounted) {
-              setDbConnected(false);
-              setIsDbEmpty(false);
-              setDbErrorMsg(firestoreErr.message || String(firestoreErr));
-              setConfigLoaded(true);
-              setIsRetryingDb(false);
-            }
-          });
-        } catch (fErr: any) {
-          console.error("Direct Firestore initialization failed:", fErr);
-          if (isMounted) {
-            setDbConnected(false);
-            setIsDbEmpty(false);
-            setDbErrorMsg(fErr.message || String(fErr));
-            setConfigLoaded(true);
-            setIsRetryingDb(false);
-          }
+        // Fallback to default local data
+        if (isMounted) {
+          const fallback = defaultUserData as any;
+          if (fallback.screens) setScreens(fallback.screens);
+          if (fallback.pillNavItems) setPillNavItems(fallback.pillNavItems);
+          if (fallback.marqueeCards) setMarqueeCards(fallback.marqueeCards);
+          if (fallback.sphereCards) setSphereCards(fallback.sphereCards);
+          if (fallback.domeCards) setDomeCards(fallback.domeCards);
+          if (fallback.trialCards) setTrialCards(fallback.trialCards);
+          if (fallback.relationshipCards) setRelationshipCards(fallback.relationshipCards);
+          
+          setDbConnected(true);
+          setIsDbEmpty(false);
+          setDbErrorMsg("无法获取远程配置，已使用本地默认数据。");
+          setConfigLoaded(true);
+          setIsRetryingDb(false);
         }
       }
     };
@@ -2287,7 +2233,7 @@ const App: React.FC = () => {
       )}
 
       {/* Elegant, Minimalist Page-Level Navigation Suite (Fixed on Display Page) */}
-      <div className="hidden fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2 pointer-events-auto">
+      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2 pointer-events-auto">
           {/* Screen Counter Badge */}
           <div className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-full font-mono text-[9px] tracking-widest text-zinc-200 font-bold backdrop-blur-md shadow-lg select-none">
             {activeId.toString().padStart(2, '0')} / {screens.length.toString().padStart(2, '0')}
