@@ -14,7 +14,14 @@ if (!rootElement) {
 }
 
 const root = ReactDOM.createRoot(rootElement);
-const isAdmin = window.location.pathname.startsWith('/admin');
+
+const isAiStudio = 
+  typeof window !== 'undefined' && 
+  (window.location.hostname.includes('ais-dev-') || 
+   window.location.hostname.includes('localhost') || 
+   window.location.hostname.includes('127.0.0.1'));
+
+const isAdmin = window.location.pathname.startsWith('/admin') && isAiStudio;
 
 root.render(
   <React.StrictMode>

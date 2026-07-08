@@ -14,17 +14,31 @@ interface AudioSecondaryPageProps {
   onClose: () => void;
   activeCard: MarqueeCard | null;
   onUpdateCard: (updatedCard: MarqueeCard) => void;
+  isAiStudio?: boolean;
 }
 
 export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({ 
   isOpen, 
   onClose, 
   activeCard,
-  onUpdateCard
+  onUpdateCard,
+  isAiStudio: isAiStudioProp
 }) => {
+  const isAiStudio = isAiStudioProp !== undefined ? isAiStudioProp : (
+    typeof window !== 'undefined' && (
+      window.location.hostname.includes('ais-dev-') || 
+      window.location.hostname.includes('localhost') || 
+      window.location.hostname.includes('127.0.0.1')
+    )
+  );
   const [audioModules, setAudioModules] = useState<AudioModule[]>([]);
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
   const [activeAudioObj, setActiveAudioObj] = useState<HTMLAudioElement | null>(null);
+  
+  // States for zooming/expanding card detail and editing its description text
+  const [zoomedModule, setZoomedModule] = useState<AudioModule | null>(null);
+  const [zoomedEditDesc, setZoomedEditDesc] = useState<string>('');
+  const [isEditingZoomed, setIsEditingZoomed] = useState<boolean>(false);
   
   const [isMobile, setIsMobile] = useState<boolean>(false);
   useEffect(() => {
@@ -50,6 +64,7 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
   const [newAudioUrl, setNewAudioUrl] = useState('');
   const [newDuration, setNewDuration] = useState('02:30');
   const [newRating, setNewRating] = useState(5);
+  const [newDesc, setNewDesc] = useState('');
 
   const touchStartRef = useRef<{ x: number, y: number } | null>(null);
 
@@ -103,11 +118,13 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
       status: '启用',
       createdAt: timestamp,
       updatedAt: timestamp,
-      user: '管理员'
+      user: '管理员',
+      desc: newDesc
     };
     handleUpdate([...audioModules, newModule]);
     setNewName('');
     setNewAudioUrl('');
+    setNewDesc('');
   };
 
   const handleDeleteModule = (id: string) => {
@@ -248,7 +265,7 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
                       <h2 className="text-2xl font-display font-bold">音频矩阵</h2>
                       <p className="text-sm text-zinc-500 mt-1">独立管理该卡片下的所有音频资源及反馈数据</p>
                    </div>
-                   {!isMobile && (
+                   {!isMobile && isAiStudio && (
                      <button 
                         onClick={() => setIsControllerOpen(!isControllerOpen)}
                         className={`md:hidden flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${isControllerOpen ? 'bg-amber-500 text-zinc-950' : 'bg-zinc-900 border border-zinc-800 text-zinc-400'}`}
@@ -318,7 +335,14 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
                       <motion.div
                         layout
                         key={mod.id}
-                        className={`group relative border transition-all duration-300 ${
+                        onClick={() => {
+                          if (!isLocked) {
+                            setZoomedModule(mod);
+                            setZoomedEditDesc(mod.desc || '');
+                            setIsEditingZoomed(false);
+                          }
+                        }}
+                        className={`group relative border transition-all duration-300 cursor-pointer ${
                           viewMode === 'grid' 
                             ? 'bg-zinc-900/40 border-white/5 rounded-3xl p-6 hover:border-amber-500/30 hover:bg-zinc-900/60' 
                             : 'bg-zinc-900/40 border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-amber-500/30'
@@ -340,23 +364,23 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
 
                             {viewMode === 'grid' && (
                               <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed opacity-70 group-hover:opacity-100 transition-opacity">
-                                {isLocked ? "此项内容当前处于加密状态，解锁后可查看详情并播放。" : "此项内容独立控制卡片特征，包含音频链接及评分维度。"}
+                                {mod.desc ? mod.desc : (isLocked ? "此项内容当前处于加密状态，解锁后可查看详情并播放。" : "点击卡片可放大查看详情并编辑文字。此项内容独立控制卡片特征，包含音频链接及评分维度。")}
                               </p>
                             )}
 
                             <div className={viewMode === 'grid' ? "flex items-center justify-between pt-2" : "flex items-center gap-4 ml-auto"}>
                                <button 
                                   onClick={(e) => { e.stopPropagation(); handleDeleteModule(mod.id); }}
-                                  className="p-2 text-zinc-600 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                  className="p-2 text-zinc-600 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100 z-10"
                                   title="Delete audio module"
-                               >
+                                >
                                   <Trash2 className="w-4 h-4" />
                                </button>
 
                                <button 
-                                  onClick={() => handleTogglePlay(mod)}
+                                  onClick={(e) => { e.stopPropagation(); handleTogglePlay(mod); }}
                                   disabled={isLocked}
-                                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all z-10 ${
                                     isLocked 
                                       ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
                                       : playingAudioId === mod.id 
@@ -378,7 +402,7 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
 
           {/* Sidebar Controller */}
           <AnimatePresence>
-            {isControllerOpen && (
+            {isControllerOpen && isAiStudio && (
               <motion.aside
                 initial={{ x: 400, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
@@ -426,6 +450,16 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
                               value={newAudioUrl}
                               onChange={(e) => setNewAudioUrl(e.target.value)}
                               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500/50 transition-colors"
+                            />
+                         </div>
+
+                         <div className="space-y-1.5">
+                            <label className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest ml-1">音频描述 / 笔记 (Text Content)</label>
+                            <textarea 
+                              placeholder="输入此卡片放大后展示的文字笔记、论点或音频解读内容..."
+                              value={newDesc}
+                              onChange={(e) => setNewDesc(e.target.value)}
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500/50 transition-colors h-20 resize-none scrollbar-thin"
                             />
                          </div>
 
@@ -502,6 +536,208 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
             )}
           </AnimatePresence>
         </main>
+
+        {/* Zoomed/Expanded Module Card Details Overlay Modal */}
+        <AnimatePresence>
+          {zoomedModule && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/95 backdrop-blur-md z-[120] flex items-center justify-center p-4 pointer-events-auto"
+              onClick={() => setZoomedModule(null)}
+            >
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+                className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 md:p-8 max-w-xl w-full shadow-2xl relative space-y-6 overflow-hidden max-h-[90vh] flex flex-col"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Decorative background glow based on rating */}
+                <div className="absolute -top-24 -left-24 w-48 h-48 bg-amber-500/10 blur-3xl rounded-full pointer-events-none" />
+                <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-indigo-500/10 blur-3xl rounded-full pointer-events-none" />
+
+                {/* Header */}
+                <div className="flex items-center justify-between border-b border-zinc-800 pb-4 relative z-10 shrink-0">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-amber-500/10 text-amber-500 rounded-2xl border border-amber-500/20 shadow-lg shadow-amber-500/5">
+                      <Music className="w-5 h-5 animate-pulse" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white text-base font-display tracking-tight">音频详细维度卡片</h3>
+                      <p className="text-[10px] text-zinc-500 font-mono tracking-widest uppercase">ID: {zoomedModule.id}</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setZoomedModule(null)}
+                    className="p-2 hover:bg-zinc-800 rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Body Scrollable Area */}
+                <div className="flex-1 overflow-y-auto space-y-6 pr-1 scrollbar-thin scrollbar-thumb-zinc-800 relative z-10">
+                  
+                  {/* Audio Name Display */}
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest">AUDIO MODULE NAME / 模块名称</span>
+                    <h4 className="text-xl font-extrabold text-white font-display tracking-tight leading-tight">{zoomedModule.name}</h4>
+                  </div>
+
+                  {/* Metadata Badges Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-zinc-950/40 p-4 rounded-2xl border border-zinc-850/60 font-sans">
+                    <div className="space-y-0.5">
+                      <span className="text-[9px] text-zinc-500 font-mono uppercase tracking-wider block">Duration / 时长</span>
+                      <div className="flex items-center gap-1.5 text-xs text-zinc-200 font-medium">
+                        <Clock className="w-3.5 h-3.5 text-zinc-500" />
+                        <span>{zoomedModule.duration}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-0.5">
+                      <span className="text-[9px] text-zinc-500 font-mono uppercase tracking-wider block">Fidelity Score / 评分</span>
+                      <div className="flex items-center gap-1 text-xs text-amber-500 font-bold">
+                        {[...Array(5)].map((_, i) => (
+                          <Star 
+                            key={i} 
+                            className={`w-3 h-3 ${i < zoomedModule.rating ? 'fill-amber-500 text-amber-500' : 'text-zinc-700'}`} 
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-0.5 col-span-2 sm:col-span-1">
+                      <span className="text-[9px] text-zinc-500 font-mono uppercase tracking-wider block">Created / 创建时间</span>
+                      <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-medium">
+                        <Calendar className="w-3.5 h-3.5 text-zinc-500" />
+                        <span className="truncate">{zoomedModule.createdAt}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Audio Player Core Controller */}
+                  <div className="hidden p-5 bg-gradient-to-br from-zinc-950 to-zinc-900 rounded-2xl border border-zinc-800/80 shadow-inner flex flex-col items-center gap-4">
+                    
+                    {/* Equalizer Waveform animation if playing */}
+                    <div className="h-8 flex items-end gap-1.5 justify-center w-full max-w-[180px]">
+                      {playingAudioId === zoomedModule.id ? (
+                        [...Array(12)].map((_, i) => {
+                          const delay = (i % 4) * 0.15;
+                          return (
+                            <motion.div 
+                              key={i}
+                              animate={{ height: [8, 32, 10, 24, 8] }}
+                              transition={{ repeat: Infinity, duration: 1.2, delay: delay, ease: 'easeInOut' }}
+                              className="w-1.5 bg-amber-500 rounded-full"
+                            />
+                          );
+                        })
+                      ) : (
+                        <div className="flex items-center justify-center gap-1 text-[10px] text-zinc-500 font-mono uppercase tracking-widest h-full">
+                          <span className="w-1.5 h-1.5 bg-zinc-700 rounded-full animate-ping mr-1" />
+                          <span>PLAYER STANDBY</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Large Circular Play Button */}
+                    <button 
+                      onClick={() => handleTogglePlay(zoomedModule)}
+                      className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
+                        playingAudioId === zoomedModule.id 
+                          ? 'bg-rose-500 hover:bg-rose-400 text-white shadow-[0_0_25px_rgba(239,68,68,0.4)] hover:scale-105 active:scale-95' 
+                          : 'bg-amber-500 hover:bg-amber-400 text-zinc-950 shadow-[0_0_25px_rgba(245,158,11,0.3)] hover:scale-105 active:scale-95'
+                      }`}
+                    >
+                      {playingAudioId === zoomedModule.id ? (
+                        <Pause className="w-7 h-7" />
+                      ) : (
+                        <Play className="w-7 h-7 translate-x-0.5" />
+                      )}
+                    </button>
+
+                    {/* Info & Duration status */}
+                    <div className="text-center">
+                      <span className="text-[10px] text-zinc-400 font-mono font-bold tracking-widest uppercase">
+                        {playingAudioId === zoomedModule.id ? "NOW PLAYING / 正在播放" : "CLICK TO PLAY / 点击播放"}
+                      </span>
+                      {playingAudioId === zoomedModule.id && (
+                        <p className="text-[9px] text-amber-500 font-mono mt-0.5">
+                          STREAMING LIVE AUDIO FROM CLOUD STORAGE
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Description / Edited text content section */}
+                  <div className="space-y-2 border-t border-zinc-800/80 pt-5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest font-bold">
+                        音频描述与文字笔记 / Description & Notes
+                      </span>
+                      {!isEditingZoomed && (
+                        <button
+                          onClick={() => {
+                            setZoomedEditDesc(zoomedModule.desc || '');
+                            setIsEditingZoomed(true);
+                          }}
+                          className="hidden text-[11px] font-bold text-amber-500 hover:text-amber-400 transition-colors uppercase flex items-center gap-1 cursor-pointer bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20"
+                        >
+                          <span>Edit Notes / 编辑文字</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {isEditingZoomed ? (
+                      <div className="space-y-3">
+                        <textarea
+                          value={zoomedEditDesc}
+                          onChange={(e) => setZoomedEditDesc(e.target.value)}
+                          placeholder="在此输入、编辑或修改此卡片的文字内容、深度论文笔记或详细音频描述..."
+                          className="w-full h-32 bg-zinc-950 border border-zinc-800 focus:border-amber-500/50 rounded-2xl p-4 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none transition-colors resize-none scrollbar-thin"
+                        />
+                        <div className="flex justify-end gap-2.5">
+                          <button
+                            onClick={() => setIsEditingZoomed(false)}
+                            className="px-4 py-2 bg-zinc-800 hover:bg-zinc-750 text-zinc-300 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                          >
+                            取消 (Cancel)
+                          </button>
+                          <button
+                            onClick={() => {
+                              const updatedModules = audioModules.map(m => 
+                                m.id === zoomedModule.id ? { ...m, desc: zoomedEditDesc, updatedAt: new Date().toLocaleString() } : m
+                              );
+                              handleUpdate(updatedModules);
+                              setZoomedModule({ ...zoomedModule, desc: zoomedEditDesc });
+                              setIsEditingZoomed(false);
+                            }}
+                            className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-xl text-xs font-bold transition-all shadow-md shadow-amber-500/10 cursor-pointer"
+                          >
+                            保存修改 (Save Notes)
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-zinc-950/60 p-4 rounded-2xl border border-zinc-850/80 text-zinc-300 text-xs leading-relaxed whitespace-pre-wrap font-sans min-h-[80px] flex flex-col justify-between">
+                        {zoomedModule.desc ? (
+                          <span>{zoomedModule.desc}</span>
+                        ) : (
+                          <span className="text-zinc-600 italic">暂无文字内容。请点击右上角“编辑文字”按钮来添加研读笔记或文字详情。</span>
+                        )}
+                        <div className="text-[9px] text-zinc-500 font-mono mt-4 text-right">
+                          LAST UPDATED / 上次更新: {zoomedModule.updatedAt || zoomedModule.createdAt}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </AnimatePresence>
   );

@@ -51,6 +51,7 @@ export interface AudioModule {
   audioUrl: string;
   duration: string;
   rating: number;
+  desc?: string;
 }
 
 export interface RelationshipCard {

@@ -430,6 +430,12 @@ const DEFAULT_DATA_FINGERPRINT = "fp_v23_" + JSON.stringify(DEFAULT_MARQUEE_CARD
  * ================================================================================= */
 
 const App: React.FC = () => {
+  const isAiStudio = typeof window !== 'undefined' && (
+    window.location.hostname.includes('ais-dev-') || 
+    window.location.hostname.includes('localhost') || 
+    window.location.hostname.includes('127.0.0.1')
+  );
+
   // Clear localStorage if code-defined defaults change to solve stale data issues from the root
   if (typeof window !== "undefined") {
     const currentFp = localStorage.getItem("alphaqubit_data_fingerprint");
@@ -480,7 +486,9 @@ const App: React.FC = () => {
       if (manual && isMounted) setIsRetryingDb(true);
       
       try {
-        const remoteRes = await fetch("https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/user_data.json");
+        const remoteRes = await fetch(`https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/user_data.json?t=${Date.now()}`, {
+          cache: 'no-store'
+        });
         
         if (remoteRes.ok) {
           const data = await remoteRes.json();
@@ -2059,12 +2067,14 @@ const App: React.FC = () => {
         </div>
       )}
       
-      <a 
-        href="/admin" 
-        className="hidden lg:flex absolute bottom-6 left-6 z-[9999] px-4 py-2 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-full text-sm backdrop-blur shadow-lg border border-zinc-700/50 transition-all font-medium pointer-events-auto items-center justify-center"
-      >
-        进入后台 (Admin)
-      </a>
+      {isAiStudio && (
+        <a 
+          href="/admin" 
+          className="hidden lg:flex absolute bottom-6 left-6 z-[9999] px-4 py-2 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-full text-sm backdrop-blur shadow-lg border border-zinc-700/50 transition-all font-medium pointer-events-auto items-center justify-center"
+        >
+          进入后台 (Admin)
+        </a>
+      )}
 
       {/* PillNav centered navigation header - only displayed on the first screen */}
       {activeId === 1 ? (
@@ -2276,7 +2286,7 @@ const App: React.FC = () => {
       
 
       {/* Developer Settings Control Panel (Only visible in DEV, draggable, clean and elegant) */}
-      {!isMobile && (
+      {!isMobile && isAiStudio && (
         <motion.div 
           drag
           dragMomentum={false}
@@ -2457,7 +2467,7 @@ const App: React.FC = () => {
                 className="snap-start snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
               >
                 {/* Floating controls specifically for Screen 4 to toggle the drawer */}
-                {!isMobile && (
+                {!isMobile && isAiStudio && (
                   <div className="absolute top-20 right-6 lg:top-6 lg:right-44 z-50 pointer-events-auto flex items-center gap-3">
                     <button
                       onClick={() => setActiveConsoleScreenId(activeConsoleScreenId === 4 ? null : 4)}
@@ -2520,7 +2530,7 @@ const App: React.FC = () => {
                 className="snap-start snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
               >
                 {/* Floating controls specifically for Screen 5 to toggle the dome drawer */}
-                {!isMobile && (
+                {!isMobile && isAiStudio && (
                   <div className="absolute top-24 right-6 lg:top-6 lg:right-6 z-50 pointer-events-auto flex items-center gap-3">
                     <button
                       onClick={() => setActiveConsoleScreenId(activeConsoleScreenId === 5 ? null : 5)}
@@ -2571,7 +2581,7 @@ const App: React.FC = () => {
                 className="snap-start snap-always relative w-full min-h-screen lg:h-screen overflow-hidden flex items-center justify-center bg-transparent"
               >
                 {/* Floating controls specifically for Screen 6 to toggle the console drawer */}
-                {!isMobile && (
+                {!isMobile && isAiStudio && (
                   <div className="absolute top-24 right-6 lg:top-6 lg:right-6 z-50 pointer-events-auto flex items-center gap-3">
                     <button
                       onClick={() => setActiveConsoleScreenId(activeConsoleScreenId === 6 ? null : 6)}
@@ -2754,7 +2764,7 @@ const App: React.FC = () => {
                       </motion.div>
 
                       {/* Controls Toggle Trigger (Visible only on this screen, fulfilling user's '控制台只在该页显示') */}
-                      {!isMobile && (
+                      {!isMobile && isAiStudio && (
                         <div className="flex items-center gap-3">
                           <button
                             id="console-toggle-btn"
@@ -4073,6 +4083,7 @@ const App: React.FC = () => {
         onClose={() => setIsPdfSecondaryPageOpen(false)} 
         cards={relationshipCards}
         onUpdateCards={saveRelationshipCards}
+        isAiStudio={isAiStudio}
       />
       <AudioSecondaryPage 
         isOpen={isAudioSecondaryPageOpen} 
@@ -4082,6 +4093,7 @@ const App: React.FC = () => {
           setTrialCards(prev => prev.map(c => c.id === updatedCard.id ? updatedCard : c));
           setSelectedCard6(updatedCard);
         }}
+        isAiStudio={isAiStudio}
       />
       <MusicPlayer 
         musicUrl={activeScreen.bgMusicUrl} 
@@ -4090,7 +4102,7 @@ const App: React.FC = () => {
       />
 
       {/* Global Sync Floating Button - Always Visible (Hidden on Mobile) */}
-      {!isMobile && (
+      {!isMobile && isAiStudio && (
         <button
           onClick={() => setShowMasterBackupModal(true)}
           className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black rounded-full shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all cursor-pointer hover:scale-[1.03] active:scale-95"

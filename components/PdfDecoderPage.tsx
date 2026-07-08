@@ -90,6 +90,7 @@ interface PdfDecoderPageProps {
   onClose: () => void;
   cards: RelationshipCard[];
   onUpdateCards: (updated: RelationshipCard[]) => void;
+  isAiStudio?: boolean;
 }
 
 const DEFAULT_PDF_URL = "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/1.%E6%AD%A4%E4%B8%BA%E7%94%98%E9%A5%B4%EF%BC%8C%E5%BD%BC%E4%B9%8B%E8%8B%A6%E8%8D%AF%E2%80%94%E2%80%94%E2%80%94%E8%AE%BA%E4%B8%8D%E5%90%88%E9%80%82%E7%9A%84%E8%83%8C%E5%90%8E%E4%BA%B2%E5%AF%86%E5%85%B3%E7%B3%BB%E4%B8%AD%E6%83%85%E6%84%9F%E4%BE%9B%E9%9C%80%E7%9A%84%E7%BB%93%E6%9E%84%E6%80%A7%E5%A4%B1%E8%A1%A1%EF%BC%88WXJB-2663-001%EF%BC%89.pdf";
@@ -144,7 +145,15 @@ const INITIAL_RELATIONSHIP_CARDS: RelationshipCard[] = [
   }
 ];
 
-export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose, cards, onUpdateCards }) => {
+export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose, cards, onUpdateCards, isAiStudio: isAiStudioProp }) => {
+  const isAiStudio = isAiStudioProp !== undefined ? isAiStudioProp : (
+    typeof window !== 'undefined' && (
+      window.location.hostname.includes('ais-dev-') || 
+      window.location.hostname.includes('localhost') || 
+      window.location.hostname.includes('127.0.0.1')
+    )
+  );
+
   const saveCards = (updater: RelationshipCard[] | ((prev: RelationshipCard[]) => RelationshipCard[])) => {
     const next = typeof updater === 'function' ? updater(cards) : updater;
     onUpdateCards(next);
@@ -798,7 +807,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
         }}
       >
         {/* Floating Draggable Controller */}
-        {!isMobile && (
+        {!isMobile && isAiStudio && (
           <motion.div
             drag
             dragMomentum={false}
@@ -963,14 +972,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
                     <div className="max-h-64 overflow-y-auto space-y-1 pr-1 scrollbar-thin scrollbar-thumb-zinc-800" onPointerDown={e => e.stopPropagation()}>
                       {cards.map(c => (
                         <div key={c.id} className="flex items-center justify-between gap-2 bg-zinc-900 border border-zinc-800/50 rounded p-1.5 cursor-default" onPointerDown={e => e.stopPropagation()}>
-                          <span className="text-[10px] text-zinc-300 truncate w-40">{c.title}</span>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); handleDeleteCard(c.id, e as any); }}
-                            className="p-1 text-zinc-500 hover:text-red-400 transition-colors cursor-pointer bg-black/20 rounded relative z-50"
-                            title="精准删除此条"
-                          >
-                            <Trash2 className="w-3 h-3 pointer-events-none" />
-                          </button>
+                          <span className="text-[10px] text-zinc-300 truncate w-full">{c.title}</span>
                         </div>
                       ))}
                     </div>
@@ -1148,9 +1150,20 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
                             </a>
                           </h4>
                           {card.desc && (
-                            <p className="text-xs text-zinc-500 max-w-2xl mt-1.5 line-clamp-2">
+                            <p className="text-xs text-zinc-500 max-w-2xl mt-1.5">
                               {card.desc}
                             </p>
+                          )}
+                          {selectedCard?.id === card.id && card.notes && (
+                            <motion.div 
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              className="mt-3 p-3 bg-zinc-950/80 rounded-lg border border-zinc-800 text-xs text-amber-200/90 leading-relaxed whitespace-pre-wrap font-sans"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div className="text-[10px] uppercase font-bold text-amber-500/80 mb-1">已设置的文字 / Configured Notes:</div>
+                              {card.notes}
+                            </motion.div>
                           )}
                         </div>
                       </div>
@@ -1228,7 +1241,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
                   </div>
 
                   {/* High Quality Responsive Container Box */}
-                  <div className="w-full h-[450px] bg-zinc-950 rounded-xl overflow-hidden border border-zinc-800 relative group/slider flex items-center justify-center shadow-2xl">
+                  <div className={`w-full bg-zinc-950 rounded-xl overflow-hidden border border-zinc-800 relative group/slider flex items-center justify-center shadow-2xl ${isAiStudio ? 'h-[450px]' : 'h-[650px] flex-1 min-h-[500px]'}`}>
                     {/* Embed Interactive Live PDF document with dynamic engine selectors */}
                     <div className="w-full h-full flex flex-col bg-zinc-950">
                       {/* Engine Selector Header */}
@@ -1352,7 +1365,8 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
               </div>
 
                 {/* Card Configuration & Editing Form */}
-                <div className="flex-1 overflow-y-auto pr-1 space-y-5 max-h-[45vh] scrollbar-thin scrollbar-thumb-zinc-800">
+                {isAiStudio && (
+                  <div className="flex-1 overflow-y-auto pr-1 space-y-5 max-h-[45vh] scrollbar-thin scrollbar-thumb-zinc-800">
                   
                   {/* Category & Title */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1606,6 +1620,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
                   </div>
 
                 </div>
+              )}
 
               </div>
             )}

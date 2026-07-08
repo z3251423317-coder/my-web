@@ -26,6 +26,7 @@ interface AudioModule {
   createdAt: string;
   updatedAt: string;
   user: string;
+  desc?: string;
 }
 
 interface MarqueeCard {
@@ -1467,6 +1468,46 @@ function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId 
                                   <option value="禁用">禁用 (Disabled)</option>
                                 </select>
                               </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="space-y-1">
+                                <span className="text-[9px] text-zinc-500">星级评分 (1-5):</span>
+                                <input 
+                                  type="number"
+                                  min="1"
+                                  max="5"
+                                  value={activeMod.rating || 5}
+                                  onChange={(e) => {
+                                    const updated = modules.map(m => m.id === activeMod.id ? { ...m, rating: Number(e.target.value) } : m);
+                                    updateCardField(activeCard.id, 'audioModules', updated);
+                                  }}
+                                  className="w-full px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-white"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <span className="text-[9px] text-zinc-500">上传者/用户:</span>
+                                <input 
+                                  type="text"
+                                  value={activeMod.user || 'Admin'}
+                                  onChange={(e) => {
+                                    const updated = modules.map(m => m.id === activeMod.id ? { ...m, user: e.target.value } : m);
+                                    updateCardField(activeCard.id, 'audioModules', updated);
+                                  }}
+                                  className="w-full px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-white"
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-[9px] text-zinc-500">音频描述与文字笔记 (Notes):</span>
+                              <textarea
+                                value={activeMod.desc || ''}
+                                onChange={(e) => {
+                                  const updated = modules.map(m => m.id === activeMod.id ? { ...m, desc: e.target.value, updatedAt: new Date().toLocaleDateString() } : m);
+                                  updateCardField(activeCard.id, 'audioModules', updated);
+                                }}
+                                placeholder="输入该音频模块的研读笔记、音频描述或文字详情..."
+                                className="w-full h-16 px-1.5 py-1 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-amber-500/50 resize-none scrollbar-thin"
+                              />
                             </div>
                           </div>
                         );
