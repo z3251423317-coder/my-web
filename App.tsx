@@ -2060,7 +2060,7 @@ const App: React.FC = () => {
    * ================================================================================= */
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-zinc-950 select-none flex flex-col font-sans">
+    <div className="relative w-screen h-screen overflow-hidden bg-zinc-950 select-none flex flex-col font-sans shadow-none">
       {!configLoaded && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-zinc-950">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
@@ -2111,7 +2111,7 @@ const App: React.FC = () => {
             ) : null}
 
       {/* DB Status Dot (Only visible inside AI Studio Dev/Localhost) */}
-      {dbConnected !== null && isAiStudio && (
+      {/* {dbConnected !== null && isAiStudio && (
         <div 
           onClick={() => setShowDbDiagnostics(true)}
           className="fixed top-6 right-6 z-[100] flex items-center gap-1.5 px-3 py-1.5 bg-zinc-950/85 border border-zinc-800/80 hover:bg-zinc-900 rounded-full text-[10px] font-mono tracking-wider text-zinc-300 backdrop-blur shadow-lg transition-all cursor-pointer pointer-events-auto active:scale-95 select-none animate-fade-in"
@@ -2122,7 +2122,7 @@ const App: React.FC = () => {
             DB: {!dbConnected ? 'ERR' : isDbEmpty ? 'EMPTY' : 'OK'}
           </span>
         </div>
-      )}
+      )} */}
 
       {/* Diagnostics Panel Modal */}
       {showDbDiagnostics && (
@@ -2617,13 +2617,13 @@ const App: React.FC = () => {
                             whileInView={{ opacity: 1, scale: 1 }}
                             className="px-4 py-1.5 bg-amber-500/10 text-amber-500 rounded-full text-[10px] font-mono tracking-widest uppercase font-bold border border-amber-500/20 inline-block shadow-sm shadow-amber-500/5"
                           >
-                            INTERACTIVE TRIAL DECK / 纠错算法看板
+                            {s.label || "INTERACTIVE TRIAL DECK / 纠错算法看板"}
                           </motion.span>
                           <h2 className="text-3xl md:text-5xl font-display font-black tracking-tighter text-white uppercase leading-none">
-                            Sycamore Syndrome Diagnostic Suite
+                            {s.title || "Sycamore Syndrome Diagnostic Suite"}
                           </h2>
                           <p className="text-[11px] md:text-sm text-zinc-400 max-w-2xl mx-auto font-sans font-medium leading-relaxed opacity-80">
-                            Click any card in the continuous right-to-left feed to lock onto the signal, analyze real-time spatial error patterns, and review physical latency metrics.
+                            {s.description || s.subtitle || "Click any card in the continuous right-to-left feed to lock onto the signal, analyze real-time spatial error patterns, and review physical latency metrics."}
                           </p>
                         </div>
 
@@ -4102,7 +4102,7 @@ const App: React.FC = () => {
       />
 
       {/* Global Sync Floating Button - Always Visible (Hidden on Mobile) */}
-      {!isMobile && isAiStudio && (
+      {/* {!isMobile && isAiStudio && (
         <button
           onClick={() => setShowMasterBackupModal(true)}
           className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black rounded-full shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all cursor-pointer hover:scale-[1.03] active:scale-95"
@@ -4111,7 +4111,7 @@ const App: React.FC = () => {
           <Database className="w-4 h-4" />
           <span className="text-xs uppercase tracking-wider">全局配置备份/恢复 (SYNC)</span>
         </button>
-      )}
+      )} */}
 
       {/* Global Master Config Modal / 全局配置备份与恢复 */}
       <AnimatePresence>

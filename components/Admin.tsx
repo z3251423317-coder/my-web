@@ -36,6 +36,7 @@ interface MarqueeCard {
   desc: string;
   url: string;
   colorType?: string;
+  image?: string;
   isEncrypted?: boolean;
   password?: string;
   audioModules?: AudioModule[];
@@ -1311,6 +1312,17 @@ function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId 
                     className="w-full px-2 py-1 bg-zinc-950 border border-zinc-800 rounded text-xs text-white font-mono"
                   />
                 </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[9px] text-zinc-400 block font-bold">卡片图片/圈圈背景图片链接 (Image URL)</label>
+                <input 
+                  type="text"
+                  value={activeCard.image || ''}
+                  onChange={(e) => updateCardField(activeCard.id, 'image', e.target.value)}
+                  placeholder="请输入图片链接 (如: https://images.unsplash.com/...)"
+                  className="w-full px-2 py-1 bg-zinc-950 border border-zinc-800 rounded text-xs text-white font-mono"
+                />
               </div>
 
               <div className="space-y-1.5">

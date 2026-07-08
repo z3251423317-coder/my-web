@@ -24,19 +24,13 @@ body {
   font-family: 'Space Grotesk', sans-serif !important;
 }
 
-/* Elegant custom scrollbar styling */
+/* Elegant custom scrollbar styling - Hidden but scrollable as requested */
 ::-webkit-scrollbar {
-  width: 8px;
+  display: none;
 }
-::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.03);
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+html, body {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 
 /* Slide in animation for control drawers */
@@ -127,6 +121,11 @@ body {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.04) 100%) !important;
   border-color: rgba(255, 255, 255, 0.28) !important;
   box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.3), 0 24px 48px 0 rgba(0, 0, 0, 0.6) !important;
+}
+
+#root > div > div {
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 

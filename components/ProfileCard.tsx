@@ -5,7 +5,7 @@ import './ProfileCard.css';
 const DEFAULT_ICON_PATTERN = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cpath d='M12 22v-10h10M38 12h10v10M12 38v10h10M38 48h10V38' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
 const DEFAULT_GRAIN_TEXTURE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.25'/%3E%3C/svg%3E";
 
-const DEFAULT_INNER_GRADIENT = 'linear-gradient(145deg,#18181b8c 0%,#27272a44 100%)';
+const DEFAULT_INNER_GRADIENT = 'linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%)';
 
 const ANIMATION_CONFIG = {
   INITIAL_DURATION: 1200,
@@ -349,7 +349,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
                 }}
               />
               {isEncrypted && (
-                <div className="absolute top-5 right-5 z-[5] p-2.5 bg-zinc-950/70 backdrop-blur-md rounded-full text-amber-500 shadow-lg transition-transform hover:scale-110">
+                <div className="absolute top-5 right-5 z-[5] p-2.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-amber-500 shadow-lg transition-transform hover:scale-110">
                   <Lock className="w-5 h-5" strokeWidth={2.5} />
                 </div>
               )}
