@@ -5,7 +5,7 @@ import axios from "axios";
 import cors from "cors";
 
 import { initializeApp } from "firebase/app";
-import { initializeFirestore, doc, getDocFromServer, setDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.VITE_FIREBASE_API_KEY || "AIzaSyCceyO1xnOhRvx_Sf2j3eNzPRXDGU_mVqw",
@@ -17,9 +17,7 @@ const firebaseConfig = {
 };
 const fbApp = initializeApp(firebaseConfig);
 const firestoreDatabaseId = "ai-studio-alphaqubitvisual-3e69a2ec-7863-4267-90fa-728f0abaa893";
-const db = initializeFirestore(fbApp, {
-  experimentalForceLongPolling: true
-}, firestoreDatabaseId);
+const db = getFirestore(fbApp, firestoreDatabaseId);
 
 
 async function startServer() {
@@ -36,44 +34,22 @@ async function startServer() {
       return res.status(400).send("Missing url parameter");
     }
 
-    let finalUrl = pdfUrl;
-    try {
-      finalUrl = encodeURI(decodeURI(pdfUrl));
-    } catch (e) {
-      console.warn("[Proxy] URI decode/encode failed, keeping original:", e);
-    }
-
-    // Auto-correct missing "构石文档/" folder in Tencent COS urls
-    if (
-      finalUrl.includes("wangzhan-1379786748.cos") && 
-      !finalUrl.includes("构石文档") && 
-      !finalUrl.includes("%E6%9E%84%E7%9F%B3%E6%96%87%E6%A1%A3") && 
-      !finalUrl.includes("%e6%9e%84%e7%9f%b3%e6%96%87%e6%a1%a3")
-    ) {
-      const domainIndex = finalUrl.indexOf("myqcloud.com/");
-      if (domainIndex !== -1) {
-        const insertPos = domainIndex + "myqcloud.com/".length;
-        finalUrl = finalUrl.slice(0, insertPos) + "%E6%9E%84%E7%9F%B3%E6%96%87%E6%A1%A3/" + finalUrl.slice(insertPos);
-        console.log(`[Proxy] Auto-corrected missing subfolder path: ${finalUrl}`);
-      }
-    }
-
-    console.log(`[Proxy] Attempting to fetch: ${finalUrl}`);
+    console.log(`[Proxy] Attempting to fetch: ${pdfUrl}`);
 
     try {
-      const response = await axios.get(finalUrl, {
+      const response = await axios.get(pdfUrl, {
         responseType: "arraybuffer",
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
         },
       });
 
-      console.log(`[Proxy] Success: ${finalUrl} (Size: ${response.data.byteLength})`);
+      console.log(`[Proxy] Success: ${pdfUrl} (Size: ${response.data.byteLength})`);
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.send(response.data);
     } catch (error: any) {
-      console.error(`[Proxy] Error fetching ${finalUrl}:`, error.message);
+      console.error(`[Proxy] Error fetching ${pdfUrl}:`, error.message);
       if (error.response) {
         console.error(`[Proxy] Status: ${error.response.status}`);
       }
@@ -87,11 +63,8 @@ async function startServer() {
 
   
   app.get("/api/config", async (req, res) => {
-    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    res.setHeader("Pragma", "no-cache");
-    res.setHeader("Expires", "0");
     try {
-      const docSnap = await getDocFromServer(doc(db, "app_config", "master"));
+      const docSnap = await getDoc(doc(db, "app_config", "master"));
       if (docSnap.exists()) {
         res.json(docSnap.data());
       } else {
@@ -107,7 +80,6 @@ async function startServer() {
     try {
       const data = req.body;
       data.updatedAt = new Date().toISOString();
-      
       await setDoc(doc(db, "app_config", "master"), data);
       res.json({ success: true });
     } catch (error: any) {

@@ -9,21 +9,6 @@ import {
 } from 'lucide-react';
 import defaultUserData from '../user_data.json';
 
-const getApiUrl = (path: string): string => {
-  // If we are running on localhost:3000, any .run.app url, or any Google sandbox preview domain, use relative path
-  if (
-    window.location.hostname === 'localhost' || 
-    window.location.hostname.endsWith('.run.app') ||
-    window.location.hostname.endsWith('.googleusercontent.com') ||
-    window.location.hostname.endsWith('.google.com')
-  ) {
-    return path;
-  }
-  // Otherwise, route directly to the Cloud Run server backend so it works seamlessly on external static deployments like Cloudflare Pages!
-  const backendBase = "https://ais-pre-yetfot5czpg4jvijdbagkd-917286201428.asia-east1.run.app";
-  return `${backendBase}${path}`;
-};
-
 // Define TS interfaces for safety
 interface PillNavItem {
   id: string;
@@ -124,7 +109,7 @@ export default function Admin() {
     setLoading(true);
     setMessage('');
     try {
-      const res = await fetch(getApiUrl('/api/config') + '?t=' + Date.now());
+      const res = await fetch('/api/config');
       if (res.ok) {
         const contentType = res.headers.get('content-type') || '';
         if (contentType.includes('application/json')) {
@@ -138,23 +123,21 @@ export default function Admin() {
         }
       }
       throw new Error("Proxy API not available or invalid format");
-    } catch (err: any) {
-      console.warn("API proxy load failed, trying direct Firestore get...", err);
+    } catch (err) {
+      console.warn("API proxy load failed, falling back to direct Firestore get...", err);
       try {
         const docSnap = await getDoc(doc(db, 'app_config', 'master'));
         if (docSnap.exists()) {
           importConfig(docSnap.data());
-          showToast('数据载入成功 (直接连接 Firestore)', 'success');
+          showToast('数据载入成功 (Firestore)', 'success');
         } else {
           // Auto-seed or fallback to defaultUserData
           importConfig(defaultUserData);
-          showToast('加载了本地默认配置。云端数据为空，已重写为原装配置。', 'info');
-          await setDoc(doc(db, 'app_config', 'master'), defaultUserData);
+          showToast('加载了本地默认配置模版。数据库尚未初始化，保存后将自动同步至云端。', 'info');
         }
       } catch (fErr: any) {
         console.error("Direct Firestore load failed:", fErr);
-        importConfig(defaultUserData);
-        showToast('云端拉取失败：未开启 VPN 或后端服务异常，已载入本地默认配置。', 'error');
+        showToast('加载失败: ' + (fErr.message || String(fErr)), 'error');
       }
       setLoading(false);
     }
@@ -206,26 +189,26 @@ export default function Admin() {
     setSaving(true);
     const data = exportConfig();
     try {
-      const res = await fetch(getApiUrl('/api/config'), {
+      const res = await fetch('/api/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
       
       if (res.ok) {
-        showToast('保存并发布成功！客户端将在 3 秒内自动刷新呈现。', 'success');
+        showToast('保存成功！主站所有端已实时发布并生效！', 'success');
         setSaving(false);
         return;
       }
       throw new Error("Proxy API returned error status: " + res.status);
-    } catch (proxyErr: any) {
-      console.warn("API proxy save failed, trying direct Firestore write...", proxyErr);
+    } catch (proxyErr) {
+      console.warn("API proxy save failed, falling back to direct Firestore write...", proxyErr);
       try {
         await setDoc(doc(db, 'app_config', 'master'), data);
-        showToast('发布成功！已直接通过 Web 写入云端 Firestore。所有客户端将在 3 秒内自动更新。', 'success');
+        showToast('发布成功！数据已直接同步到云端 Firestore，所有客户端自动刷新更新。', 'success');
       } catch (fWriteErr: any) {
         console.error("Direct Firestore write failed:", fWriteErr);
-        showToast('发布保存失败: 请检查网络、VPN，或确保后端在线 (' + (fWriteErr.message || String(fWriteErr)) + ')', 'error');
+        showToast('同步失败: ' + (fWriteErr.message || String(fWriteErr)), 'error');
       }
     }
     setSaving(false);
@@ -498,17 +481,9 @@ export default function Admin() {
                       if (window.confirm("这会直接清除云端并重写本地自带的默认数据配置文件到云端，确定吗？")) {
                         setSaving(true);
                         try {
-                          const res = await fetch(getApiUrl('/api/config'), {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(defaultUserData)
-                          });
-                          if (res.ok) {
-                            importConfig(defaultUserData);
-                            showToast("已成功通过代理一键重置云端为系统原装数据！前台已实时刷新同步。", "success");
-                          } else {
-                            throw new Error("代理重写失败，状态码: " + res.status);
-                          }
+                          await setDoc(doc(db, 'app_config', 'master'), defaultUserData);
+                          importConfig(defaultUserData);
+                          showToast("已强行一键重写云端 Firestore 为系统原装数据！前台已实时刷新同步。", "success");
                         } catch (err: any) {
                           showToast("云端写入失败: " + err.message, "error");
                         } finally {

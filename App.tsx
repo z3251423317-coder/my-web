@@ -36,21 +36,6 @@ import defaultUserData from './user_data.json';
 
 import { DEFAULT_MARQUEE_CARDS, DEFAULT_QUANTUM_CARDS, DEFAULT_DOME_CARDS, MarqueeCard } from './src/cardData';
 
-export const getApiUrl = (path: string): string => {
-  // If we are running on localhost:3000, any .run.app url, or any Google sandbox preview domain, use relative path
-  if (
-    window.location.hostname === 'localhost' || 
-    window.location.hostname.endsWith('.run.app') ||
-    window.location.hostname.endsWith('.googleusercontent.com') ||
-    window.location.hostname.endsWith('.google.com')
-  ) {
-    return path;
-  }
-  // Otherwise, route directly to the Cloud Run server backend so it works seamlessly on external static deployments like Cloudflare Pages!
-  const backendBase = "https://ais-pre-yetfot5czpg4jvijdbagkd-917286201428.asia-east1.run.app";
-  return `${backendBase}${path}`;
-};
-
 /* =================================================================================
  * ■ SECTION 2: CONSTANTS, DEFAULT CONFIGURATIONS & COMPONENT SCHEMAS
  * ================================================================================= */
@@ -489,145 +474,127 @@ const App: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
-    let lastTimestamp = "";
     let unsubFirestore: (() => void) | null = null;
-    let directFirestoreActive = false;
-
-    const updateConfig = (data: any, force = false) => {
-      if (!isMounted) return;
-      setDbConnected(true);
-      setIsDbEmpty(false);
-      setDbErrorMsg("");
-
-      const currentTimestamp = data.timestamp || data.updatedAt || "";
-      if (currentTimestamp !== lastTimestamp || !configLoaded || force) {
-        lastTimestamp = currentTimestamp;
-        if (data.screens) {
-          setScreens(data.screens);
-          try { localStorage.setItem("alphaqubit_custom_screens_v11", JSON.stringify(data.screens)); } catch (e) { console.error(e); }
-        }
-        if (data.pillNavItems) {
-          setPillNavItems(data.pillNavItems);
-          try { localStorage.setItem("alphaqubit_pill_nav_items_v5", JSON.stringify(data.pillNavItems)); } catch (e) { console.error(e); }
-        }
-        if (data.marqueeCards) {
-          setMarqueeCards(data.marqueeCards);
-          try { localStorage.setItem("alphaqubit_marquee_cards", JSON.stringify(data.marqueeCards)); } catch (e) { console.error(e); }
-        }
-        if (data.sphereCards) {
-          setSphereCards(data.sphereCards);
-          try { localStorage.setItem("alphaqubit_sphere_cards", JSON.stringify(data.sphereCards)); } catch (e) { console.error(e); }
-        }
-        if (data.domeCards) {
-          setDomeCards(data.domeCards);
-          try { localStorage.setItem("alphaqubit_dome_cards", JSON.stringify(data.domeCards)); } catch (e) { console.error(e); }
-        }
-        if (data.trialCards) {
-          setTrialCards(data.trialCards);
-          try { localStorage.setItem("alphaqubit_trial_cards", JSON.stringify(data.trialCards)); } catch (e) { console.error(e); }
-        }
-        if (data.relationshipCards) {
-          setRelationshipCards(data.relationshipCards);
-          try { localStorage.setItem("alphaqubit_relationship_cards_v5", JSON.stringify(data.relationshipCards)); } catch (e) { console.error(e); }
-        }
-      }
-      setConfigLoaded(true);
-    };
 
     const load = async (manual = false) => {
       if (manual && isMounted) setIsRetryingDb(true);
-
       try {
-        const res = await fetch(getApiUrl('/api/config') + '?t=' + Date.now());
+        const res = await fetch('/api/config');
         if (res.ok) {
           const contentType = res.headers.get('content-type') || '';
           if (contentType.includes('application/json')) {
             const data = await res.json();
-            
-            // Clean up direct Firestore if it was active to save client resources
-            if (unsubFirestore) {
-              unsubFirestore();
-              unsubFirestore = null;
+            if (!isMounted) return;
+            setDbConnected(true);
+            setIsDbEmpty(false);
+            setDbErrorMsg("");
+            if (data.screens) setScreens(data.screens);
+            if (data.pillNavItems) setPillNavItems(data.pillNavItems);
+            if (data.marqueeCards) setMarqueeCards(data.marqueeCards);
+            if (data.sphereCards) setSphereCards(data.sphereCards);
+            if (data.domeCards) setDomeCards(data.domeCards);
+            if (data.trialCards) setTrialCards(data.trialCards);
+            if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
+            if (isMounted) {
+              setConfigLoaded(true);
+              setIsRetryingDb(false);
             }
-            directFirestoreActive = false;
-
-            updateConfig(data, manual);
-            if (isMounted) setIsRetryingDb(false);
-            return;
+            return; // Success, we don't need direct Firestore fallback!
           }
         }
         throw new Error("Proxy API /api/config returned invalid content-type / not OK");
       } catch (err: any) {
-        console.warn("API Proxy '/api/config' failed, trying direct Firestore listener...", err);
+        console.warn("API Proxy '/api/config' failed or returned non-JSON, trying direct Firestore connection...", err);
         
         if (!isMounted) return;
 
-        // Try direct Firestore connection if proxy is not working (e.g. running statically on Cloudflare Pages)
-        if (!unsubFirestore) {
-          try {
-            unsubFirestore = onSnapshot(doc(db, 'app_config', 'master'), (docSnap) => {
-              if (!isMounted) return;
-              if (docSnap.exists()) {
-                directFirestoreActive = true;
-                updateConfig(docSnap.data(), manual);
-              } else {
-                setIsDbEmpty(true);
-                updateConfig(defaultUserData, manual);
-                setDoc(doc(db, 'app_config', 'master'), defaultUserData).catch(console.error);
-              }
-              if (isMounted) setIsRetryingDb(false);
-            }, (firestoreErr) => {
-              console.error("Direct Firestore subscription error:", firestoreErr);
-              directFirestoreActive = false;
-              if (isMounted) {
-                setDbConnected(false);
-                setDbErrorMsg("API代理加载失败且无法直接连接云端数据库。若在境内直接访问，请开启 VPN 科学上网以连接 Firestore 云端。");
-                setIsRetryingDb(false);
-                
-                // Fallback to local default data if we haven't successfully loaded anything
-                if (!lastTimestamp) {
-                  updateConfig(defaultUserData, manual);
-                  setDbConnected(false);
-                  setDbErrorMsg("正在使用本地离线数据。若要同步云端，请确保 VPN 已开启且能直连 Firebase。");
-                }
-              }
-            });
-          } catch (fErr: any) {
-            console.error("Direct Firestore subscription init failed:", fErr);
-            directFirestoreActive = false;
-          }
+        // If direct subscription is already established, don't re-create it
+        if (unsubFirestore) {
+          if (isMounted) setIsRetryingDb(false);
+          return;
         }
 
-        // Immediate fallback to defaults if we have never successfully loaded any configuration yet
-        if (!lastTimestamp && !directFirestoreActive) {
-          updateConfig(defaultUserData, manual);
-          setDbConnected(false);
-          setDbErrorMsg("云端 API 代理已断开。若使用静态发布环境，请确保您的浏览器已开启 VPN 代理以直连 Firestore 数据库。");
-        }
-        
-        if (isMounted) {
-          setIsRetryingDb(false);
+        try {
+          unsubFirestore = onSnapshot(doc(db, 'app_config', 'master'), (docSnap) => {
+            if (!isMounted) return;
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              setDbConnected(true);
+              setIsDbEmpty(false);
+              setDbErrorMsg("");
+              if (data.screens) setScreens(data.screens);
+              if (data.pillNavItems) setPillNavItems(data.pillNavItems);
+              if (data.marqueeCards) setMarqueeCards(data.marqueeCards);
+              if (data.sphereCards) setSphereCards(data.sphereCards);
+              if (data.domeCards) setDomeCards(data.domeCards);
+              if (data.trialCards) setTrialCards(data.trialCards);
+              if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
+            } else {
+              setDbConnected(true); // Connected but configuration document is missing
+              setIsDbEmpty(true);
+              setDbErrorMsg("No config document found at 'app_config/master'. 正在为您自动初始化云端默认数据...");
+              
+              // Automatically write local default data to Firebase Firestore
+              setDoc(doc(db, "app_config", "master"), defaultUserData)
+                .then(() => {
+                  console.log("Firestore successfully auto-seeded with default configuration.");
+                  setIsDbEmpty(false);
+                })
+                .catch((err) => {
+                  console.error("Failed to auto-seed Firestore config:", err);
+                });
+
+              // Fallback to local default data so the site works immediately!
+              const fallback = defaultUserData as any;
+              if (fallback.screens) setScreens(fallback.screens);
+              if (fallback.pillNavItems) setPillNavItems(fallback.pillNavItems);
+              if (fallback.marqueeCards) setMarqueeCards(fallback.marqueeCards);
+              if (fallback.sphereCards) setSphereCards(fallback.sphereCards);
+              if (fallback.domeCards) setDomeCards(fallback.domeCards);
+              if (fallback.trialCards) setTrialCards(fallback.trialCards);
+              if (fallback.relationshipCards) setRelationshipCards(fallback.relationshipCards);
+            }
+            setConfigLoaded(true);
+            setIsRetryingDb(false);
+          }, (firestoreErr) => {
+            console.error("Direct Firestore subscription error:", firestoreErr);
+            if (isMounted) {
+              setDbConnected(false);
+              setIsDbEmpty(false);
+              setDbErrorMsg(firestoreErr.message || String(firestoreErr));
+              setConfigLoaded(true);
+              setIsRetryingDb(false);
+            }
+          });
+        } catch (fErr: any) {
+          console.error("Direct Firestore initialization failed:", fErr);
+          if (isMounted) {
+            setDbConnected(false);
+            setIsDbEmpty(false);
+            setDbErrorMsg(fErr.message || String(fErr));
+            setConfigLoaded(true);
+            setIsRetryingDb(false);
+          }
         }
       }
     };
 
     loadConfigRef.current = () => {
-      // Force direct Firestore recreation on manual retry if it was in a bad state
+      // Manual retry: clean up old firestore subscription first to force a fresh test
       if (unsubFirestore) {
         unsubFirestore();
         unsubFirestore = null;
       }
-      directFirestoreActive = false;
       return load(true);
     };
 
-    // Initial load
     load();
-    
-    // Poll every 3 seconds to get seamless real-time updates!
     const interval = setInterval(() => {
-      load();
-    }, 3000);
+      // Periodically attempt to refresh via proxy only if direct snapshot isn't listening or active
+      if (!unsubFirestore) {
+        load();
+      }
+    }, 10000);
 
     return () => {
       isMounted = false;
@@ -2233,7 +2200,7 @@ const App: React.FC = () => {
               <div className="flex flex-col gap-1 bg-zinc-950/40 p-2 rounded-lg border border-zinc-850">
                 <span className="text-zinc-400">请求端点:</span>
                 <span className="font-mono text-[10px] text-zinc-300 select-all overflow-x-auto whitespace-nowrap scrollbar-none">
-                  GET {getApiUrl('/api/config')}
+                  GET {window.location.origin}/api/config
                 </span>
               </div>
 
@@ -2260,20 +2227,13 @@ const App: React.FC = () => {
                     onClick={async () => {
                       setIsInitializingDb(true);
                       try {
-                        const res = await fetch(getApiUrl('/api/config'), {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify(defaultUserData)
-                        });
-                        if (res.ok) {
-                          setIsDbEmpty(false);
-                          if (loadConfigRef.current) {
-                            await loadConfigRef.current();
-                          }
-                          alert("数据库初始化成功！所有页面数据已成功写入并同步至您的云端 Firestore。");
-                        } else {
-                          throw new Error("接口返回状态码: " + res.status);
+                        const { doc, setDoc } = await import('firebase/firestore');
+                        await setDoc(doc(db, "app_config", "master"), defaultUserData);
+                        setIsDbEmpty(false);
+                        if (loadConfigRef.current) {
+                          await loadConfigRef.current();
                         }
+                        alert("数据库初始化成功！所有页面数据已成功写入并同步至您的云端 Firestore。");
                       } catch (err: any) {
                         console.error("Failed to initialize database:", err);
                         alert("初始化失败: " + (err.message || String(err)));
@@ -2327,7 +2287,7 @@ const App: React.FC = () => {
       )}
 
       {/* Elegant, Minimalist Page-Level Navigation Suite (Fixed on Display Page) */}
-      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2 pointer-events-auto">
+      <div className="hidden fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2 pointer-events-auto">
           {/* Screen Counter Badge */}
           <div className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-full font-mono text-[9px] tracking-widest text-zinc-200 font-bold backdrop-blur-md shadow-lg select-none">
             {activeId.toString().padStart(2, '0')} / {screens.length.toString().padStart(2, '0')}
@@ -2538,7 +2498,7 @@ const App: React.FC = () => {
       {/* Primary vertical scroll presenter with snapping behavior */}
       <div 
         id="slides-container"
-        className="flex-1 w-full h-full overflow-y-auto snap-y snap-mandatory scroll-smooth relative z-10 bg-transparent"
+        className="flex-1 w-full h-full overflow-y-auto snap-y snap-mandatory scroll-smooth relative z-10 bg-transparent pl-0 mb-[-145px]"
       >
         {screens.map((s, idx) => {
           const isSelected = s.id === activeId;
@@ -2804,7 +2764,7 @@ const App: React.FC = () => {
             <section 
               key={s.id}
               id={`screen-${s.id}`}
-              className="snap-start snap-always relative w-full min-h-screen lg:h-screen lg:min-h-[600px] overflow-visible lg:overflow-hidden flex items-center justify-center bg-transparent py-12 lg:py-0"
+              className={`snap-start snap-always relative w-full min-h-screen lg:h-screen lg:min-h-[600px] overflow-visible lg:overflow-hidden flex items-center justify-center bg-transparent py-12 lg:py-0 ${s.id === 7 ? 'pt-[48px] pl-0 ml-[7px]' : ''}`}
             >
               {/* 1700px Content Core ("版心控制在 1700px 左右") */}
               <div className="relative z-10 w-full h-auto lg:h-full max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 flex flex-col justify-center text-white pointer-events-auto">

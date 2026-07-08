@@ -37,21 +37,6 @@ import {
 } from 'lucide-react';
 import { RelationshipCard } from '../types';
 
-const getApiUrl = (path: string): string => {
-  // If we are running on localhost:3000, any .run.app url, or any Google sandbox preview domain, use relative path
-  if (
-    window.location.hostname === 'localhost' || 
-    window.location.hostname.endsWith('.run.app') ||
-    window.location.hostname.endsWith('.googleusercontent.com') ||
-    window.location.hostname.endsWith('.google.com')
-  ) {
-    return path;
-  }
-  // Otherwise, route directly to the Cloud Run server backend so it works seamlessly on external static deployments like Cloudflare Pages!
-  const backendBase = "https://ais-pre-yetfot5czpg4jvijdbagkd-917286201428.asia-east1.run.app";
-  return `${backendBase}${path}`;
-};
-
 const fetchPdfWithFallback = async (url: string, logCallback?: (msg: string) => void): Promise<ArrayBuffer> => {
   // 1. Try direct fetch with a cache-buster
   const cacheBuster = `t_cb=${Date.now()}`;
@@ -74,7 +59,7 @@ const fetchPdfWithFallback = async (url: string, logCallback?: (msg: string) => 
   // 2. Try the local server-side proxy (Best solution for CORS)
   try {
     if (logCallback) logCallback('[INFO] 检测到跨域拦截，正在接入本地安全代理通道...');
-    const proxyUrl = getApiUrl(`/api/proxy-pdf?url=${encodeURIComponent(url)}`);
+    const proxyUrl = `/api/proxy-pdf?url=${encodeURIComponent(url)}`;
     const response = await fetch(proxyUrl);
     if (response.ok) {
       if (logCallback) logCallback('[SUCCESS] 本地代理握手成功，PDF 数据流已接通！');
