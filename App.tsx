@@ -3009,7 +3009,7 @@ const App: React.FC = () => {
                     
                     {/* Highly polished headline */}
                     <h1 className={`${s.id === 1 ? 'font-mono text-[86px] leading-[61px]' : 'font-display text-3xl md:text-4xl lg:text-5xl xl:text-6xl'} font-extrabold tracking-tight leading-none text-white drop-shadow-md`}>
-                      <ShinyText text={s.title} color="#bdbdbd" shineColor="#ffffff" speed={3} />
+                      <ShinyText text={s.title} color="#bdbdbd" shineColor="#ffffff" speed={3} style={s.id === 2 ? { fontSize: '46px' } : undefined} />
                     </h1>
 
                     {/* Subheading */}
