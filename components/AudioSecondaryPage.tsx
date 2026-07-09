@@ -215,7 +215,7 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
                 activeAudioObj?.pause();
                 onClose();
               }}
-              className="p-2 hover:bg-white/5 rounded-full transition-colors cursor-pointer group"
+              className="p-2 bg-white/[0.03] border border-white/10 backdrop-blur-md hover:bg-white/[0.08] hover:border-white/20 rounded-full transition-all cursor-pointer group"
             >
               <ArrowLeft className="w-5 h-5 text-zinc-400 group-hover:text-white" />
             </button>
@@ -233,33 +233,45 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
           </div>
 
           <div className="flex items-center gap-6">
-             <div className="hidden md:flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-3 py-1.5">
+             <div className="hidden md:flex items-center gap-2 bg-white/[0.03] border border-white/10 rounded-full px-3 py-1.5 backdrop-blur-md focus-within:bg-white/[0.08] focus-within:border-white/20 transition-all">
                 <Search className="w-3.5 h-3.5 text-zinc-500" />
                 <input 
                   type="text" 
                   placeholder="搜索音频..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-transparent border-none outline-none text-xs w-40 placeholder-zinc-600"
+                  className="bg-transparent border-none outline-none text-xs w-40 placeholder-zinc-500 text-white focus:outline-none"
                 />
              </div>
              <div className="flex items-center gap-2 border-l border-white/10 pl-6">
                 <button 
                    onClick={() => setIsReversed(!isReversed)}
-                   className={`p-1.5 rounded-lg transition-colors ${isReversed ? 'bg-amber-500 text-zinc-950' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
+                   className={`p-1.5 rounded-lg border transition-all ${
+                     isReversed 
+                       ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 backdrop-blur-md hover:bg-amber-500/20' 
+                       : 'bg-white/[0.03] border-white/10 text-zinc-500 hover:text-white hover:bg-white/[0.08]'
+                   }`}
                    title="倒序显示"
                 >
                    <RefreshCw className="w-4 h-4 rotate-180" />
                 </button>
                 <button 
                    onClick={() => setViewMode('grid')}
-                   className={`p-1.5 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-amber-500 text-zinc-950' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
+                   className={`p-1.5 rounded-lg border transition-all ${
+                     viewMode === 'grid' 
+                       ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 backdrop-blur-md hover:bg-amber-500/20' 
+                       : 'bg-white/[0.03] border-white/10 text-zinc-500 hover:text-white hover:bg-white/[0.08]'
+                   }`}
                 >
                    <LayoutGrid className="w-4 h-4" />
                 </button>
                 <button 
                    onClick={() => setViewMode('list')}
-                   className={`p-1.5 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-amber-500 text-zinc-950' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
+                   className={`p-1.5 rounded-lg border transition-all ${
+                     viewMode === 'list' 
+                       ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 backdrop-blur-md hover:bg-amber-500/20' 
+                       : 'bg-white/[0.03] border-white/10 text-zinc-500 hover:text-white hover:bg-white/[0.08]'
+                   }`}
                 >
                    <ListIcon className="w-4 h-4" />
                 </button>
@@ -292,7 +304,7 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
                   <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mb-10 p-8 rounded-3xl bg-zinc-900/50 border border-amber-500/20 backdrop-blur-sm flex flex-col items-center text-center max-w-2xl mx-auto"
+                    className="mb-10 p-8 rounded-3xl bg-white/[0.03] border border-white/10 backdrop-blur-lg flex flex-col items-center text-center max-w-2xl mx-auto shadow-[0_8px_32px_0_rgba(0,0,0,0.5)]"
                   >
                     <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mb-6">
                       <Lock className="w-8 h-8 text-amber-500 animate-pulse" />
@@ -310,12 +322,12 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
                           placeholder="输入访问密码..."
                           value={passwordInput}
                           onChange={(e) => setPasswordInput(e.target.value)}
-                          className={`w-full bg-zinc-950 border ${isPasswordError ? 'border-rose-500' : 'border-white/10'} rounded-2xl pl-11 pr-4 py-3.5 text-sm focus:outline-none focus:border-amber-500/50 transition-all`}
+                          className={`w-full bg-white/[0.04] backdrop-blur-md border ${isPasswordError ? 'border-rose-500' : 'border-white/10'} rounded-2xl pl-11 pr-4 py-3.5 text-sm focus:outline-none focus:bg-white/[0.08] focus:border-amber-500/50 transition-all text-white placeholder-zinc-500`}
                         />
                       </div>
                       <button 
                         type="submit"
-                        className="p-3.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-2xl transition-all active:scale-95 flex items-center justify-center"
+                        className="p-3.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 backdrop-blur-md rounded-2xl transition-all active:scale-95 flex items-center justify-center shadow-lg"
                       >
                         <Unlock className="w-5 h-5" />
                       </button>

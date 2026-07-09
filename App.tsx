@@ -2938,7 +2938,7 @@ const App: React.FC = () => {
                                         <h3 className="font-display font-bold text-white text-sm md:text-base group-hover/card:text-amber-400 transition-colors mb-2">
                                           {card.title.length > 20 ? card.title.substring(0, 20) + "..." : card.title}
                                         </h3>
-                                        <p className="text-zinc-400 text-[10.5px] leading-relaxed font-sans font-light line-clamp-3 h-auto">
+                                        <p className="text-zinc-200 text-[10.5px] leading-relaxed font-sans font-light line-clamp-3 h-auto">
                                           {card.desc}
                                         </p>
                                       </div>
