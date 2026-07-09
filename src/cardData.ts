@@ -1,4 +1,23 @@
 
+export interface SubCard {
+  id: string;
+  title: string;
+  desc?: string;
+  image?: string;
+  audioModules?: {
+    id: string;
+    name: string;
+    createdAt: string;
+    status: '启用' | '禁用';
+    updatedAt: string;
+    user: string;
+    audioUrl: string;
+    duration: string;
+    rating: number;
+    desc?: string;
+  }[];
+}
+
 export interface MarqueeCard {
   id: number;
   title: string;
@@ -14,6 +33,7 @@ export interface MarqueeCard {
   lastUpdated?: string;
   isEncrypted?: boolean;
   password?: string;
+  subCards?: SubCard[];
   audioModules?: {
     id: string;
     name: string;
@@ -24,6 +44,7 @@ export interface MarqueeCard {
     audioUrl: string;
     duration: string;
     rating: number;
+    desc?: string;
   }[];
 }
 

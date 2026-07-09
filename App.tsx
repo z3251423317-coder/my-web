@@ -28,6 +28,7 @@ import DomeGallery from './components/DomeGallery';
 import ProfileCard from './components/ProfileCard';
 import { PdfDecoderPage } from './components/PdfDecoderPage';
 import { AudioSecondaryPage } from './components/AudioSecondaryPage';
+import { SubCardSelectModal } from './components/SubCardSelectModal';
 import ShinyText from './components/ShinyText';
 import { MusicPlayer } from './components/MusicPlayer';
 import { db } from './firebase-config';
@@ -150,7 +151,7 @@ const DEFAULT_SCREENS: ScreenData[] = [
     "subtitle": "Real-time spatial error patterns and physical latency metrics",
     "description": "Click any card in the continuous right-to-left feed to lock onto the signal, analyze real-time spatial error patterns, and review physical latency metrics.",
     "bgType": "image",
-    "bgUrl": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=2000",
+    "bgUrl": "",
     "overlayOpacity": 30,
     "overlayBlur": 0,
     "tintColor": "none",
@@ -560,7 +561,14 @@ const App: React.FC = () => {
   }, []);
 
 
-  const [activeId, setActiveId] = useState<number>(1);
+  const [activeId, setActiveId] = useState<number>(() => {
+    const saved = sessionStorage.getItem("alphaqubit_last_active_id");
+    if (saved) {
+      const num = parseInt(saved, 10);
+      if (!isNaN(num)) return num;
+    }
+    return 1;
+  });
 
   const [pillNavItems, setPillNavItems] = useState<PillNavItem[]>(() => {
     const saved = localStorage.getItem("alphaqubit_pill_nav_items_v5");
@@ -834,6 +842,8 @@ const App: React.FC = () => {
   const [domeAutoRotateSpeed, setDomeAutoRotateSpeed] = useState<number>(0.15);
   const [activeCardDetail, setActiveCardDetail] = useState<MarqueeCard | null>(null);
   const [selectedCard6, setSelectedCard6] = useState<MarqueeCard | null>(null);
+  const [selectedSubCard, setSelectedSubCard] = useState<any | null>(null);
+  const [isSubCardModalOpen, setIsSubCardModalOpen] = useState<boolean>(false);
   const [isAudioSecondaryPageOpen, setIsAudioSecondaryPageOpen] = useState<boolean>(false);
   const [formSearch6, setFormSearch6] = useState<string>("");
   const [formStatus6, setFormStatus6] = useState<string>("全部");
@@ -968,6 +978,106 @@ const App: React.FC = () => {
   useEffect(() => {
     // The copy toast is now manually closed by the user to ensure they have enough time to copy the content.
   }, [copyToast]);
+
+  // Synchronize state back to sessionStorage to survive page redirects
+  useEffect(() => {
+    sessionStorage.setItem("alphaqubit_last_active_id", String(activeId));
+  }, [activeId]);
+
+  useEffect(() => {
+    sessionStorage.setItem("alphaqubit_is_pdf_open", isPdfSecondaryPageOpen ? "true" : "false");
+  }, [isPdfSecondaryPageOpen]);
+
+  useEffect(() => {
+    sessionStorage.setItem("alphaqubit_is_audio_open", isAudioSecondaryPageOpen ? "true" : "false");
+  }, [isAudioSecondaryPageOpen]);
+
+  useEffect(() => {
+    sessionStorage.setItem("alphaqubit_is_subcard_modal_open", isSubCardModalOpen ? "true" : "false");
+  }, [isSubCardModalOpen]);
+
+  useEffect(() => {
+    sessionStorage.setItem("alphaqubit_selected_card6_id", selectedCard6 ? String(selectedCard6.id) : "");
+  }, [selectedCard6]);
+
+  useEffect(() => {
+    sessionStorage.setItem("alphaqubit_selected_subcard_id", selectedSubCard ? String(selectedSubCard.id) : "");
+  }, [selectedSubCard]);
+
+  useEffect(() => {
+    sessionStorage.setItem("alphaqubit_active_card_detail_id", activeCardDetail ? String(activeCardDetail.id) : "");
+  }, [activeCardDetail]);
+
+  // Run restoration when configuration loads (asynchronously)
+  const [restored, setRestored] = useState<boolean>(false);
+  useEffect(() => {
+    if (configLoaded && screens.length > 0 && !restored) {
+      setRestored(true);
+
+      // 1. Scroll activeId into view immediately (if not 1)
+      const savedActiveId = sessionStorage.getItem("alphaqubit_last_active_id");
+      if (savedActiveId) {
+        const id = parseInt(savedActiveId, 10);
+        if (!isNaN(id) && id !== 1) {
+          setTimeout(() => {
+            const container = document.getElementById('slides-container');
+            const elem = document.getElementById(`screen-${id}`);
+            if (container && elem) {
+              elem.scrollIntoView({ behavior: 'auto', block: 'start' });
+              setActiveId(id);
+            }
+          }, 150);
+        }
+      }
+
+      // 2. Resolve selectedCard6 and selectedSubCard
+      const savedCardId = sessionStorage.getItem("alphaqubit_selected_card6_id");
+      let resolvedCard: MarqueeCard | null = null;
+      if (savedCardId && trialCards.length > 0) {
+        const cardId = parseInt(savedCardId, 10);
+        const card = trialCards.find(c => c.id === cardId);
+        if (card) {
+          setSelectedCard6(card);
+          resolvedCard = card;
+
+          // Resolve selectedSubCard
+          const savedSubCardId = sessionStorage.getItem("alphaqubit_selected_subcard_id");
+          if (savedSubCardId && card.subCards) {
+            const sub = card.subCards.find(s => s.id === savedSubCardId);
+            if (sub) {
+              setSelectedSubCard(sub);
+            }
+          }
+        }
+      }
+
+      // 3. Resolve activeCardDetail
+      const savedDetailId = sessionStorage.getItem("alphaqubit_active_card_detail_id");
+      if (savedDetailId) {
+        const detailId = parseInt(savedDetailId, 10);
+        const foundCard = [...marqueeCards, ...sphereCards, ...domeCards, ...trialCards].find(c => c.id === detailId);
+        if (foundCard) {
+          setActiveCardDetail(foundCard);
+        }
+      }
+
+      // 4. Restore open modal flags (safely after resolving card context)
+      const savedIsPdfOpen = sessionStorage.getItem("alphaqubit_is_pdf_open");
+      if (savedIsPdfOpen === "true") {
+        setIsPdfSecondaryPageOpen(true);
+      }
+
+      const savedIsAudioOpen = sessionStorage.getItem("alphaqubit_is_audio_open");
+      if (savedIsAudioOpen === "true" && resolvedCard) {
+        setIsAudioSecondaryPageOpen(true);
+      }
+
+      const savedIsSubCardOpen = sessionStorage.getItem("alphaqubit_is_subcard_modal_open");
+      if (savedIsSubCardOpen === "true" && resolvedCard) {
+        setIsSubCardModalOpen(true);
+      }
+    }
+  }, [configLoaded, screens, trialCards, marqueeCards, sphereCards, domeCards, restored]);
 
   /* =================================================================================
    * ■ SECTION 5: CARDS & MODULES DATA MANIPULATION (CRUD ENGINE)
@@ -2683,7 +2793,13 @@ const App: React.FC = () => {
                                             style={{ width: isMobile ? '200px' : '240px' }}
                                             onClickCapture={() => {
                                               setSelectedCard6(card);
-                                              setIsAudioSecondaryPageOpen(true);
+                                              if (card.subCards && card.subCards.length > 0) {
+                                                setSelectedSubCard(null);
+                                                setIsSubCardModalOpen(true);
+                                              } else {
+                                                setSelectedSubCard(null);
+                                                setIsAudioSecondaryPageOpen(true);
+                                              }
                                             }}
                                           >
                                             <ProfileCard
@@ -2692,7 +2808,7 @@ const App: React.FC = () => {
                                               handle={card.cat || "TELEMETRY"}
                                               status="DIAGNOSTIC ACTIVE"
                                               contactText="Analyze / 诊断"
-                                              avatarUrl={card.image || defaultImage}
+                                              avatarUrl={card.image || ''}
                                               enableTilt={true}
                                               behindGlowEnabled={true}
                                               behindGlowColor={glowColor}
@@ -4088,12 +4204,43 @@ const App: React.FC = () => {
       <AudioSecondaryPage 
         isOpen={isAudioSecondaryPageOpen} 
         onClose={() => setIsAudioSecondaryPageOpen(false)}
-        activeCard={selectedCard6}
+        activeCard={
+          selectedCard6 && selectedSubCard
+            ? {
+                ...selectedCard6,
+                title: `${selectedCard6.title} - ${selectedSubCard.title}`,
+                audioModules: selectedSubCard.audioModules || []
+              }
+            : selectedCard6
+        }
         onUpdateCard={(updatedCard) => {
-          setTrialCards(prev => prev.map(c => c.id === updatedCard.id ? updatedCard : c));
-          setSelectedCard6(updatedCard);
+          if (selectedCard6 && selectedSubCard) {
+            const updatedSubCards = (selectedCard6.subCards || []).map(s => 
+              s.id === selectedSubCard.id ? { ...s, audioModules: updatedCard.audioModules } : s
+            );
+            const updatedParentCard = {
+              ...selectedCard6,
+              subCards: updatedSubCards
+            };
+            saveTrialCards(trialCards.map(c => c.id === updatedParentCard.id ? updatedParentCard : c));
+            setSelectedCard6(updatedParentCard);
+            setSelectedSubCard({ ...selectedSubCard, audioModules: updatedCard.audioModules });
+          } else {
+            saveTrialCards(trialCards.map(c => c.id === updatedCard.id ? updatedCard : c));
+            setSelectedCard6(updatedCard);
+          }
         }}
         isAiStudio={isAiStudio}
+      />
+      <SubCardSelectModal
+        isOpen={isSubCardModalOpen}
+        onClose={() => setIsSubCardModalOpen(false)}
+        parentCard={selectedCard6}
+        onSelectSubCard={(subCard) => {
+          setSelectedSubCard(subCard);
+          setIsSubCardModalOpen(false);
+          setIsAudioSecondaryPageOpen(true);
+        }}
       />
       <MusicPlayer 
         musicUrl={activeScreen.bgMusicUrl} 

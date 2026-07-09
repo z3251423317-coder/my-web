@@ -43,7 +43,7 @@ interface ProfileCardProps {
 }
 
 const ProfileCardComponent: React.FC<ProfileCardProps> = ({
-  avatarUrl = 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop',
+  avatarUrl = '',
   iconUrl = DEFAULT_ICON_PATTERN,
   grainUrl = DEFAULT_GRAIN_TEXTURE,
   innerGradient,
@@ -338,16 +338,18 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
             <div className="pc-shine" />
             <div className="pc-glare" />
             <div className="pc-content pc-avatar-content">
-              <img
-                className="avatar"
-                src={avatarUrl}
-                alt={`${name || 'User'} avatar`}
-                loading="lazy"
-                onError={e => {
-                  const t = e.target as HTMLImageElement;
-                  t.style.display = 'none';
-                }}
-              />
+              {avatarUrl ? (
+                <img
+                  className="avatar"
+                  src={avatarUrl}
+                  alt={`${name || 'User'} avatar`}
+                  loading="lazy"
+                  onError={e => {
+                    const t = e.target as HTMLImageElement;
+                    t.style.display = 'none';
+                  }}
+                />
+              ) : null}
               {isEncrypted && (
                 <div className="absolute top-5 right-5 z-[5] p-2.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-amber-500 shadow-lg transition-transform hover:scale-110">
                   <Lock className="w-5 h-5" strokeWidth={2.5} />

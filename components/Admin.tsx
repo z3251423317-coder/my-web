@@ -29,6 +29,14 @@ interface AudioModule {
   desc?: string;
 }
 
+interface SubCard {
+  id: string;
+  title: string;
+  desc?: string;
+  image?: string;
+  audioModules?: AudioModule[];
+}
+
 interface MarqueeCard {
   id: number;
   title: string;
@@ -39,6 +47,7 @@ interface MarqueeCard {
   image?: string;
   isEncrypted?: boolean;
   password?: string;
+  subCards?: SubCard[];
   audioModules?: AudioModule[];
 }
 
@@ -1145,6 +1154,7 @@ export default function Admin() {
                     saveCards={setTrialCards} 
                     selectedId={selectedTrialCardId} 
                     setSelectedId={setSelectedTrialCardId} 
+                    enableSubCards={true}
                   />
                 )}
 
@@ -1177,10 +1187,13 @@ interface CardListProps {
   saveCards: React.Dispatch<React.SetStateAction<MarqueeCard[]>>;
   selectedId: number | null;
   setSelectedId: React.Dispatch<React.SetStateAction<number | null>>;
+  enableSubCards?: boolean;
 }
 
-function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId }: CardListProps) {
+function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId, enableSubCards }: CardListProps) {
   const [selectedAudioId, setSelectedAudioId] = useState<string | null>(null);
+  const [selectedSubCardId, setSelectedSubCardId] = useState<string | null>(null);
+  const [selectedSubAudioId, setSelectedSubAudioId] = useState<string | null>(null);
 
   const addCard = () => {
     const nextId = cards.length > 0 ? Math.max(...cards.map(c => c.id)) + 1 : 1;
@@ -1367,171 +1380,444 @@ function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId 
                 )}
               </div>
 
-              {/* Audio Modules Block */}
-              <div className="space-y-3 pt-2 border-t border-zinc-850">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono tracking-wider text-amber-400 block font-bold uppercase">🔊 绑定卡片音频单元 (Audio Modules)</span>
-                  <button
-                    onClick={() => {
-                      const modules = activeCard.audioModules || [];
-                      const nextModId = `audio_${Date.now()}`;
-                      const newMod: AudioModule = {
-                        id: nextModId,
-                        name: '新音频单元',
-                        audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-                        duration: '3:45',
-                        rating: 5,
-                        status: '启用',
-                        createdAt: new Date().toLocaleDateString(),
-                        updatedAt: new Date().toLocaleDateString(),
-                        user: 'Admin'
-                      };
-                      updateCardField(activeCard.id, 'audioModules', [...modules, newMod]);
-                      setSelectedAudioId(nextModId);
-                    }}
-                    className="px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500 hover:text-zinc-950 text-[10px] font-bold rounded cursor-pointer"
-                  >
-                    + 添加音频
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                  <div className="sm:col-span-5 border border-zinc-800 rounded bg-zinc-950/60 max-h-32 overflow-y-auto">
-                    {(activeCard.audioModules || []).map((mod) => (
-                      <div 
-                        key={mod.id}
-                        onClick={() => setSelectedAudioId(mod.id)}
-                        className={`p-1.5 border-b border-zinc-850 text-[11px] cursor-pointer flex justify-between items-center ${
-                          selectedAudioId === mod.id ? 'bg-amber-500/10 text-amber-300 font-semibold' : 'hover:bg-zinc-900 text-zinc-400'
-                        }`}
-                      >
-                        <span className="truncate pr-1">{mod.name}</span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const updatedMods = (activeCard.audioModules || []).filter(m => m.id !== mod.id);
-                            updateCardField(activeCard.id, 'audioModules', updatedMods);
-                            if (selectedAudioId === mod.id) setSelectedAudioId(null);
-                          }}
-                          className="text-zinc-600 hover:text-red-400 p-0.5"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
+              {enableSubCards ? (
+                /* Sub-cards (Months/Categories) Block */
+                <div className="space-y-4 pt-2 border-t border-zinc-850">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono tracking-wider text-amber-400 block font-bold uppercase">📅 子分类/月份卡片管理 (Sub-cards / Months)</span>
+                    <button
+                      onClick={() => {
+                        const subCardsList = activeCard.subCards || [];
+                        const nextSubId = `sub_${Date.now()}`;
+                        const newSub = {
+                          id: nextSubId,
+                          title: '新子分类 (如: 7月份)',
+                          desc: '在此子分类下配置专属的音频列表内容。',
+                          audioModules: []
+                        };
+                        updateCardField(activeCard.id, 'subCards', [...subCardsList, newSub]);
+                        setSelectedSubCardId(nextSubId);
+                        setSelectedSubAudioId(null);
+                      }}
+                      className="px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500 hover:text-zinc-950 text-[10px] font-bold rounded cursor-pointer"
+                    >
+                      + 添加新月份/子分类
+                    </button>
                   </div>
 
-                  <div className="sm:col-span-7 bg-zinc-950/50 p-2.5 rounded border border-zinc-800">
-                    {selectedAudioId ? (
-                      (() => {
-                        const modules = activeCard.audioModules || [];
-                        const activeMod = modules.find(m => m.id === selectedAudioId);
-                        if (!activeMod) return <span className="text-zinc-600 text-[10px]">请选择音频进行配置</span>;
-                        return (
-                          <div className="space-y-2">
-                            <div className="space-y-1">
-                              <span className="text-[9px] text-zinc-500">音频名称:</span>
-                              <input 
-                                type="text"
-                                value={activeMod.name}
-                                onChange={(e) => {
-                                  const updated = modules.map(m => m.id === activeMod.id ? { ...m, name: e.target.value } : m);
-                                  updateCardField(activeCard.id, 'audioModules', updated);
-                                }}
-                                className="w-full px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-white"
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <span className="text-[9px] text-zinc-500 font-mono">音频资源地址 (URL):</span>
-                              <input 
-                                type="text"
-                                value={activeMod.audioUrl}
-                                onChange={(e) => {
-                                  const updated = modules.map(m => m.id === activeMod.id ? { ...m, audioUrl: e.target.value } : m);
-                                  updateCardField(activeCard.id, 'audioModules', updated);
-                                }}
-                                className="w-full px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-[10px] text-zinc-300 font-mono"
-                              />
-                            </div>
-                            <div className="grid grid-cols-2 gap-2">
-                              <div className="space-y-1">
-                                <span className="text-[9px] text-zinc-500">音频时长:</span>
-                                <input 
-                                  type="text"
-                                  value={activeMod.duration}
-                                  onChange={(e) => {
-                                    const updated = modules.map(m => m.id === activeMod.id ? { ...m, duration: e.target.value } : m);
-                                    updateCardField(activeCard.id, 'audioModules', updated);
-                                  }}
-                                  className="w-full px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-white font-mono"
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <span className="text-[9px] text-zinc-500">发布状态:</span>
-                                <select
-                                  value={activeMod.status}
-                                  onChange={(e) => {
-                                    const updated = modules.map(m => m.id === activeMod.id ? { ...m, status: e.target.value } : m);
-                                    updateCardField(activeCard.id, 'audioModules', updated);
-                                  }}
-                                  className="w-full px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-white"
-                                >
-                                  <option value="启用">启用 (Active)</option>
-                                  <option value="禁用">禁用 (Disabled)</option>
-                                </select>
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2">
-                              <div className="space-y-1">
-                                <span className="text-[9px] text-zinc-500">星级评分 (1-5):</span>
-                                <input 
-                                  type="number"
-                                  min="1"
-                                  max="5"
-                                  value={activeMod.rating || 5}
-                                  onChange={(e) => {
-                                    const updated = modules.map(m => m.id === activeMod.id ? { ...m, rating: Number(e.target.value) } : m);
-                                    updateCardField(activeCard.id, 'audioModules', updated);
-                                  }}
-                                  className="w-full px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-white"
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <span className="text-[9px] text-zinc-500">上传者/用户:</span>
-                                <input 
-                                  type="text"
-                                  value={activeMod.user || 'Admin'}
-                                  onChange={(e) => {
-                                    const updated = modules.map(m => m.id === activeMod.id ? { ...m, user: e.target.value } : m);
-                                    updateCardField(activeCard.id, 'audioModules', updated);
-                                  }}
-                                  className="w-full px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-white"
-                                />
-                              </div>
-                            </div>
-                            <div className="space-y-1">
-                              <span className="text-[9px] text-zinc-500">音频描述与文字笔记 (Notes):</span>
-                              <textarea
-                                value={activeMod.desc || ''}
-                                onChange={(e) => {
-                                  const updated = modules.map(m => m.id === activeMod.id ? { ...m, desc: e.target.value, updatedAt: new Date().toLocaleDateString() } : m);
-                                  updateCardField(activeCard.id, 'audioModules', updated);
-                                }}
-                                placeholder="输入该音频模块的研读笔记、音频描述或文字详情..."
-                                className="w-full h-16 px-1.5 py-1 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-amber-500/50 resize-none scrollbar-thin"
-                              />
-                            </div>
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    {/* Subcards list on left */}
+                    <div className="md:col-span-4 border border-zinc-800 rounded bg-zinc-950/60 max-h-48 overflow-y-auto">
+                      {(activeCard.subCards || []).length === 0 ? (
+                        <div className="p-3 text-[11px] text-zinc-500 text-center font-sans">
+                          暂无子分类，请点击上方按钮添加
+                        </div>
+                      ) : (
+                        (activeCard.subCards || []).map((sub) => (
+                          <div 
+                            key={sub.id}
+                            onClick={() => {
+                              setSelectedSubCardId(sub.id);
+                              setSelectedSubAudioId(null);
+                            }}
+                            className={`p-2 border-b border-zinc-850 text-xs cursor-pointer flex justify-between items-center ${
+                              selectedSubCardId === sub.id ? 'bg-amber-500/10 text-amber-300 font-semibold' : 'hover:bg-zinc-900 text-zinc-400'
+                            }`}
+                          >
+                            <span className="truncate pr-1">{sub.title}</span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const subCardsList = activeCard.subCards || [];
+                                updateCardField(activeCard.id, 'subCards', subCardsList.filter(s => s.id !== sub.id));
+                                if (selectedSubCardId === sub.id) {
+                                  setSelectedSubCardId(null);
+                                  setSelectedSubAudioId(null);
+                                }
+                              }}
+                              className="text-zinc-600 hover:text-red-400 p-0.5"
+                              title="删除子分类"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
-                        );
-                      })()
-                    ) : (
-                      <div className="h-full flex items-center justify-center text-zinc-600 text-[10px] text-center border border-dashed border-zinc-800 rounded p-4">
-                        选择左侧列表中的音频以编辑音轨属性。
-                      </div>
-                    )}
+                        ))
+                      )}
+                    </div>
+
+                    {/* Subcard editor on right */}
+                    <div className="md:col-span-8 bg-zinc-950/40 p-3 rounded border border-zinc-800">
+                      {selectedSubCardId ? (
+                        (() => {
+                          const subCardsList = activeCard.subCards || [];
+                          const activeSub = subCardsList.find(s => s.id === selectedSubCardId);
+                          if (!activeSub) return <div className="text-zinc-500 text-xs text-center py-4">分类不存在</div>;
+                          return (
+                            <div className="space-y-3">
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="space-y-1">
+                                  <span className="text-[9px] text-zinc-400 font-bold block uppercase">子分类/月份名称:</span>
+                                  <input 
+                                    type="text"
+                                    value={activeSub.title}
+                                    onChange={(e) => {
+                                      const updated = subCardsList.map(s => s.id === activeSub.id ? { ...s, title: e.target.value } : s);
+                                      updateCardField(activeCard.id, 'subCards', updated);
+                                    }}
+                                    className="w-full px-2 py-1 bg-zinc-900 border border-zinc-800 rounded text-xs text-white"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <span className="text-[9px] text-zinc-400 font-bold block uppercase">子分类图片链接 (可选):</span>
+                                  <input 
+                                    type="text"
+                                    value={activeSub.image || ''}
+                                    onChange={(e) => {
+                                      const updated = subCardsList.map(s => s.id === activeSub.id ? { ...s, image: e.target.value } : s);
+                                      updateCardField(activeCard.id, 'subCards', updated);
+                                    }}
+                                    placeholder="https://images.unsplash.com/..."
+                                    className="w-full px-2 py-1 bg-zinc-900 border border-zinc-800 rounded text-[10px] text-zinc-300 font-mono"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="space-y-1">
+                                <span className="text-[9px] text-zinc-400 font-bold block uppercase">子分类简介 (可选):</span>
+                                <input 
+                                  type="text"
+                                  value={activeSub.desc || ''}
+                                  onChange={(e) => {
+                                    const updated = subCardsList.map(s => s.id === activeSub.id ? { ...s, desc: e.target.value } : s);
+                                    updateCardField(activeCard.id, 'subCards', updated);
+                                  }}
+                                  placeholder="关于该月份或子分类的简短说明"
+                                  className="w-full px-2 py-1 bg-zinc-900 border border-zinc-800 rounded text-xs text-white"
+                                />
+                              </div>
+
+                              {/* Nested Audio Modules list for this specific subcard */}
+                              <div className="pt-2 border-t border-zinc-900 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[9px] font-mono tracking-wider text-amber-400 block font-bold uppercase">🔊 绑定子分类音频单元 ({activeSub.title})</span>
+                                  <button
+                                    onClick={() => {
+                                      const modules = activeSub.audioModules || [];
+                                      const nextModId = `audio_${Date.now()}`;
+                                      const newMod: AudioModule = {
+                                        id: nextModId,
+                                        name: '新音频单元',
+                                        audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+                                        duration: '3:45',
+                                        rating: 5,
+                                        status: '启用',
+                                        createdAt: new Date().toLocaleDateString(),
+                                        updatedAt: new Date().toLocaleDateString(),
+                                        user: 'Admin'
+                                      };
+                                      const updatedSubCards = subCardsList.map(s => s.id === activeSub.id ? { ...s, audioModules: [...modules, newMod] } : s);
+                                      updateCardField(activeCard.id, 'subCards', updatedSubCards);
+                                      setSelectedSubAudioId(nextModId);
+                                    }}
+                                    className="px-1.5 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500 hover:text-zinc-950 text-[9px] font-bold rounded cursor-pointer"
+                                  >
+                                    + 添加子音频
+                                  </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                                  <div className="sm:col-span-5 border border-zinc-900 rounded bg-zinc-950/80 max-h-32 overflow-y-auto">
+                                    {(activeSub.audioModules || []).map((mod) => (
+                                      <div 
+                                        key={mod.id}
+                                        onClick={() => setSelectedSubAudioId(mod.id)}
+                                        className={`p-1 border-b border-zinc-900 text-[10px] cursor-pointer flex justify-between items-center ${
+                                          selectedSubAudioId === mod.id ? 'bg-amber-500/10 text-amber-300 font-semibold' : 'hover:bg-zinc-900 text-zinc-400'
+                                        }`}
+                                      >
+                                        <span className="truncate pr-1">{mod.name}</span>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            const updatedMods = (activeSub.audioModules || []).filter(m => m.id !== mod.id);
+                                            const updatedSubCards = subCardsList.map(s => s.id === activeSub.id ? { ...s, audioModules: updatedMods } : s);
+                                            updateCardField(activeCard.id, 'subCards', updatedSubCards);
+                                            if (selectedSubAudioId === mod.id) setSelectedSubAudioId(null);
+                                          }}
+                                          className="text-zinc-600 hover:text-red-400 p-0.5"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  <div className="sm:col-span-7 bg-zinc-950/90 p-2 rounded border border-zinc-900">
+                                    {selectedSubAudioId ? (
+                                      (() => {
+                                        const modules = activeSub.audioModules || [];
+                                        const activeMod = modules.find(m => m.id === selectedSubAudioId);
+                                        if (!activeMod) return <span className="text-zinc-600 text-[9px]">请选择音频进行配置</span>;
+                                        return (
+                                          <div className="space-y-2 text-[11px]">
+                                            <div className="space-y-0.5">
+                                              <span className="text-[9px] text-zinc-500 font-bold block">音频名称:</span>
+                                              <input 
+                                                type="text"
+                                                value={activeMod.name}
+                                                onChange={(e) => {
+                                                  const updatedMods = modules.map(m => m.id === activeMod.id ? { ...m, name: e.target.value } : m);
+                                                  const updatedSubCards = subCardsList.map(s => s.id === activeSub.id ? { ...s, audioModules: updatedMods } : s);
+                                                  updateCardField(activeCard.id, 'subCards', updatedSubCards);
+                                                }}
+                                                className="w-full px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-white"
+                                              />
+                                            </div>
+                                            <div className="space-y-0.5">
+                                              <span className="text-[9px] text-zinc-500 font-mono font-bold block">音频资源地址 (URL):</span>
+                                              <input 
+                                                type="text"
+                                                value={activeMod.audioUrl}
+                                                onChange={(e) => {
+                                                  const updatedMods = modules.map(m => m.id === activeMod.id ? { ...m, audioUrl: e.target.value } : m);
+                                                  const updatedSubCards = subCardsList.map(s => s.id === activeSub.id ? { ...s, audioModules: updatedMods } : s);
+                                                  updateCardField(activeCard.id, 'subCards', updatedSubCards);
+                                                }}
+                                                className="w-full px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-[9px] text-zinc-300 font-mono"
+                                              />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2">
+                                              <div className="space-y-0.5">
+                                                <span className="text-[9px] text-zinc-500 font-bold block">音频时长:</span>
+                                                <input 
+                                                  type="text"
+                                                  value={activeMod.duration}
+                                                  onChange={(e) => {
+                                                    const updatedMods = modules.map(m => m.id === activeMod.id ? { ...m, duration: e.target.value } : m);
+                                                    const updatedSubCards = subCardsList.map(s => s.id === activeSub.id ? { ...s, audioModules: updatedMods } : s);
+                                                    updateCardField(activeCard.id, 'subCards', updatedSubCards);
+                                                  }}
+                                                  className="w-full px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-white font-mono"
+                                                />
+                                              </div>
+                                              <div className="space-y-0.5">
+                                                <span className="text-[9px] text-zinc-500 font-bold block">发布状态:</span>
+                                                <select
+                                                  value={activeMod.status}
+                                                  onChange={(e) => {
+                                                    const updatedMods = modules.map(m => m.id === activeMod.id ? { ...m, status: e.target.value as any } : m);
+                                                    const updatedSubCards = subCardsList.map(s => s.id === activeSub.id ? { ...s, audioModules: updatedMods } : s);
+                                                    updateCardField(activeCard.id, 'subCards', updatedSubCards);
+                                                  }}
+                                                  className="w-full px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-white"
+                                                >
+                                                  <option value="启用">启用</option>
+                                                  <option value="禁用">禁用</option>
+                                                </select>
+                                              </div>
+                                            </div>
+                                            <div className="space-y-0.5">
+                                              <span className="text-[9px] text-zinc-500 font-bold block">音频描述与笔记 (Notes):</span>
+                                              <textarea
+                                                value={activeMod.desc || ''}
+                                                onChange={(e) => {
+                                                  const updatedMods = modules.map(m => m.id === activeMod.id ? { ...m, desc: e.target.value } : m);
+                                                  const updatedSubCards = subCardsList.map(s => s.id === activeSub.id ? { ...s, audioModules: updatedMods } : s);
+                                                  updateCardField(activeCard.id, 'subCards', updatedSubCards);
+                                                }}
+                                                className="w-full h-10 px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-white"
+                                                placeholder="研读笔记等..."
+                                              />
+                                            </div>
+                                          </div>
+                                        );
+                                      })()
+                                    ) : (
+                                      <div className="text-zinc-600 text-[10px] text-center py-6 font-mono">
+                                        ← 请选择一个子音频进行编辑，或添加新音频
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()
+                      ) : (
+                        <div className="text-zinc-600 text-xs text-center py-10 font-mono">
+                          ← 请选择左侧的一个月份/子分类进行编辑
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                /* Regular Audio Modules Block */
+                <div className="space-y-3 pt-2 border-t border-zinc-850">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono tracking-wider text-amber-400 block font-bold uppercase">🔊 绑定卡片音频单元 (Audio Modules)</span>
+                    <button
+                      onClick={() => {
+                        const modules = activeCard.audioModules || [];
+                        const nextModId = `audio_${Date.now()}`;
+                        const newMod: AudioModule = {
+                          id: nextModId,
+                          name: '新音频单元',
+                          audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+                          duration: '3:45',
+                          rating: 5,
+                          status: '启用',
+                          createdAt: new Date().toLocaleDateString(),
+                          updatedAt: new Date().toLocaleDateString(),
+                          user: 'Admin'
+                        };
+                        updateCardField(activeCard.id, 'audioModules', [...modules, newMod]);
+                        setSelectedAudioId(nextModId);
+                      }}
+                      className="px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500 hover:text-zinc-950 text-[10px] font-bold rounded cursor-pointer"
+                    >
+                      + 添加音频
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                    <div className="sm:col-span-5 border border-zinc-800 rounded bg-zinc-950/60 max-h-32 overflow-y-auto">
+                      {(activeCard.audioModules || []).map((mod) => (
+                        <div 
+                          key={mod.id}
+                          onClick={() => setSelectedAudioId(mod.id)}
+                          className={`p-1.5 border-b border-zinc-850 text-[11px] cursor-pointer flex justify-between items-center ${
+                            selectedAudioId === mod.id ? 'bg-amber-500/10 text-amber-300 font-semibold' : 'hover:bg-zinc-900 text-zinc-400'
+                          }`}
+                        >
+                          <span className="truncate pr-1">{mod.name}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const updatedMods = (activeCard.audioModules || []).filter(m => m.id !== mod.id);
+                              updateCardField(activeCard.id, 'audioModules', updatedMods);
+                              if (selectedAudioId === mod.id) setSelectedAudioId(null);
+                            }}
+                            className="text-zinc-600 hover:text-red-400 p-0.5"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="sm:col-span-7 bg-zinc-950/50 p-2.5 rounded border border-zinc-800">
+                      {selectedAudioId ? (
+                        (() => {
+                          const modules = activeCard.audioModules || [];
+                          const activeMod = modules.find(m => m.id === selectedAudioId);
+                          if (!activeMod) return <span className="text-zinc-600 text-[10px]">请选择音频进行配置</span>;
+                          return (
+                            <div className="space-y-2">
+                              <div className="space-y-1">
+                                <span className="text-[9px] text-zinc-500">音频名称:</span>
+                                <input 
+                                  type="text"
+                                  value={activeMod.name}
+                                  onChange={(e) => {
+                                    const updated = modules.map(m => m.id === activeMod.id ? { ...m, name: e.target.value } : m);
+                                    updateCardField(activeCard.id, 'audioModules', updated);
+                                  }}
+                                  className="w-full px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-white"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <span className="text-[9px] text-zinc-500 font-mono">音频资源地址 (URL):</span>
+                                <input 
+                                  type="text"
+                                  value={activeMod.audioUrl}
+                                  onChange={(e) => {
+                                    const updated = modules.map(m => m.id === activeMod.id ? { ...m, audioUrl: e.target.value } : m);
+                                    updateCardField(activeCard.id, 'audioModules', updated);
+                                  }}
+                                  className="w-full px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-[10px] text-zinc-300 font-mono"
+                                />
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="space-y-1">
+                                  <span className="text-[9px] text-zinc-500">音频时长:</span>
+                                  <input 
+                                    type="text"
+                                    value={activeMod.duration}
+                                    onChange={(e) => {
+                                      const updated = modules.map(m => m.id === activeMod.id ? { ...m, duration: e.target.value } : m);
+                                      updateCardField(activeCard.id, 'audioModules', updated);
+                                    }}
+                                    className="w-full px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-white font-mono"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <span className="text-[9px] text-zinc-500">发布状态:</span>
+                                  <select
+                                    value={activeMod.status}
+                                    onChange={(e) => {
+                                      const updated = modules.map(m => m.id === activeMod.id ? { ...m, status: e.target.value } : m);
+                                      updateCardField(activeCard.id, 'audioModules', updated);
+                                    }}
+                                    className="w-full px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-white"
+                                  >
+                                    <option value="启用">启用 (Active)</option>
+                                    <option value="禁用">禁用 (Disabled)</option>
+                                  </select>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="space-y-1">
+                                  <span className="text-[9px] text-zinc-500">星级评分 (1-5):</span>
+                                  <input 
+                                    type="number"
+                                    min="1"
+                                    max="5"
+                                    value={activeMod.rating || 5}
+                                    onChange={(e) => {
+                                      const updated = modules.map(m => m.id === activeMod.id ? { ...m, rating: Number(e.target.value) } : m);
+                                      updateCardField(activeCard.id, 'audioModules', updated);
+                                    }}
+                                    className="w-full px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-white"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <span className="text-[9px] text-zinc-500">上传者/用户:</span>
+                                  <input 
+                                    type="text"
+                                    value={activeMod.user || 'Admin'}
+                                    onChange={(e) => {
+                                      const updated = modules.map(m => m.id === activeMod.id ? { ...m, user: e.target.value } : m);
+                                      updateCardField(activeCard.id, 'audioModules', updated);
+                                    }}
+                                    className="w-full px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-white"
+                                  />
+                                </div>
+                              </div>
+                              <div className="space-y-1">
+                                <span className="text-[9px] text-zinc-500">音频描述与文字笔记 (Notes):</span>
+                                <textarea
+                                  value={activeMod.desc || ''}
+                                  onChange={(e) => {
+                                    const updated = modules.map(m => m.id === activeMod.id ? { ...m, desc: e.target.value, updatedAt: new Date().toLocaleDateString() } : m);
+                                    updateCardField(activeCard.id, 'audioModules', updated);
+                                  }}
+                                  placeholder="输入该音频模块的研读笔记、音频描述或文字详情..."
+                                  className="w-full h-16 px-1.5 py-1 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-amber-500/50 resize-none scrollbar-thin"
+                                />
+                              </div>
+                            </div>
+                          );
+                        })()
+                      ) : (
+                        <div className="h-full flex items-center justify-center text-zinc-600 text-[10px] text-center border border-dashed border-zinc-800 rounded p-4">
+                          选择左侧列表中的音频以编辑音轨属性。
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="h-full flex items-center justify-center text-zinc-600 text-xs p-10 border border-dashed border-zinc-800 rounded-xl">

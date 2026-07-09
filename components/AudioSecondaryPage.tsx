@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  X, ChevronLeft, Music, Plus, Trash2, Play, Pause, Star, 
+  X, ChevronLeft, Music, Plus, Play, Pause, Star, 
   Settings, Clock, User, Calendar, ExternalLink, RefreshCw,
   Search, SlidersHorizontal, LayoutGrid, List as ListIcon,
   Lock, Unlock, ShieldCheck, ShieldAlert
@@ -379,18 +379,10 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
                               </p>
                             )}
 
-                            <div className={viewMode === 'grid' ? "flex items-center justify-between pt-2" : "flex items-center gap-4 ml-auto"}>
-                               <button 
-                                  onClick={(e) => { e.stopPropagation(); handleDeleteModule(mod.id); }}
-                                  className="p-2 text-zinc-600 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100 z-10"
-                                  title="Delete audio module"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                               </button>
-
+                            <div className={viewMode === 'grid' ? "flex items-center justify-start pt-2" : "flex items-center gap-4 ml-8"}>
                                <button 
                                   onClick={(e) => { e.stopPropagation(); handleTogglePlay(mod); }}
-                                  disabled={isLocked}
+                                  disabled={isLocked} style={viewMode === 'grid' ? undefined : { marginLeft: '-93px' }}
                                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all z-10 ${
                                     isLocked 
                                       ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
@@ -523,19 +515,7 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
                       </div>
                    </div>
 
-                   {!isMobile && (
-                     <div className="pt-6 border-t border-white/5">
-                        <button 
-                          onClick={() => {
-                             if (window.confirm('确定要清空所有音频吗？')) handleUpdate([]);
-                          }}
-                          className="w-full py-3 bg-zinc-900 border border-zinc-800 text-zinc-500 hover:text-rose-500 hover:border-rose-500/30 rounded-2xl text-[10px] font-bold tracking-widest flex items-center justify-center gap-2 transition-all"
-                        >
-                           <Trash2 className="w-3.5 h-3.5" />
-                           <span>清空所有数据内容</span>
-                        </button>
-                     </div>
-                   )}
+                   {/* Cleaned up delete all button */}
                 </div>
 
                 <div className="p-6 border-t border-white/5 bg-zinc-900/20">
