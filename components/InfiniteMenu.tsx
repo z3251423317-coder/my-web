@@ -936,8 +936,11 @@ class InfiniteGridMenu {
     }
   }
 
+  paused = false;
+
   run(time = 0) {
     if (this.destroyed) return;
+    if (this.paused) return;
     this.#deltaTime = Math.min(32, time - this.#time);
     this.#time = time;
     this.#deltaFrames = this.#deltaTime / this.TARGET_FRAME_DURATION;
@@ -947,6 +950,16 @@ class InfiniteGridMenu {
     this.#render();
 
     this.animationFrameId = requestAnimationFrame(t => this.run(t));
+  }
+
+  resume() {
+    if (this.destroyed) return;
+    this.paused = false;
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+    this.#time = performance.now();
+    this.run(this.#time);
   }
 
   #init(onInit: ((instance: InfiniteGridMenu) => void) | null) {
@@ -1249,9 +1262,10 @@ interface InfiniteMenuProps {
   items?: InfiniteMenuItem[];
   scale?: number;
   onItemClick?: (item: InfiniteMenuItem) => void;
+  active?: boolean;
 }
 
-export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick }: InfiniteMenuProps) {
+export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick, active = true }: InfiniteMenuProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [activeItem, setActiveItem] = useState<InfiniteMenuItem | null>(null);
   const [isMoving, setIsMoving] = useState(false);
@@ -1278,7 +1292,10 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick }: I
       items.length ? items : defaultItems,
       handleActiveItem,
       setIsMoving,
-      sk => sk.run(),
+      sk => {
+        sk.paused = !active;
+        sk.run();
+      },
       scale
     );
     sketchRef.current = sketch;
@@ -1298,6 +1315,15 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick }: I
       sketchRef.current = null;
     };
   }, [scale]);
+
+  useEffect(() => {
+    if (sketchRef.current) {
+      sketchRef.current.paused = !active;
+      if (active) {
+        sketchRef.current.resume();
+      }
+    }
+  }, [active]);
 
   const prevItemsStrRef = useRef("");
 

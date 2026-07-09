@@ -142,6 +142,7 @@ interface DomeGalleryProps {
   grayscale?: boolean;
   autoRotate?: boolean;
   autoRotateSpeed?: number;
+  active?: boolean;
 }
 
 export default function DomeGallery({
@@ -163,7 +164,8 @@ export default function DomeGallery({
   openedImageBorderRadius = '30px',
   grayscale = true,
   autoRotate = true,
-  autoRotateSpeed = 0.15
+  autoRotateSpeed = 0.15,
+  active = true
 }: DomeGalleryProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLElement>(null);
@@ -297,7 +299,7 @@ export default function DomeGallery({
   }, []);
 
   useEffect(() => {
-    if (!autoRotate) return;
+    if (!autoRotate || !active) return;
     let autoRotateRAF: number | null = null;
     
     const tick = () => {
@@ -313,7 +315,7 @@ export default function DomeGallery({
     return () => {
       if (autoRotateRAF) cancelAnimationFrame(autoRotateRAF);
     };
-  }, [autoRotate, autoRotateSpeed]);
+  }, [autoRotate, autoRotateSpeed, active]);
 
   const stopInertia = useCallback(() => {
     if (inertiaRAF.current) {

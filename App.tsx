@@ -2595,6 +2595,7 @@ const App: React.FC = () => {
 
                 <div className="absolute inset-0 w-full h-full pointer-events-auto">
                   <InfiniteMenu
+                    active={isSelected}
                     scale={1.4}
                     items={sphereCards.map((card, idx) => ({
                       id: card.id,
@@ -2658,6 +2659,7 @@ const App: React.FC = () => {
 
                 <div className="absolute inset-0 w-full h-full pointer-events-auto">
                   <DomeGallery
+                    active={isSelected}
                     images={domeCards.map((card, idx) => ({
                       src: card.image || [
                         "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop", // Qubit Topology
