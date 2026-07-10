@@ -133,3 +133,32 @@ div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > main:nth-of-
 }
 
 
+
+@keyframes border-spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.lit-border-container {
+  position: absolute;
+  inset: -1px;
+  border-radius: 16px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 20;
+  padding: 1.5px;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.lit-border-container::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(from 0deg, transparent 0%, transparent 40%, var(--glow-color, #fbbf24) 100%);
+  animation: border-spin 3s linear infinite;
+}

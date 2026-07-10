@@ -33,6 +33,9 @@ export interface MarqueeCard {
   lastUpdated?: string;
   isEncrypted?: boolean;
   password?: string;
+  isLit?: boolean;
+  glowEnabled?: boolean;
+  glowColor?: string;
   subCards?: SubCard[];
   audioModules?: {
     id: string;
@@ -148,5 +151,17 @@ export const DEFAULT_DOME_CARDS: MarqueeCard[] = [
     "desc": "High-density scintillation tracking mapping background radiation.",
     "url": "",
     "colorType": "rose"
+  }
+];
+
+export const DEFAULT_SCREEN7_CARDS: MarqueeCard[] = [
+  {
+    "id": 1,
+    "title": "Roadmap Card 1",
+    "cat": "PHASE 1",
+    "desc": "Description here.",
+    "url": "",
+    "colorType": "indigo",
+    "isLit": true
   }
 ];

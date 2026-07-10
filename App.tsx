@@ -35,7 +35,7 @@ import { db } from './firebase-config';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import defaultUserData from './user_data.json';
 
-import { DEFAULT_MARQUEE_CARDS, DEFAULT_QUANTUM_CARDS, DEFAULT_DOME_CARDS, MarqueeCard } from './src/cardData';
+import { DEFAULT_MARQUEE_CARDS, DEFAULT_QUANTUM_CARDS, DEFAULT_DOME_CARDS, DEFAULT_SCREEN7_CARDS, MarqueeCard } from './src/cardData';
 
 /* =================================================================================
  * ■ SECTION 2: CONSTANTS, DEFAULT CONFIGURATIONS & COMPONENT SCHEMAS
@@ -52,6 +52,7 @@ const getCardColorAndIcon = (colorType: string = "blue") => {
     case "pink": return { style: "border-pink-500/30 text-pink-400 bg-pink-500/10 hover:border-pink-400/50 hover:shadow-pink-500/10", glow: "from-pink-500/25 to-transparent", icon: CheckCircle };
     case "sky": return { style: "border-sky-500/30 text-sky-400 bg-sky-500/10 hover:border-sky-400/50 hover:shadow-sky-500/10", glow: "from-sky-500/25 to-transparent", icon: RefreshCw };
     case "fuchsia": return { style: "border-fuchsia-500/30 text-fuchsia-400 bg-fuchsia-500/10 hover:border-fuchsia-400/50 hover:shadow-fuchsia-500/10", glow: "from-fuchsia-500/25 to-transparent", icon: Monitor };
+    case "gray": return { style: "border-zinc-500/30 text-zinc-400 bg-zinc-800/50 hover:border-zinc-400/50 hover:shadow-zinc-500/10", glow: "from-zinc-500/25 to-transparent", icon: LayoutGrid };
     case "blue":
     default: return { style: "border-blue-500/30 text-blue-400 bg-blue-500/10 hover:border-blue-400/50 hover:shadow-blue-500/10", glow: "from-blue-500/25 to-transparent", icon: Palette };
   }
@@ -487,12 +488,30 @@ const App: React.FC = () => {
       if (manual && isMounted) setIsRetryingDb(true);
       
       try {
-        const remoteRes = await fetch(`https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/user_data.json?t=${Date.now()}`, {
-          cache: 'no-store'
-        });
-        
-        if (remoteRes.ok) {
-          const data = await remoteRes.json();
+        let data: any = null;
+        try {
+          // Try local proxy API first in AI Studio environment
+          const localRes = await fetch('/api/config');
+          if (localRes.ok) {
+            data = await localRes.json();
+            console.log("Configuration loaded successfully from local proxy API (/api/config).");
+          }
+        } catch (localErr) {
+          console.warn("Failed to fetch local proxy API, will try remote fallback...", localErr);
+        }
+
+        if (!data) {
+          const remoteRes = await fetch(`https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/user_data.json?t=${Date.now()}`, {
+            cache: 'no-store'
+          });
+          
+          if (remoteRes.ok) {
+            data = await remoteRes.json();
+            console.log("Configuration loaded successfully from remote URL.");
+          }
+        }
+
+        if (data) {
           if (isMounted) {
             setDbConnected(true);
             setIsDbEmpty(false);
@@ -504,15 +523,23 @@ const App: React.FC = () => {
             if (data.domeCards) setDomeCards(data.domeCards);
             if (data.trialCards) setTrialCards(data.trialCards);
             if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
+            if (data.screen7Cards) setScreen7Cards(data.screen7Cards);
+            if (data.screen7GlowEnabled !== undefined) {
+              setScreen7GlowEnabled(!!data.screen7GlowEnabled);
+              localStorage.setItem("alphaqubit_screen7_glow_enabled", String(!!data.screen7GlowEnabled));
+            }
+            if (data.screen7GlowColor) {
+              setScreen7GlowColor(data.screen7GlowColor);
+              localStorage.setItem("alphaqubit_screen7_glow_color", data.screen7GlowColor);
+            }
             setConfigLoaded(true);
             setIsRetryingDb(false);
-            console.log("Configuration loaded successfully from remote URL.");
             return;
           }
         }
-        throw new Error("Failed to fetch from remote URL");
+        throw new Error("Failed to load valid configuration from local API or remote URL");
       } catch (err: any) {
-        console.error("Failed to load remote configuration, falling back to local defaults...", err);
+        console.error("Failed to load configuration, falling back to local defaults...", err);
         
         // Fallback to default local data
         if (isMounted) {
@@ -524,6 +551,15 @@ const App: React.FC = () => {
           if (fallback.domeCards) setDomeCards(fallback.domeCards);
           if (fallback.trialCards) setTrialCards(fallback.trialCards);
           if (fallback.relationshipCards) setRelationshipCards(fallback.relationshipCards);
+          if (fallback.screen7Cards) setScreen7Cards(fallback.screen7Cards);
+          if (fallback.screen7GlowEnabled !== undefined) {
+            setScreen7GlowEnabled(!!fallback.screen7GlowEnabled);
+            localStorage.setItem("alphaqubit_screen7_glow_enabled", String(!!fallback.screen7GlowEnabled));
+          }
+          if (fallback.screen7GlowColor) {
+            setScreen7GlowColor(fallback.screen7GlowColor);
+            localStorage.setItem("alphaqubit_screen7_glow_color", fallback.screen7GlowColor);
+          }
           
           setDbConnected(true);
           setIsDbEmpty(false);
@@ -762,6 +798,73 @@ const App: React.FC = () => {
     return JSON.parse(JSON.stringify(DEFAULT_MARQUEE_CARDS));
   });
 
+  const [screen7Cards, setScreen7Cards] = useState<MarqueeCard[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem("alphaqubit_screen7_cards");
+        if (saved) {
+          return JSON.parse(saved);
+        }
+      } catch (e) {
+        console.error("Failed to parse saved screen 7 cards", e);
+      }
+    }
+    return JSON.parse(JSON.stringify(DEFAULT_SCREEN7_CARDS));
+  });
+
+  const [screen7GlowEnabled, setScreen7GlowEnabled] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem("alphaqubit_screen7_glow_enabled");
+      if (saved !== null) {
+        return saved === "true";
+      }
+    }
+    return true;
+  });
+
+  const [screen7GlowColor, setScreen7GlowColor] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem("alphaqubit_screen7_glow_color");
+      if (saved) {
+        return saved;
+      }
+    }
+    return "#fbbf24";
+  });
+
+  const saveScreen7GlowEnabled = (val: boolean) => {
+    setScreen7GlowEnabled(val);
+    localStorage.setItem("alphaqubit_screen7_glow_enabled", String(val));
+    if (db && typeof window !== 'undefined') {
+      import('firebase/firestore').then(({ doc, setDoc }) => {
+        setDoc(doc(db, 'system_config', 'screen7GlowEnabled'), { data: val }).catch(console.error);
+      });
+    }
+  };
+
+  const saveScreen7GlowColor = (val: string) => {
+    setScreen7GlowColor(val);
+    localStorage.setItem("alphaqubit_screen7_glow_color", val);
+    if (db && typeof window !== 'undefined') {
+      import('firebase/firestore').then(({ doc, setDoc }) => {
+        setDoc(doc(db, 'system_config', 'screen7GlowColor'), { data: val }).catch(console.error);
+      });
+    }
+  };
+
+  const saveScreen7Cards = (updated: MarqueeCard[]) => {
+    setScreen7Cards(updated);
+    localStorage.setItem("alphaqubit_screen7_cards", JSON.stringify(updated));
+    
+    // Also save to firebase if possible
+    if (db && typeof window !== 'undefined') {
+      import('firebase/firestore').then(({ doc, setDoc }) => {
+        setDoc(doc(db, 'system_config', 'screen7Cards'), { data: updated }).catch(console.error);
+      });
+    }
+  };
+
+
   const saveTrialCards = (updated: MarqueeCard[]) => {
     setTrialCards(updated);
     localStorage.setItem("alphaqubit_trial_cards", JSON.stringify(updated));
@@ -837,6 +940,7 @@ const App: React.FC = () => {
   };
 
   const [activeConsoleScreenId, setActiveConsoleScreenId] = useState<number | null>(null);
+  const [enlargedCard, setEnlargedCard] = useState<MarqueeCard | null>(null);
   const [consoleTab, setConsoleTab] = useState<'cards' | 'bg'>('cards');
   const [domeAutoRotate, setDomeAutoRotate] = useState<boolean>(true);
   const [domeAutoRotateSpeed, setDomeAutoRotateSpeed] = useState<number>(0.15);
@@ -1077,7 +1181,7 @@ const App: React.FC = () => {
         setIsSubCardModalOpen(true);
       }
     }
-  }, [configLoaded, screens, trialCards, marqueeCards, sphereCards, domeCards, restored]);
+  }, [configLoaded, screens, trialCards, marqueeCards, sphereCards, domeCards, screen7Cards, restored]);
 
   /* =================================================================================
    * ■ SECTION 5: CARDS & MODULES DATA MANIPULATION (CRUD ENGINE)
@@ -1383,6 +1487,7 @@ const App: React.FC = () => {
       domeCards: domeCards,
       trialCards: trialCards,
       relationshipCards: relationshipCards,
+      screen7Cards: screen7Cards,
     };
     const codeStr = JSON.stringify(masterData, null, 2);
     setCopyToast(codeStr);
@@ -1430,6 +1535,10 @@ const App: React.FC = () => {
       if (Array.isArray(parsed.relationshipCards) && parsed.relationshipCards.length > 0) {
         setRelationshipCards(parsed.relationshipCards);
         localStorage.setItem("alphaqubit_relationship_cards_v5", JSON.stringify(parsed.relationshipCards));
+      }
+      if (Array.isArray(parsed.screen7Cards)) {
+        setScreen7Cards(parsed.screen7Cards);
+        localStorage.setItem("alphaqubit_screen7_cards", JSON.stringify(parsed.screen7Cards));
         importCount++;
       }
 
@@ -2842,7 +2951,7 @@ const App: React.FC = () => {
             >
               {/* 1700px Content Core ("版心控制在 1700px 左右") */}
               <div className="relative z-10 w-full h-auto lg:h-full max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 flex flex-col justify-center text-white pointer-events-auto">
-                {s.id === 3 ? (
+                {s.id === 3 || s.id === 7 ? (
                   /* Disabled Marquee Screen */
                   <div className="relative w-full py-12 flex flex-col justify-between h-auto min-h-[500px]">
                     
@@ -2886,15 +2995,15 @@ const App: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <button
                             id="console-toggle-btn"
-                            onClick={() => setActiveConsoleScreenId(activeConsoleScreenId === 3 ? null : 3)}
+                            onClick={() => setActiveConsoleScreenId(activeConsoleScreenId === s.id ? null : s.id)}
                             className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[11px] font-mono tracking-widest uppercase transition-all duration-300 shadow-md cursor-pointer ${
-                              activeConsoleScreenId === 3 
+                              activeConsoleScreenId === s.id 
                                 ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 border-amber-550 font-bold' 
                                 : 'bg-zinc-900/90 text-zinc-300 border-zinc-800 hover:text-white hover:border-zinc-700 hover:bg-zinc-850'
                             }`}
                           >
-                            <Settings className={`w-3.5 h-3.5 ${activeConsoleScreenId === 3 ? 'animate-spin' : ''}`} />
-                            <span>{activeConsoleScreenId === 3 ? "HIDE CONSOLE / 隐藏控制台" : "CARD CONSOLE / 打开控制台"}</span>
+                            <Settings className={`w-3.5 h-3.5 ${activeConsoleScreenId === s.id ? 'animate-spin' : ''}`} />
+                            <span>{activeConsoleScreenId === s.id ? "HIDE CONSOLE / 隐藏控制台" : "CARD CONSOLE / 打开控制台"}</span>
                           </button>
                         </div>
                       )}
@@ -2908,24 +3017,46 @@ const App: React.FC = () => {
                         // Ensure there are enough cards to span the viewport width (at least 10 cards per group)
                         // This allows seamless infinite scrolling loop even when only 1 or 2 cards exist in the console
                         const minCardsRequired = 10;
-                        const repeats = Math.ceil(minCardsRequired / Math.max(1, marqueeCards.length));
-                        const singleGroupCards: typeof marqueeCards = [];
+                        const displayCards = s.id === 7 ? screen7Cards : marqueeCards;
+                        const repeats = Math.ceil(minCardsRequired / Math.max(1, displayCards.length));
+                        const singleGroupCards: typeof displayCards = [];
                         for (let r = 0; r < repeats; r++) {
-                          singleGroupCards.push(...marqueeCards);
+                          singleGroupCards.push(...displayCards);
                         }
 
                         return (
-                          <div className="animate-marquee-reverse flex gap-0 py-2 hover:[animation-play-state:paused]">
+                          <div className={`${s.id === 7 ? 'animate-marquee-forward' : 'animate-marquee-reverse'} flex gap-0 py-2 hover:[animation-play-state:paused]`}>
                             {[...Array(2)].map((_, groupIdx) => (
                               <div key={groupIdx} className="flex gap-6 pr-6 shrink-0">
                                 {singleGroupCards.map((card, idx) => {
-                                  const { style: colorStyle, icon: CardIcon } = getCardColorAndIcon(card.colorType);
+                                  const isCardGray = s.id === 7 && !card.isLit;
+                                  const isGlowActive = card.isLit && card.glowEnabled !== false;
+                                  const glowColor = card.glowColor || '#fbbf24';
+                                  const { style: colorStyle, icon: CardIcon } = getCardColorAndIcon(isCardGray ? 'gray' : card.colorType);
                                   return (
                                     <div 
                                       key={`${groupIdx}-${idx}-${card.id}`}
-                                      onClick={() => handleCardClick(card)}
-                                      className={`w-[270px] shrink-0 p-5 rounded-2xl glassmorphism-card hover:-translate-y-1.5 hover:scale-[1.01] flex flex-col justify-between text-left group/card cursor-pointer ${colorStyle}`}
+                                      onClick={() => {
+                                      if (s.id === 7) {
+                                        setEnlargedCard(card);
+                                      } else {
+                                        handleCardClick(card);
+                                      }
+                                    }}
+                                      className={`relative w-[270px] shrink-0 p-5 rounded-2xl glassmorphism-card hover:-translate-y-1.5 hover:scale-[1.01] flex flex-col justify-between text-left group/card cursor-pointer ${colorStyle} ${isGlowActive && !isCardGray ? 'shadow-lg border' : ''} ${isCardGray ? 'opacity-70 grayscale' : ''}`}
+                                      style={isGlowActive && !isCardGray ? {
+                                        boxShadow: `0 0 20px ${glowColor}4d`,
+                                        borderColor: `${glowColor}80`
+                                      } : undefined}
                                     >
+                                      {isGlowActive && !isCardGray && (
+                                        <div 
+                                          className="lit-border-container" 
+                                          style={{
+                                            '--glow-color': glowColor
+                                          } as React.CSSProperties}
+                                        />
+                                      )}
                                       <div>
                                         <div className="flex items-center justify-between mb-4">
                                           <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase">
@@ -3030,34 +3161,6 @@ const App: React.FC = () => {
 
                     {/* Render custom integrated interactive widgets depending on the screen index */}
                     
-                    {/* Screen 7: Dynamic Operations/Roadmap Milestone timeline steps */}
-                    {s.id === 7 && (
-                      <div className="pt-2">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto lg:mx-0">
-                          {[
-                            { phase: 1, name: "Phase 1: Hybrid Probe", desc: "Evaluate real-time diagnostic stream logic on simple distance 3 surface setups." },
-                            { phase: 2, name: "Phase 2: Deep Align", desc: "Introduce temporal recurrent layers to trace complex crosstalk signals." },
-                            { phase: 3, name: "Phase 3: Fault Shield", desc: "Achieve logical LER below matching hardware thresholds at scale." },
-                            { phase: 4, name: "Phase 4: Full-Engine", desc: "Integrate multi-thousand physical qubit matrices securely." }
-                          ].map((milestone) => (
-                            <button
-                              key={milestone.phase}
-                              onClick={() => setActiveTimelinePhase(milestone.phase)}
-                              className={`p-3 rounded-lg border text-left transition-all ${
-                                activeTimelinePhase === milestone.phase
-                                  ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-md scale-[1.02]'
-                                  : 'bg-zinc-900/40 border-zinc-700/60 text-zinc-300 hover:border-zinc-500 hover:bg-zinc-800/40'
-                              }`}
-                            >
-                              <div className="text-[10px] uppercase tracking-wider font-bold mb-1 opacity-70">Step 0{milestone.phase}</div>
-                              <div className="text-xs font-bold leading-tight line-clamp-1 mb-1">{milestone.name}</div>
-                              <p className="text-[10px] leading-snug line-clamp-2 opacity-80 font-sans font-light">{milestone.desc}</p>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
                     {/* Screen 9: Footer Input form & metadata cards */}
                     {s.id === 9 && (
                       <div className="w-full max-w-xl pt-3">
@@ -3182,45 +3285,6 @@ const App: React.FC = () => {
                         <div className="absolute bottom-4 left-4 right-4 bg-gradient-to-r from-zinc-950/90 to-zinc-900/90 border border-zinc-800 p-3 rounded-xl backdrop-blur-sm z-10">
                           <code className="text-[10px] text-zinc-400 font-mono block">SUITE SYCAMORE ENVIRONMENT</code>
                           <p className="text-xs text-zinc-300 font-sans mt-0.5 leading-normal">Interactive 3D cryostat chandelier executing qubit operations at millivelvin degrees.</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Screen 7: Dynamic selected step text detail inside frame */}
-                    {s.id === 7 && (
-                      <div className="w-full max-w-md aspect-[4/3] glassmorphism-card rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden">
-                        <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                            <span className="text-xs text-zinc-300 font-mono font-bold">MILESTONE SPECIFICATION</span>
-                          </div>
-                          <span className="text-xs text-zinc-500 font-mono">0{activeTimelinePhase} / 04</span>
-                        </div>
-
-                        <div className="py-4 space-y-3">
-                          <p className="text-3xl font-display font-black text-amber-400">
-                            {activeTimelinePhase === 1 && "Hybrid Calibrations"}
-                            {activeTimelinePhase === 2 && "Recurrent Tracking"}
-                            {activeTimelinePhase === 3 && "Breaching LER Limits"}
-                            {activeTimelinePhase === 4 && "Production Grid"}
-                          </p>
-                          <blockquote className="text-sm text-zinc-300 font-serif italic border-l-2 border-amber-500 pl-3 py-1 bg-white/5 rounded-r">
-                            {activeTimelinePhase === 1 && "\"Deploy experimental decoders directly in alignment with real time hardware fluxes.\""}
-                            {activeTimelinePhase === 2 && "\"Translate temporal diagnostic sequences to predict leakage before logical memory flips.\""}
-                            {activeTimelinePhase === 3 && "\"Leverage machine learning to establish active control limits below human benchmarks.\""}
-                            {activeTimelinePhase === 4 && "\"Enable thousands of coordinated sub-processes securely inside distributed datacenters.\""}
-                          </blockquote>
-                          <p className="text-xs text-zinc-400 leading-relaxed font-sans font-light">
-                            {activeTimelinePhase === 1 && "This phase establishes baseline integration between standard ML networks and live physical processors. We verify input formats & channel security."}
-                            {activeTimelinePhase === 2 && "By training neural frameworks on full chronological syndromes, the decoder maps previous noise footprints, predicting subsequent actions. "}
-                            {activeTimelinePhase === 3 && "We demonstrate lower error trends at scale. Results published in journals show physical fidelity improvements."}
-                            {activeTimelinePhase === 4 && "Final full system. Connecting fault-tolerant clusters to support real-world scientific processing."}
-                          </p>
-                        </div>
-
-                        <div className="pt-3 border-t border-zinc-800 flex items-center justify-between text-[10px] text-zinc-500 font-mono">
-                          <span>SYSTEM ACCESS: RESTRICTED</span>
-                          <span>ACTIVE: {activeTimelinePhase * 25}% READY</span>
                         </div>
                       </div>
                     )}
@@ -4261,6 +4325,47 @@ const App: React.FC = () => {
           <span className="text-xs uppercase tracking-wider">全局配置备份/恢复 (SYNC)</span>
         </button>
       )} */}
+
+      
+      {/* Enlarged Card Modal for Screen 7 */}
+      <AnimatePresence>
+      {enlargedCard && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 backdrop-blur-md bg-black/80 pointer-events-auto" onClick={() => setEnlargedCard(null)}>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-2xl bg-zinc-950 border border-zinc-800 rounded-2xl p-8 relative overflow-hidden shadow-2xl"
+          >
+            <button onClick={() => setEnlargedCard(null)} className="absolute top-4 right-4 text-zinc-400 hover:text-white cursor-pointer z-50">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <div className="mb-6 relative z-10">
+              <span className="text-amber-500 font-mono text-xs tracking-widest block mb-2">{enlargedCard.cat}</span>
+              <h2 className="text-3xl font-display font-bold text-white">{enlargedCard.title}</h2>
+            </div>
+            <p className="text-zinc-300 text-lg leading-relaxed relative z-10">{enlargedCard.desc}</p>
+             {enlargedCard.isLit && enlargedCard.glowEnabled !== false && (
+               <>
+                 <div 
+                   className="lit-border-container" 
+                   style={{
+                     '--glow-color': enlargedCard.glowColor || '#fbbf24'
+                   } as React.CSSProperties}
+                 />
+                 <div 
+                   className="absolute top-0 right-0 w-32 h-32 blur-3xl rounded-full pointer-events-none" 
+                   style={{
+                     backgroundColor: `${enlargedCard.glowColor || '#fbbf24'}33`
+                   }}
+                 />
+               </>
+             )}
+          </motion.div>
+        </div>
+      )}
+      </AnimatePresence>
 
       {/* Global Master Config Modal / 全局配置备份与恢复 */}
       <AnimatePresence>

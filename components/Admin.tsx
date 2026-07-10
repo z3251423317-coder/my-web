@@ -47,6 +47,9 @@ interface MarqueeCard {
   image?: string;
   isEncrypted?: boolean;
   password?: string;
+  isLit?: boolean;
+  glowEnabled?: boolean;
+  glowColor?: string;
   subCards?: SubCard[];
   audioModules?: AudioModule[];
 }
@@ -105,7 +108,10 @@ export default function Admin() {
   const [sphereCards, setSphereCards] = useState<MarqueeCard[]>([]);
   const [domeCards, setDomeCards] = useState<MarqueeCard[]>([]);
   const [trialCards, setTrialCards] = useState<MarqueeCard[]>([]);
+  const [screen7Cards, setScreen7Cards] = useState<MarqueeCard[]>([]);
   const [relationshipCards, setRelationshipCards] = useState<RelationshipCard[]>([]);
+  const [screen7GlowEnabled, setScreen7GlowEnabled] = useState(true);
+  const [screen7GlowColor, setScreen7GlowColor] = useState('#fbbf24');
 
   // Selected sub-elements for active editing
   const [selectedPillNavId, setSelectedPillNavId] = useState<string | null>(null);
@@ -169,6 +175,9 @@ export default function Admin() {
     if (Array.isArray(data.domeCards)) setDomeCards(data.domeCards);
     if (Array.isArray(data.trialCards)) setTrialCards(data.trialCards);
     if (Array.isArray(data.relationshipCards)) setRelationshipCards(data.relationshipCards);
+    if (Array.isArray(data.screen7Cards)) setScreen7Cards(data.screen7Cards);
+    if (data.screen7GlowEnabled !== undefined) setScreen7GlowEnabled(!!data.screen7GlowEnabled);
+    if (data.screen7GlowColor) setScreen7GlowColor(data.screen7GlowColor);
   };
 
   // Helper to construct the unified config object
@@ -182,7 +191,10 @@ export default function Admin() {
       sphereCards,
       domeCards,
       trialCards,
-      relationshipCards
+      relationshipCards,
+      screen7Cards,
+      screen7GlowEnabled,
+      screen7GlowColor
     };
   };
 
@@ -1161,7 +1173,18 @@ export default function Admin() {
                 {/* =================================================================================
                  * ■ CHILD DATA: SCREEN 7, 8, 9 (HARDCODED VIEWS METADATA NOTE)
                  * ================================================================================= */}
-                {[7, 8, 9].includes(currentScreen.id) && (
+                {currentScreen.id === 7 && (
+                  <CardListFormGroup 
+                    title="流程式向左滑动的里程碑控制台 (Screen 7 Marquee Cards)" 
+                    cards={screen7Cards} 
+                    saveCards={setScreen7Cards} 
+                    selectedId={selectedTrialCardId} 
+                    setSelectedId={setSelectedTrialCardId} 
+                    enableSubCards={false}
+                  />
+                )}
+                
+                {[8, 9].includes(currentScreen.id) && (
                   <div className="p-4 bg-zinc-950/40 border border-zinc-850 rounded-lg text-xs space-y-1">
                     <span className="font-mono text-[9px] text-zinc-500 uppercase tracking-widest block font-bold">板块提示</span>
                     <p className="text-zinc-400">
@@ -1346,6 +1369,103 @@ function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId,
                   className="w-full h-14 px-2.5 py-1 bg-zinc-950 border border-zinc-800 rounded text-xs text-white font-sans"
                 />
               </div>
+
+              
+              {/* Lit Status Toggle Block */}
+              <div className="bg-zinc-950/40 p-3 rounded-lg border border-zinc-850 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] text-zinc-400 block font-bold">✨ 卡片高亮状态 (Highlight Status)</span>
+                    <span className="text-[9px] text-zinc-500 block">开关关闭状态下卡片为灰色，打开状态下为彩色高亮</span>
+                  </div>
+                  <button
+                    onClick={() => updateCardField(activeCard.id, 'isLit', !activeCard.isLit)}
+                    className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors focus:outline-none ${
+                      activeCard.isLit ? 'bg-amber-500' : 'bg-zinc-800'
+                    }`}
+                  >
+                    <span className={`inline-block h-2.5 w-2.5 transform rounded-full bg-white transition-transform ${
+                      activeCard.isLit ? 'translate-x-4' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Stream Glow Effect Block (Shows up only after isLit is true) */}
+              {activeCard.isLit && (
+                <div className="bg-zinc-950/60 p-3.5 rounded-lg border border-zinc-800/80 space-y-3 animate-fade-in">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] text-amber-450 block font-bold flex items-center gap-1.5" style={{ color: activeCard.glowColor || '#fbbf24' }}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" style={{ backgroundColor: activeCard.glowColor || '#fbbf24' }}></span>
+                        💫 炫酷边缘流光特效 (Glow Border Light)
+                      </span>
+                      <span className="text-[9px] text-zinc-500 block">开启后，前台此卡片边缘将环绕运行一圈跑马灯炫光</span>
+                    </div>
+
+                    {/* Highly stylized cool glowing toggle button */}
+                    <div className="relative p-[1.5px] rounded-lg overflow-hidden shrink-0 transition-transform hover:scale-[1.03]">
+                      {activeCard.glowEnabled !== false && (
+                        <div 
+                          className="absolute inset-0 pointer-events-none"
+                          style={{
+                            background: `conic-gradient(from 0deg, transparent 40%, ${activeCard.glowColor || '#fbbf24'} 100%)`,
+                            animation: 'border-spin 2s linear infinite',
+                            borderRadius: '8px',
+                            scale: '1.4'
+                          }}
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => updateCardField(activeCard.id, 'glowEnabled', activeCard.glowEnabled === false ? true : false)}
+                        className={`relative px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                          activeCard.glowEnabled !== false 
+                            ? 'bg-zinc-950/90 text-white shadow-[0_0_10px_rgba(251,191,36,0.1)]' 
+                            : 'bg-zinc-900/85 text-zinc-500 border border-zinc-800'
+                        }`}
+                      >
+                        <span 
+                          className={`w-2 h-2 rounded-full transition-all ${activeCard.glowEnabled !== false ? 'shadow-[0_0_8px_rgba(251,191,36,1)]' : 'bg-zinc-600'}`} 
+                          style={{ backgroundColor: activeCard.glowEnabled !== false ? (activeCard.glowColor || '#fbbf24') : undefined }}
+                        />
+                        {activeCard.glowEnabled !== false ? '开启 (ON)' : '关闭 (OFF)'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Flow Light Color picker and hex input */}
+                  {activeCard.glowEnabled !== false && (
+                    <div className="pt-2.5 border-t border-zinc-900 flex items-center gap-2.5 animate-fade-in">
+                      <div className="flex-1">
+                        <span className="text-[8px] text-zinc-500 block font-bold uppercase mb-1">自定义跑马灯流光色值</span>
+                        <div className="flex items-center gap-2">
+                          <input 
+                            type="color"
+                            value={activeCard.glowColor || '#fbbf24'}
+                            onChange={(e) => updateCardField(activeCard.id, 'glowColor', e.target.value)}
+                            className="w-7 h-7 rounded border border-zinc-800 bg-transparent cursor-pointer p-0.5 shrink-0"
+                          />
+                          <input 
+                            type="text"
+                            value={activeCard.glowColor || ''}
+                            onChange={(e) => updateCardField(activeCard.id, 'glowColor', e.target.value)}
+                            placeholder="#FBBF24"
+                            className="w-full px-2 py-1 bg-zinc-950 border border-zinc-850 rounded text-xs font-mono text-zinc-350 focus:outline-none focus:border-amber-500/50"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => updateCardField(activeCard.id, 'glowColor', '#fbbf24')}
+                        className="px-2 py-1 bg-zinc-900 text-zinc-500 hover:text-white rounded text-[8px] font-mono border border-zinc-800/80 mt-4 h-6 transition-colors"
+                      >
+                        默认色
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Encryption Protection Block */}
               <div className="bg-zinc-950/40 p-3 rounded-lg border border-zinc-850 space-y-2">
