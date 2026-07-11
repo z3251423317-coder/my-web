@@ -424,7 +424,8 @@ function makeVertexArray(
 }
 
 function resizeCanvasToDisplaySize(canvas: HTMLCanvasElement): boolean {
-  const dpr = Math.min(2, window.devicePixelRatio);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const dpr = isMobile ? 1.0 : Math.min(1.5, window.devicePixelRatio);
   const displayWidth = Math.round(canvas.clientWidth * dpr);
   const displayHeight = Math.round(canvas.clientHeight * dpr);
   const needResize = canvas.width !== displayWidth || canvas.height !== displayHeight;

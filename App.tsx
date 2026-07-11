@@ -938,7 +938,7 @@ const App: React.FC = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           return parsed;
         }
       } catch (e) {
@@ -1010,7 +1010,7 @@ const App: React.FC = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           return parsed;
         }
       } catch (e) {
@@ -1032,7 +1032,7 @@ const App: React.FC = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           return parsed;
         }
       } catch (e) {
@@ -1053,7 +1053,7 @@ const App: React.FC = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           return parsed;
         }
       } catch (e) {
@@ -1482,7 +1482,9 @@ const App: React.FC = () => {
     if (marqueeCards.length > 1) {
       saveMarqueeCards(marqueeCards.filter(c => c.id !== id));
     } else {
-      alert("System constraint: At least 1 console card must remain initialized.");
+      if (window.confirm("这是最后一张走马灯卡片。删除它后对应的走马灯板块可能会显示为空（白屏）。您确定要删除最后一张卡片吗？")) {
+        saveMarqueeCards(marqueeCards.filter(c => c.id !== id));
+      }
     }
   };
 
@@ -1527,7 +1529,9 @@ const App: React.FC = () => {
     if (sphereCards.length > 1) {
       saveSphereCards(sphereCards.filter(c => c.id !== id));
     } else {
-      alert("System constraint: At least 1 console card must remain initialized.");
+      if (window.confirm("这是最后一张球形卡片。删除它后对应的球形板块可能会显示为空（白屏）。您确定要删除最后一张卡片吗？")) {
+        saveSphereCards(sphereCards.filter(c => c.id !== id));
+      }
     }
   };
 
@@ -1987,6 +1991,11 @@ const App: React.FC = () => {
 
     const deleteCard = (id: number | string) => {
       if (!cards || !saveCards) return;
+      if (cards.length <= 1) {
+        if (!window.confirm("这是最后一张卡片。删除它后前台对应的板块可能会显示为空（白屏）。您确定要删除最后一张卡片吗？")) {
+          return;
+        }
+      }
       saveCards(cards.filter(c => c.id !== id));
     };
 

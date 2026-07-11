@@ -1239,8 +1239,9 @@ function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId,
 
   const deleteCard = (id: number) => {
     if (cards.length <= 1) {
-      alert("请保留至少一张卡片，以确保前台板块不白屏！");
-      return;
+      if (!window.confirm("这是最后一张卡片。删除它后该板块可能会显示为空（白屏）。您确定要删除最后一张卡片吗？")) {
+        return;
+      }
     }
     saveCards(cards.filter(c => c.id !== id));
     if (selectedId === id) setSelectedId(null);
