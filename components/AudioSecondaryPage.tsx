@@ -94,8 +94,6 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
     }
   }, [isOpen, activeCard]);
 
-  if (!isOpen || !activeCard) return null;
-
   const handleUpdate = (updatedModules: AudioModule[]) => {
     setAudioModules(updatedModules);
     onUpdateCard({
@@ -178,12 +176,13 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
 
   return (
     <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, scale: 1.1 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 1.1 }}
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed inset-0 z-[100] bg-zinc-950 flex flex-col text-white overflow-hidden"
+      {isOpen && activeCard && (
+        <motion.div
+          initial={{ opacity: 0, scale: 1.1 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 1.1 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="fixed inset-0 z-[100] bg-zinc-950 flex flex-col text-white overflow-hidden"
         onTouchStart={(e) => {
           if (e.touches.length === 1) {
             touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -742,6 +741,7 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
           )}
         </AnimatePresence>
       </motion.div>
+      )}
     </AnimatePresence>
   );
 };

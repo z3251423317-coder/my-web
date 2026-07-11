@@ -775,15 +775,15 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
     c.desc.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (!isOpen) return null;
-
   return (
     <AnimatePresence>
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-zinc-950/95 backdrop-blur-2xl z-50 overflow-y-auto flex flex-col p-4 md:p-6 lg:p-8 select-text"
+      {isOpen && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.35, ease: "easeInOut" }}
+          className="fixed inset-0 bg-zinc-950/95 backdrop-blur-2xl z-50 overflow-y-auto flex flex-col p-4 md:p-6 lg:p-8 select-text"
         onTouchStart={(e) => {
           if (e.touches.length === 1) {
             pageTouchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -1629,6 +1629,7 @@ export const PdfDecoderPage: React.FC<PdfDecoderPageProps> = ({ isOpen, onClose,
 
         </div>
       </motion.div>
+      )}
 
       {/* High-Tech PDF Parsing Terminal Overlay */}
       {isExtracting && (

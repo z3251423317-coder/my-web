@@ -293,7 +293,8 @@ const ScrollMarquee: React.FC<ScrollMarqueeProps> = ({
         setIsHovered(false);
         setIsDown(false);
       }}
-      className="overflow-hidden w-full select-none relative cursor-grab active:cursor-grabbing"
+      className="overflow-hidden w-full select-none relative cursor-grab active:cursor-grabbing pointer-events-auto"
+      style={{ touchAction: "pan-y" }}
       onClickCapture={(e) => {
         if (isDraggingRef.current) {
           e.preventDefault();
@@ -3242,7 +3243,7 @@ const App: React.FC = () => {
                     </div>
 
                     {/* Flex track running marquee animation with dragging/touch support. */}
-                    <div className="relative w-[100vw] left-1/2 -translate-x-1/2 py-8 overflow-hidden select-none my-2 bg-transparent">
+                    <div className="relative w-screen left-1/2 -ml-[50vw] py-8 overflow-hidden select-none my-2 bg-transparent pointer-events-auto">
                       <ScrollMarquee
                         items={s.id === 7 ? screen7Cards : marqueeCards}
                         speed={domeAutoRotateSpeed || 1}
@@ -4342,7 +4343,13 @@ const App: React.FC = () => {
       {/* Copy JSON Fallback Overlay / 复制代码弹窗 */}
       <AnimatePresence>
         {copyToast && (
-          <div className="fixed inset-0 bg-zinc-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 bg-zinc-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4"
+          >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -4392,7 +4399,7 @@ const App: React.FC = () => {
                 </button>
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -4401,7 +4408,11 @@ const App: React.FC = () => {
         {activeCardDetail && (() => {
           const { glow: colorGlow } = getCardColorAndIcon(activeCardDetail.colorType);
           return (
-            <div 
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
               className="fixed inset-0 bg-zinc-950/85 backdrop-blur-xl z-50 flex items-center justify-center p-4"
               onTouchStart={(e) => {
                 if (e.touches.length === 1) {
@@ -4476,7 +4487,7 @@ const App: React.FC = () => {
                   </button>
                 </div>
               </motion.div>
-            </div>
+            </motion.div>
           );
         })()}
       </AnimatePresence>
@@ -4535,27 +4546,22 @@ const App: React.FC = () => {
         isMobile={isMobile}
       />
 
-      {/* Global Sync Floating Button - Always Visible (Hidden on Mobile) */}
-      {/* {!isMobile && isAiStudio && (
-        <button
-          onClick={() => setShowMasterBackupModal(true)}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black rounded-full shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all cursor-pointer hover:scale-[1.03] active:scale-95"
-          title="一键全局备份/恢复 (SYNC)"
-        >
-          <Database className="w-4 h-4" />
-          <span className="text-xs uppercase tracking-wider">全局配置备份/恢复 (SYNC)</span>
-        </button>
-      )} */}
-
-      
       {/* Enlarged Card Modal for Screen 7 */}
       <AnimatePresence>
       {enlargedCard && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 backdrop-blur-md bg-black/80 pointer-events-auto" onClick={() => setEnlargedCard(null)}>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 backdrop-blur-md bg-black/80 pointer-events-auto" 
+          onClick={() => setEnlargedCard(null)}
+        >
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-2xl bg-zinc-950 border border-zinc-800 rounded-2xl p-8 relative overflow-hidden shadow-2xl"
           >
@@ -4584,14 +4590,20 @@ const App: React.FC = () => {
                </>
              )}
           </motion.div>
-        </div>
+        </motion.div>
       )}
       </AnimatePresence>
 
       {/* Global Master Config Modal / 全局配置备份与恢复 */}
       <AnimatePresence>
         {showMasterBackupModal && (
-          <div className="fixed inset-0 bg-zinc-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4 select-text">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 bg-zinc-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4 select-text"
+          >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -4685,7 +4697,7 @@ const App: React.FC = () => {
                 </span>
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
       
