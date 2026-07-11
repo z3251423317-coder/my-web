@@ -3288,7 +3288,7 @@ const App: React.FC = () => {
                                 </div>
                                 <h3 
                                   className="font-display font-bold text-white text-sm md:text-base group-hover/card:text-amber-400 transition-colors mb-2"
-                                  style={s.id === 3 ? { fontSize: '19px', height: '39px', lineHeight: '1.3' } : undefined}
+                                  style={s.id === 3 ? { fontSize: '17px', height: '39px', lineHeight: '1.3' } : undefined}
                                 >
                                   {card.title.length > 20 ? card.title.substring(0, 20) + "..." : card.title}
                                 </h3>
