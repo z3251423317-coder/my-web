@@ -80,7 +80,7 @@ html, body {
 .animate-marquee-reverse {
   display: flex;
   width: max-content;
-  animation: marquee-reverse 35s linear infinite;
+  animation: marquee-reverse 60s linear infinite;
   will-change: transform;
   backface-visibility: hidden;
 }
@@ -98,7 +98,7 @@ html, body {
 .animate-marquee-forward {
   display: flex;
   width: max-content;
-  animation: marquee-forward 35s linear infinite;
+  animation: marquee-forward 60s linear infinite;
   will-change: transform;
   backface-visibility: hidden;
 }
@@ -110,17 +110,28 @@ html, body {
 /* Premium Frosted Glassmorphism classes */
 .glassmorphism-card {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
-  backdrop-filter: blur(28px) saturate(140%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(140%) !important;
+  backdrop-filter: blur(16px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
   box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.18), 0 12px 36px 0 rgba(0, 0, 0, 0.5) !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+.glassmorphism-card.no-shadow {
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.18) !important;
 }
 
 .glassmorphism-card:hover {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.04) 100%) !important;
   border-color: rgba(255, 255, 255, 0.28) !important;
   box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.3), 0 24px 48px 0 rgba(0, 0, 0, 0.6) !important;
+}
+
+.glassmorphism-card.no-shadow:hover {
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
 
 #root > div > div {

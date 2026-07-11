@@ -1218,6 +1218,8 @@ function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId,
   const [selectedSubCardId, setSelectedSubCardId] = useState<string | null>(null);
   const [selectedSubAudioId, setSelectedSubAudioId] = useState<string | null>(null);
 
+  const isDomeGallery = title.includes("穹顶") || title.includes("Dome");
+
   const addCard = () => {
     const nextId = cards.length > 0 ? Math.max(...cards.map(c => c.id)) + 1 : 1;
     const newCard: MarqueeCard = {
@@ -1300,12 +1302,12 @@ function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId,
           {activeCard ? (
             <div className="space-y-4">
               <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest block font-bold border-b border-zinc-850 pb-1">
-                编辑卡片属性 (ID: #{activeCard.id})
+                {isDomeGallery ? `编辑画廊图片属性 (ID: #${activeCard.id})` : `编辑卡片属性 (ID: #${activeCard.id})`}
               </span>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-[9px] text-zinc-400 block font-bold">卡片名称/标题</label>
+                  <label className="text-[9px] text-zinc-400 block font-bold">{isDomeGallery ? "图片名称/标题" : "卡片名称/标题"}</label>
                   <input 
                     type="text"
                     value={activeCard.title}
@@ -1314,7 +1316,7 @@ function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId,
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[9px] text-zinc-400 block font-bold">分类标识 (Category)</label>
+                  <label className="text-[9px] text-zinc-400 block font-bold">{isDomeGallery ? "所属分类/标签" : "分类标识 (Category)"}</label>
                   <input 
                     type="text"
                     value={activeCard.cat}
@@ -1351,18 +1353,22 @@ function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId,
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[9px] text-zinc-400 block font-bold">卡片图片/圈圈背景图片链接 (Image URL)</label>
+                <label className="text-[9px] text-zinc-400 block font-bold">
+                  {isDomeGallery ? "画廊图片链接 (Image URL - 支持上传/任意比例大图自适应)" : "卡片图片/圈圈背景图片链接 (Image URL)"}
+                </label>
                 <input 
                   type="text"
                   value={activeCard.image || ''}
                   onChange={(e) => updateCardField(activeCard.id, 'image', e.target.value)}
-                  placeholder="请输入图片链接 (如: https://images.unsplash.com/...)"
+                  placeholder={isDomeGallery ? "请输入画廊大图链接 (可使用您上传的链接，支持任意比例的长图、竖图、方形图等)" : "请输入图片链接 (如: https://images.unsplash.com/...)"}
                   className="w-full px-2 py-1 bg-zinc-950 border border-zinc-800 rounded text-xs text-white font-mono"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[9px] text-zinc-400 block font-bold">卡片简介 (Description)</label>
+                <label className="text-[9px] text-zinc-400 block font-bold">
+                  {isDomeGallery ? "点击放大后蒙层显示的详细描述文字 (Description shown on Mask)" : "卡片简介 (Description)"}
+                </label>
                 <textarea 
                   value={activeCard.desc}
                   onChange={(e) => updateCardField(activeCard.id, 'desc', e.target.value)}

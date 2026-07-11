@@ -158,6 +158,7 @@ main.sphere-main {
 .viewer .enlarge {
   position: absolute;
   z-index: 30;
+  pointer-events: auto;
   border-radius: var(--enlarge-radius, 32px);
   overflow: hidden;
   transition:

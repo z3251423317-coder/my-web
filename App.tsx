@@ -58,6 +58,270 @@ const getCardColorAndIcon = (colorType: string = "blue") => {
   }
 };
 
+/* =================================================================================
+ * ■ ScrollMarquee Component (Enables smooth drag-to-scroll, touch swipe & autoscroll)
+ * ================================================================================= */
+interface ScrollMarqueeProps {
+  items: any[];
+  renderItem: (item: any, index: number, groupIdx: number) => React.ReactNode;
+  speed?: number;
+  reverse?: boolean;
+  autoPlay?: boolean;
+}
+
+const ScrollMarquee: React.FC<ScrollMarqueeProps> = ({ 
+  items, 
+  renderItem, 
+  speed = 1, 
+  reverse = false,
+  autoPlay = true 
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [isDown, setIsDown] = useState(false);
+  const startXRef = useRef(0);
+  const startScrollXRef = useRef(0);
+  const isDraggingRef = useRef(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const scrollPosRef = useRef(0);
+
+  const totalWidthRef = useRef(0);
+  const singleSetWidthRef = useRef(0);
+
+  // We repeat items 5 times to create a safe, infinite boundary for left/right swiping
+  const repeats = 5;
+  const repeatedItems = React.useMemo(() => {
+    if (!items || items.length === 0) return [];
+    return Array(repeats).fill(items).flat();
+  }, [items]);
+
+  // Use useLayoutEffect to measure dimensions and set initial position synchronously before paint
+  React.useLayoutEffect(() => {
+    const inner = innerRef.current;
+    if (!inner || items.length === 0) return;
+
+    const updateDimensions = () => {
+      const scrollWidth = inner.scrollWidth;
+      if (scrollWidth > 0) {
+        totalWidthRef.current = scrollWidth;
+        const sw = scrollWidth / repeats;
+        singleSetWidthRef.current = sw;
+        
+        // Position at the 2nd segment if start position is 0
+        if (scrollPosRef.current === 0 && sw > 0) {
+          scrollPosRef.current = sw * 2;
+          inner.style.transform = `translate3d(${-scrollPosRef.current}px, 0, 0)`;
+        }
+      }
+    };
+
+    updateDimensions();
+
+    const observer = new ResizeObserver(() => {
+      updateDimensions();
+    });
+    observer.observe(inner);
+
+    // Multi-staged layout checks for slow-mounting elements/images
+    const t1 = setTimeout(updateDimensions, 100);
+    const t2 = setTimeout(updateDimensions, 400);
+    const t3 = setTimeout(updateDimensions, 1200);
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [items]);
+
+  useEffect(() => {
+    const inner = innerRef.current;
+    if (!inner || items.length === 0) return;
+
+    let animationFrameId: number;
+    let lastTime = performance.now();
+
+    const animate = (time: number) => {
+      const singleSetWidth = singleSetWidthRef.current;
+      
+      // Calculate delta-time (elapsed seconds since last frame)
+      const dt = (time - lastTime) / 1000;
+      lastTime = time;
+
+      // Cap delta time to handle browser tab switching gracefully
+      const clampedDt = Math.min(dt, 0.1);
+
+      if (singleSetWidth > 0 && !isDown && !isHovered && autoPlay) {
+        // Base scrolling speed in pixels per second: e.g. 0.15 * 480 = 72 pixels/sec
+        const pixelsPerSecond = 480 * speed;
+        const delta = (reverse ? -pixelsPerSecond : pixelsPerSecond) * clampedDt;
+
+        scrollPosRef.current += delta;
+
+        // Seamless wrap boundary checks
+        if (scrollPosRef.current >= singleSetWidth * 3.5) {
+          scrollPosRef.current -= singleSetWidth;
+        } else if (scrollPosRef.current <= singleSetWidth * 0.5) {
+          scrollPosRef.current += singleSetWidth;
+        }
+
+        // Single layout-free scroll write using high precision decimals
+        inner.style.transform = `translate3d(${-scrollPosRef.current}px, 0, 0)`;
+      } else {
+        lastTime = time;
+      }
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [items, speed, reverse, isDown, isHovered, autoPlay]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const el = containerRef.current;
+    if (!el) return;
+    setIsDown(true);
+    isDraggingRef.current = false;
+    startXRef.current = e.pageX - el.offsetLeft;
+    startScrollXRef.current = scrollPosRef.current;
+  };
+
+  const handleMouseLeave = () => {
+    setIsDown(false);
+    setIsHovered(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDown(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDown) return;
+    const el = containerRef.current;
+    const inner = innerRef.current;
+    if (!el || !inner) return;
+    e.preventDefault();
+
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startXRef.current) * 1.5;
+    if (Math.abs(walk) > 4) {
+      isDraggingRef.current = true;
+    }
+
+    let newScroll = startScrollXRef.current - walk;
+    const singleSetWidth = singleSetWidthRef.current;
+    
+    if (singleSetWidth > 0) {
+      if (newScroll >= singleSetWidth * 3.5) {
+        newScroll -= singleSetWidth;
+        startXRef.current = e.pageX - el.offsetLeft;
+        startScrollXRef.current = newScroll;
+      } else if (newScroll <= singleSetWidth * 0.5) {
+        newScroll += singleSetWidth;
+        startXRef.current = e.pageX - el.offsetLeft;
+        startScrollXRef.current = newScroll;
+      }
+    }
+
+    scrollPosRef.current = newScroll;
+    inner.style.transform = `translate3d(${-newScroll}px, 0, 0)`;
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDown(true);
+    isDraggingRef.current = false;
+    startXRef.current = e.touches[0].pageX;
+    startScrollXRef.current = scrollPosRef.current;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDown) return;
+    const inner = innerRef.current;
+    if (!inner) return;
+
+    const x = e.touches[0].pageX;
+    const walk = (x - startXRef.current) * 1.5;
+    if (Math.abs(walk) > 4) {
+      isDraggingRef.current = true;
+    }
+
+    let newScroll = startScrollXRef.current - walk;
+    const singleSetWidth = singleSetWidthRef.current;
+
+    if (singleSetWidth > 0) {
+      if (newScroll >= singleSetWidth * 3.5) {
+        newScroll -= singleSetWidth;
+        startXRef.current = x;
+        startScrollXRef.current = newScroll;
+      } else if (newScroll <= singleSetWidth * 0.5) {
+        newScroll += singleSetWidth;
+        startXRef.current = x;
+        startScrollXRef.current = newScroll;
+      }
+    }
+
+    scrollPosRef.current = newScroll;
+    inner.style.transform = `translate3d(${-newScroll}px, 0, 0)`;
+  };
+
+  const handleTouchEnd = () => {
+    setIsDown(false);
+  };
+
+  if (!items || items.length === 0) return null;
+
+  return (
+    <div
+      ref={containerRef}
+      onMouseDown={handleMouseDown}
+      onMouseLeave={handleMouseLeave}
+      onMouseUp={handleMouseUp}
+      onMouseMove={handleMouseMove}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onPointerEnter={(e) => {
+        if (e.pointerType === 'mouse') {
+          setIsHovered(true);
+        }
+      }}
+      onPointerLeave={() => {
+        setIsHovered(false);
+        setIsDown(false);
+      }}
+      className="overflow-hidden w-full select-none relative cursor-grab active:cursor-grabbing"
+      onClickCapture={(e) => {
+        if (isDraggingRef.current) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }}
+    >
+      <div
+        ref={innerRef}
+        className="flex flex-row flex-nowrap gap-6 py-4 w-max"
+        style={{
+          willChange: 'transform'
+        }}
+      >
+        {repeatedItems.map((item, idx) => {
+          const groupIdx = Math.floor(idx / items.length);
+          const originalIndex = idx % items.length;
+          return (
+            <div key={`${idx}-${item.id}-${groupIdx}`} className="shrink-0 flex items-stretch">
+              {renderItem(item, originalIndex, groupIdx)}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 /// Default Screen Templates
 const DEFAULT_SCREENS: ScreenData[] = [
   {
@@ -2782,7 +3046,9 @@ const App: React.FC = () => {
                         "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=600&auto=format&fit=crop", // Decoder Latency
                         "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=600&auto=format&fit=crop"  // Weight Distribution
                       ][idx % 10],
-                      alt: card.title
+                      alt: card.title,
+                      title: card.title,
+                      desc: card.desc
                     }))}
                     grayscale={false}
                     autoRotate={domeAutoRotate}
@@ -2850,90 +3116,56 @@ const App: React.FC = () => {
 
                         {/* Infinite Right-to-Left Scrolling Track */}
                         <div className="relative w-screen left-1/2 -ml-[50vw] overflow-hidden py-4 select-none">
-                          {/* Horizontal flex track with animation */}
-                          {(() => {
-                            const minCardsRequired6 = 12;
-                            const repeats6 = Math.ceil(minCardsRequired6 / Math.max(1, trialCards.length));
-                            const singleGroupCards6: typeof trialCards = [];
-                            for (let r = 0; r < repeats6; r++) {
-                              singleGroupCards6.push(...trialCards);
-                            }
+                          <ScrollMarquee
+                            items={trialCards}
+                            speed={domeAutoRotateSpeed || 1}
+                            reverse={false}
+                            autoPlay={domeAutoRotate}
+                            renderItem={(card, idx, groupIdx) => {
+                              const glowColors: Record<string, string> = {
+                                indigo: 'rgba(99, 102, 241, 0.65)',
+                                teal: 'rgba(20, 184, 166, 0.65)',
+                                amber: 'rgba(245, 158, 11, 0.65)',
+                                rose: 'rgba(244, 63, 94, 0.65)',
+                                purple: 'rgba(168, 85, 247, 0.65)',
+                                emerald: 'rgba(16, 185, 129, 0.65)',
+                                pink: 'rgba(236, 72, 153, 0.65)',
+                                sky: 'rgba(14, 165, 233, 0.65)',
+                                fuchsia: 'rgba(217, 70, 239, 0.65)'
+                              };
+                              const glowColor = glowColors[card.colorType || ''] || 'rgba(59, 130, 246, 0.65)';
 
-                            return (
-                              <div className="flex gap-6 overflow-hidden">
-                                <div 
-                                  className="flex gap-0 animate-marquee-forward hover:[animation-play-state:paused]"
-                                  style={{
-                                    animationPlayState: !domeAutoRotate ? 'paused' : undefined,
-                                    animationDuration: `${35 / (domeAutoRotateSpeed * 6 || 1)}s`
+                              return (
+                                <div
+                                  className="flex-shrink-0 cursor-pointer pointer-events-auto px-3"
+                                  style={{ width: isMobile ? '200px' : '240px' }}
+                                  onClick={() => {
+                                    setSelectedCard6(card);
+                                    if (card.subCards && card.subCards.length > 0) {
+                                      setSelectedSubCard(null);
+                                      setIsSubCardModalOpen(true);
+                                    } else {
+                                      setSelectedSubCard(null);
+                                      setIsAudioSecondaryPageOpen(true);
+                                    }
                                   }}
                                 >
-                                  {[...Array(2)].map((_, groupIdx) => (
-                                    <div key={groupIdx} className="flex gap-12 pr-12 shrink-0">
-                                      {singleGroupCards6.map((card, idx) => {
-                                        const defaultImage = [
-                                          "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop", // Qubit Topology
-                                          "https://images.unsplash.com/photo-1507668077129-56e32842fceb?q=80&w=600&auto=format&fit=crop", // Primal Syndrome
-                                          "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=600&auto=format&fit=crop", // Stabilizer Parity
-                                          "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=600&auto=format&fit=crop", // Decoder Mesh
-                                          "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=600&auto=format&fit=crop", // Cosmic Ray Shield
-                                          "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=600&auto=format&fit=crop", // Synergy Routing
-                                          "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop", // Coherent Decay
-                                          "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=600&auto=format&fit=crop", // MWPM Solver
-                                          "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=600&auto=format&fit=crop", // Decoder Latency
-                                          "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=600&auto=format&fit=crop"  // Weight Distribution
-                                        ][(card.id - 1) % 10];
-                                        
-                                        const glowColors: Record<string, string> = {
-                                          indigo: 'rgba(99, 102, 241, 0.65)',
-                                          teal: 'rgba(20, 184, 166, 0.65)',
-                                          amber: 'rgba(245, 158, 11, 0.65)',
-                                          rose: 'rgba(244, 63, 94, 0.65)',
-                                          purple: 'rgba(168, 85, 247, 0.65)',
-                                          emerald: 'rgba(16, 185, 129, 0.65)',
-                                          pink: 'rgba(236, 72, 153, 0.65)',
-                                          sky: 'rgba(14, 165, 233, 0.65)',
-                                          fuchsia: 'rgba(217, 70, 239, 0.65)'
-                                        };
-                                        const glowColor = glowColors[card.colorType || ''] || 'rgba(59, 130, 246, 0.65)';
-
-                                        return (
-                                          <div
-                                            key={`clone-${card.id}-${groupIdx}-${idx}`}
-                                            className="flex-shrink-0 cursor-pointer pointer-events-auto"
-                                            style={{ width: isMobile ? '200px' : '240px' }}
-                                            onClickCapture={() => {
-                                              setSelectedCard6(card);
-                                              if (card.subCards && card.subCards.length > 0) {
-                                                setSelectedSubCard(null);
-                                                setIsSubCardModalOpen(true);
-                                              } else {
-                                                setSelectedSubCard(null);
-                                                setIsAudioSecondaryPageOpen(true);
-                                              }
-                                            }}
-                                          >
-                                            <ProfileCard
-                                              name={card.title}
-                                              title={card.desc}
-                                              handle={card.cat || "TELEMETRY"}
-                                              status="DIAGNOSTIC ACTIVE"
-                                              contactText="Analyze / 诊断"
-                                              avatarUrl={card.image || ''}
-                                              enableTilt={true}
-                                              behindGlowEnabled={true}
-                                              behindGlowColor={glowColor}
-                                              isEncrypted={card.isEncrypted}
-                                            />
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  ))}
+                                  <ProfileCard
+                                    name={card.title}
+                                    title={card.desc}
+                                    handle={card.cat || "TELEMETRY"}
+                                    status="DIAGNOSTIC ACTIVE"
+                                    contactText="Analyze / 诊断"
+                                    avatarUrl={card.image || ''}
+                                    enableTilt={true}
+                                    behindGlowEnabled={true}
+                                    behindGlowColor={glowColor}
+                                    isEncrypted={card.isEncrypted}
+                                  />
                                 </div>
-                              </div>
-                            );
-                          })()}
+                              );
+                            }}
+                          />
                         </div>
                       </motion.div>
                   </AnimatePresence>
@@ -3009,84 +3241,73 @@ const App: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Infinite Marquee Left to Right Container */}
+                    {/* Flex track running marquee animation with dragging/touch support. */}
                     <div className="relative w-[100vw] left-1/2 -translate-x-1/2 py-8 overflow-hidden select-none my-2 bg-transparent">
-                      
-                      {/* Flex track running marquee animation. Hovering pauses the animation as requested. */}
-                      {(() => {
-                        // Ensure there are enough cards to span the viewport width (at least 10 cards per group)
-                        // This allows seamless infinite scrolling loop even when only 1 or 2 cards exist in the console
-                        const minCardsRequired = 10;
-                        const displayCards = s.id === 7 ? screen7Cards : marqueeCards;
-                        const repeats = Math.ceil(minCardsRequired / Math.max(1, displayCards.length));
-                        const singleGroupCards: typeof displayCards = [];
-                        for (let r = 0; r < repeats; r++) {
-                          singleGroupCards.push(...displayCards);
-                        }
+                      <ScrollMarquee
+                        items={s.id === 7 ? screen7Cards : marqueeCards}
+                        speed={domeAutoRotateSpeed || 1}
+                        reverse={s.id !== 7} // s.id === 3 will scroll reverse (left to right / RTL-LTR), s.id === 7 will scroll forward
+                        autoPlay={domeAutoRotate}
+                        renderItem={(card, idx, groupIdx) => {
+                          const isCardGray = s.id === 7 && !card.isLit;
+                          const isGlowActive = card.isLit && card.glowEnabled !== false;
+                          const glowColor = card.glowColor || '#fbbf24';
+                          const { style: colorStyle, icon: CardIcon } = getCardColorAndIcon(isCardGray ? 'gray' : card.colorType);
 
-                        return (
-                          <div className={`${s.id === 7 ? 'animate-marquee-forward' : 'animate-marquee-reverse'} flex gap-0 py-2 hover:[animation-play-state:paused]`}>
-                            {[...Array(2)].map((_, groupIdx) => (
-                              <div key={groupIdx} className="flex gap-6 pr-6 shrink-0">
-                                {singleGroupCards.map((card, idx) => {
-                                  const isCardGray = s.id === 7 && !card.isLit;
-                                  const isGlowActive = card.isLit && card.glowEnabled !== false;
-                                  const glowColor = card.glowColor || '#fbbf24';
-                                  const { style: colorStyle, icon: CardIcon } = getCardColorAndIcon(isCardGray ? 'gray' : card.colorType);
-                                  return (
-                                    <div 
-                                      key={`${groupIdx}-${idx}-${card.id}`}
-                                      onClick={() => {
-                                      if (s.id === 7) {
-                                        setEnlargedCard(card);
-                                      } else {
-                                        handleCardClick(card);
-                                      }
-                                    }}
-                                      className={`relative w-[270px] shrink-0 p-5 rounded-2xl glassmorphism-card hover:-translate-y-1.5 hover:scale-[1.01] flex flex-col justify-between text-left group/card cursor-pointer ${colorStyle} ${isGlowActive && !isCardGray ? 'shadow-lg border' : ''} ${isCardGray ? 'opacity-70 grayscale' : ''}`}
-                                      style={isGlowActive && !isCardGray ? {
-                                        boxShadow: `0 0 20px ${glowColor}4d`,
-                                        borderColor: `${glowColor}80`
-                                      } : undefined}
-                                    >
-                                      {isGlowActive && !isCardGray && (
-                                        <div 
-                                          className="lit-border-container" 
-                                          style={{
-                                            '--glow-color': glowColor
-                                          } as React.CSSProperties}
-                                        />
-                                      )}
-                                      <div>
-                                        <div className="flex items-center justify-between mb-4">
-                                          <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase">
-                                            {card.cat || "GENERAL"}
-                                          </span>
-                                          <div className="p-1.5 rounded-lg border border-current opacity-85">
-                                            <CardIcon className="w-3.5 h-3.5" />
-                                          </div>
-                                        </div>
-                                        <h3 className="font-display font-bold text-white text-sm md:text-base group-hover/card:text-amber-400 transition-colors mb-2">
-                                          {card.title.length > 20 ? card.title.substring(0, 20) + "..." : card.title}
-                                        </h3>
-                                        <p className="text-zinc-200 text-[10.5px] leading-relaxed font-sans font-light line-clamp-3 h-auto">
-                                          {card.desc}
-                                        </p>
-                                      </div>
-                                      <div className="mt-4 pt-3 border-t border-zinc-800/40 flex items-center justify-between text-[9px] font-mono text-zinc-500">
-                                        <span>MATRIX: {card.id.toString().padStart(2, '0')}</span>
-                                        <span className="text-amber-500/80 opacity-0 group-hover/card:opacity-100 transition-opacity flex items-center gap-1 font-bold">
-                                          {card.url ? "OPEN LINK" : "ENTER NODE"} <ExternalLink className="w-2.5 h-2.5" />
-                                        </span>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
+                          return (
+                            <div 
+                              onClick={() => {
+                                if (s.id === 7) {
+                                  setEnlargedCard(card);
+                                } else {
+                                  handleCardClick(card);
+                                }
+                              }}
+                              className={`relative w-[270px] h-[220px] shrink-0 p-5 rounded-2xl glassmorphism-card no-shadow hover:-translate-y-1.5 hover:scale-[1.01] flex flex-col justify-between text-left group/card cursor-pointer ${colorStyle} ${isGlowActive && !isCardGray ? 'border' : ''} ${isCardGray ? 'opacity-70 grayscale' : ''}`}
+                              style={isGlowActive && !isCardGray ? {
+                                borderColor: `${glowColor}80`
+                              } : undefined}
+                            >
+                              {isGlowActive && !isCardGray && (
+                                <div 
+                                  className="lit-border-container" 
+                                  style={{
+                                    '--glow-color': glowColor
+                                  } as React.CSSProperties}
+                                />
+                              )}
+                              <div>
+                                <div className={`flex items-center justify-between ${s.id === 3 ? 'mb-2.5' : 'mb-4'}`}>
+                                  <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase">
+                                    {card.cat || "GENERAL"}
+                                  </span>
+                                  <div className="p-1.5 rounded-lg border border-current opacity-85">
+                                    <CardIcon className="w-3.5 h-3.5" />
+                                  </div>
+                                </div>
+                                <h3 
+                                  className="font-display font-bold text-white text-sm md:text-base group-hover/card:text-amber-400 transition-colors mb-2"
+                                  style={s.id === 3 ? { fontSize: '19px', height: '39px', lineHeight: '1.3' } : undefined}
+                                >
+                                  {card.title.length > 20 ? card.title.substring(0, 20) + "..." : card.title}
+                                </h3>
+                                <p 
+                                  className="text-zinc-200 text-[10.5px] font-sans font-light line-clamp-3 h-auto"
+                                  style={s.id === 3 ? { lineHeight: '1.6' } : { lineHeight: '1.4' }}
+                                >
+                                  {card.desc}
+                                </p>
                               </div>
-                            ))}
-                          </div>
-                        );
-                      })()}
+                              <div className="mt-4 pt-3 border-t border-zinc-800/40 flex items-center justify-between text-[9px] font-mono text-zinc-500">
+                                <span>MATRIX: {card.id.toString().padStart(2, '0')}</span>
+                                <span className="text-amber-500/80 opacity-0 group-hover/card:opacity-100 transition-opacity flex items-center gap-1 font-bold">
+                                  {card.url ? "OPEN LINK" : "ENTER NODE"} <ExternalLink className="w-2.5 h-2.5" />
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        }}
+                      />
                     </div>
 
                     {/* Bottom Action Footer for Screen 4 */}
