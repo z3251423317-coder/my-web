@@ -3504,9 +3504,9 @@ const App: React.FC = () => {
                         <div className="absolute top-4 right-4 bg-zinc-950/80 border border-zinc-800/80 px-2.5 py-1 rounded text-[9px] text-amber-500 font-mono tracking-widest uppercase">
                           {isSelected ? "SLOW SPIN ACTIVE" : "STANDBY"}
                         </div>
-                        <div className="absolute bottom-4 left-4 right-4 bg-gradient-to-r from-zinc-950/90 to-zinc-900/90 border border-zinc-800 p-3 rounded-xl backdrop-blur-sm z-10">
-                          <code className="text-[10px] text-zinc-400 font-mono block">SUITE SYCAMORE ENVIRONMENT</code>
-                          <p className="text-xs text-zinc-300 font-sans mt-0.5 leading-normal">Interactive 3D cryostat chandelier executing qubit operations at millivelvin degrees.</p>
+                        <div className="absolute bottom-4 left-4 right-4 bg-gradient-to-r from-zinc-950/90 to-zinc-900/90 border border-zinc-800 p-3 rounded-xl backdrop-blur-sm z-10 h-32 flex flex-col">
+                          <code className="text-[10px] text-zinc-400 font-mono block mb-1">SUITE SYCAMORE ENVIRONMENT</code>
+                          <p className="text-xs text-zinc-300 font-sans leading-normal overflow-y-auto pr-2 flex-grow">Interactive 3D cryostat chandelier executing qubit operations at millivelvin degrees.</p>
                         </div>
                       </div>
                     )}

@@ -429,6 +429,9 @@ export default function DomeGallery({
       if (!parent) return;
       const overlay = viewerRef.current?.querySelector('.enlarge') as HTMLElement | null;
       if (!overlay) return;
+
+      const textToggleBtn = viewerRef.current?.querySelector('.dg-text-toggle-btn') as HTMLElement | null;
+      if (textToggleBtn) textToggleBtn.remove();
       const refDiv = parent.querySelector('.item__image--reference') as HTMLElement | null;
       const originalPos = originalTilePositionRef.current;
       if (!originalPos || !rootRef.current) {
@@ -619,7 +622,14 @@ export default function DomeGallery({
       mask.style.cssText = 'position:absolute;inset:0;background-color:rgba(0,0,0,0.72);opacity:0;transition:opacity 350ms cubic-bezier(0.4, 0, 0.2, 1);pointer-events:none;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;backdrop-filter:blur(3px);border-radius:inherit;';
       
       const textContainer = document.createElement('div');
-      textContainer.className = 'max-w-md flex flex-col items-center justify-center';
+      textContainer.className = 'max-w-md w-full flex flex-col items-center overflow-y-auto pr-1.5 select-text scrollbar-thin';
+      textContainer.style.maxHeight = '85%';
+      textContainer.style.scrollbarWidth = 'thin';
+      textContainer.style.scrollbarColor = 'rgba(245, 158, 11, 0.4) transparent';
+      textContainer.addEventListener('click', (e) => {
+        // Prevent clicks on text and scrollbars from closing the overlay
+        e.stopPropagation();
+      });
       
       const titleEl = document.createElement('h3');
       titleEl.className = 'text-white text-lg md:text-2xl font-bold tracking-tight mb-2 opacity-0 transform translate-y-3 transition-all duration-350 ease-out';
@@ -628,7 +638,7 @@ export default function DomeGallery({
       titleEl.style.textShadow = '0 2px 10px rgba(0,0,0,0.8)';
       
       const descEl = document.createElement('p');
-      descEl.className = 'text-zinc-300 text-xs md:text-sm leading-relaxed opacity-0 transform translate-y-3 transition-all duration-350 ease-out';
+      descEl.className = 'text-zinc-300 text-xs md:text-sm leading-relaxed opacity-0 transform translate-y-3 transition-all duration-350 ease-out whitespace-pre-wrap';
       descEl.innerText = rawDesc || '未配置描述文字';
       descEl.style.fontFamily = 'Inter, system-ui, sans-serif';
       descEl.style.textShadow = '0 1px 4px rgba(0,0,0,0.8)';
@@ -638,10 +648,24 @@ export default function DomeGallery({
       mask.appendChild(textContainer);
       overlay.appendChild(mask);
 
+      // Create a high-tech floating toggle button for mobile/desktop cues
+      const toggleBtn = document.createElement('button');
+      toggleBtn.className = 'dg-text-toggle-btn absolute z-[35] px-3 py-1.5 bg-zinc-950/70 hover:bg-zinc-900/90 border border-zinc-800 hover:border-amber-500/50 text-zinc-400 hover:text-amber-400 text-[11px] font-medium rounded-full shadow-md transition-all duration-350 cursor-pointer flex items-center gap-1.5 backdrop-blur-md hover:scale-105 active:scale-95';
+      toggleBtn.style.fontFamily = 'Inter, system-ui, sans-serif';
+      toggleBtn.style.left = `calc(${targetLeft}px + ${targetW / 2}px)`;
+      toggleBtn.style.top = `calc(${targetTop}px + ${targetH}px + 12px)`;
+      toggleBtn.style.transform = 'translateX(-50%)';
+      toggleBtn.style.pointerEvents = 'auto';
+      toggleBtn.style.opacity = '0';
+      toggleBtn.style.transition = 'opacity 350ms cubic-bezier(0.4, 0, 0.2, 1), transform 200ms ease, background-color 200ms ease, border-color 200ms ease, color 200ms ease';
+      toggleBtn.innerHTML = `
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+        <span>显示文字 (Show Notes)</span>
+      `;
+      viewerRef.current.appendChild(toggleBtn);
+
       let maskVisible = false;
-      overlay.addEventListener('click', (e) => {
-        e.stopPropagation();
-        maskVisible = !maskVisible;
+      const updateMaskState = () => {
         if (maskVisible) {
           mask.style.opacity = '1';
           mask.style.pointerEvents = 'auto';
@@ -649,6 +673,13 @@ export default function DomeGallery({
           titleEl.style.transform = 'translateY(0)';
           descEl.style.opacity = '1';
           descEl.style.transform = 'translateY(0)';
+          // Reset text to the very top upon entering
+          textContainer.scrollTop = 0;
+          toggleBtn.innerHTML = `
+            <span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
+            <span>隐藏文字 (Hide Notes)</span>
+          `;
+          toggleBtn.className = 'dg-text-toggle-btn absolute z-[35] px-3 py-1.5 bg-zinc-950/85 hover:bg-zinc-900 border border-amber-500/30 text-amber-400 text-[11px] font-medium rounded-full shadow-md transition-all duration-350 cursor-pointer flex items-center gap-1.5 backdrop-blur-md hover:scale-105 active:scale-95';
         } else {
           mask.style.opacity = '0';
           mask.style.pointerEvents = 'none';
@@ -656,7 +687,24 @@ export default function DomeGallery({
           titleEl.style.transform = 'translateY(12px)';
           descEl.style.opacity = '0';
           descEl.style.transform = 'translateY(12px)';
+          toggleBtn.innerHTML = `
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+            <span>显示文字 (Show Notes)</span>
+          `;
+          toggleBtn.className = 'dg-text-toggle-btn absolute z-[35] px-3 py-1.5 bg-zinc-950/70 hover:bg-zinc-900/90 border border-zinc-800 hover:border-amber-500/50 text-zinc-400 hover:text-amber-400 text-[11px] font-medium rounded-full shadow-md transition-all duration-350 cursor-pointer flex items-center gap-1.5 backdrop-blur-md hover:scale-105 active:scale-95';
         }
+      };
+
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        maskVisible = !maskVisible;
+        updateMaskState();
+      });
+
+      overlay.addEventListener('click', (e) => {
+        e.stopPropagation();
+        maskVisible = !maskVisible;
+        updateMaskState();
       });
 
       viewerRef.current.appendChild(overlay);
@@ -678,6 +726,13 @@ export default function DomeGallery({
         overlay.style.opacity = '1';
         overlay.style.transform = 'translate(0px, 0px) scale(1, 1)';
         rootRef.current?.setAttribute('data-enlarging', 'true');
+        
+        // Beautiful fade in of the toggle button once zoom transitions begin
+        setTimeout(() => {
+          if (toggleBtn.parentElement) {
+            toggleBtn.style.opacity = '1';
+          }
+        }, 150);
       }, 16);
     },
     [enlargeTransitionMs, lockScroll, segments, unlockScroll]
