@@ -197,6 +197,10 @@ export default function DomeGallery({
   const openStartedAtRef = useRef(0);
   const lastDragEndAt = useRef(0);
 
+  const longPressTimerRef = useRef<any>(null);
+  const isLongPressedRef = useRef<boolean>(false);
+  const hasSwipedRef = useRef<boolean>(false);
+
   const scrollLockedRef = useRef(false);
   const lockScroll = useCallback(() => {
     if (scrollLockedRef.current) return;
@@ -378,39 +382,96 @@ export default function DomeGallery({
         movedRef.current = false;
         startRotRef.current = { ...rotationRef.current };
         startPosRef.current = { x: evt.clientX, y: evt.clientY };
+
+        isLongPressedRef.current = false;
+        hasSwipedRef.current = false;
+
+        if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = setTimeout(() => {
+          isLongPressedRef.current = true;
+          if (mainRef.current) {
+            mainRef.current.style.cursor = 'grabbing';
+          }
+        }, 250);
       },
       onDrag: ({ event, last, velocity = [0, 0], direction = [0, 0], movement }) => {
         if (focusedElRef.current || !draggingRef.current || !startPosRef.current) return;
         const evt = event as any;
         const dxTotal = evt.clientX - startPosRef.current.x;
         const dyTotal = evt.clientY - startPosRef.current.y;
-        if (!movedRef.current) {
+
+        if (!isLongPressedRef.current) {
           const dist2 = dxTotal * dxTotal + dyTotal * dyTotal;
-          if (dist2 > 16) movedRef.current = true;
-        }
-        const nextX = clamp(
-          startRotRef.current.x - dyTotal / dragSensitivity,
-          -maxVerticalRotationDeg,
-          maxVerticalRotationDeg
-        );
-        const nextY = wrapAngleSigned(startRotRef.current.y + dxTotal / dragSensitivity);
-        if (rotationRef.current.x !== nextX || rotationRef.current.y !== nextY) {
-          rotationRef.current = { x: nextX, y: nextY };
-          applyTransform(nextX, nextY);
-        }
-        if (last) {
-          draggingRef.current = false;
-          let [vMagX, vMagY] = velocity;
-          const [dirX, dirY] = direction;
-          let vx = vMagX * dirX;
-          let vy = vMagY * dirY;
-          if (Math.abs(vx) < 0.001 && Math.abs(vy) < 0.001 && Array.isArray(movement)) {
-            const [mx, my] = movement;
-            vx = clamp((mx / dragSensitivity) * 0.02, -1.2, 1.2);
-            vy = clamp((my / dragSensitivity) * 0.02, -1.2, 1.2);
+          if (dist2 > 100) { // dist > 10px (dist2 > 100)
+            if (longPressTimerRef.current) {
+              clearTimeout(longPressTimerRef.current);
+              longPressTimerRef.current = null;
+            }
+            if (!hasSwipedRef.current) {
+              const absY = Math.abs(dyTotal);
+              const absX = Math.abs(dxTotal);
+              if (absY > absX * 1.3 && absY > 30) {
+                hasSwipedRef.current = true;
+                const scrollFunc = (window as any).alphaQubitScrollToScreen;
+                if (scrollFunc) {
+                  if (dyTotal < -30) {
+                    scrollFunc(6); // swipe UP -> screen 6
+                  } else if (dyTotal > 30) {
+                    scrollFunc(4); // swipe DOWN -> screen 4
+                  }
+                }
+                draggingRef.current = false;
+                movedRef.current = false;
+                return;
+              }
+            }
           }
-          if (Math.abs(vx) > 0.005 || Math.abs(vy) > 0.005) startInertia(vx, vy);
-          if (movedRef.current) lastDragEndAt.current = performance.now();
+        }
+
+        if (isLongPressedRef.current) {
+          if (!movedRef.current) {
+            const dist2 = dxTotal * dxTotal + dyTotal * dyTotal;
+            if (dist2 > 16) movedRef.current = true;
+          }
+          const nextX = clamp(
+            startRotRef.current.x - dyTotal / dragSensitivity,
+            -maxVerticalRotationDeg,
+            maxVerticalRotationDeg
+          );
+          const nextY = wrapAngleSigned(startRotRef.current.y + dxTotal / dragSensitivity);
+          if (rotationRef.current.x !== nextX || rotationRef.current.y !== nextY) {
+            rotationRef.current = { x: nextX, y: nextY };
+            applyTransform(nextX, nextY);
+          }
+        }
+
+        if (last) {
+          if (longPressTimerRef.current) {
+            clearTimeout(longPressTimerRef.current);
+            longPressTimerRef.current = null;
+          }
+          
+          const wasLongPressed = isLongPressedRef.current;
+          isLongPressedRef.current = false;
+          if (mainRef.current) {
+            mainRef.current.style.cursor = 'grab';
+          }
+          
+          draggingRef.current = false;
+          
+          if (wasLongPressed) {
+            let [vMagX, vMagY] = velocity;
+            const [dirX, dirY] = direction;
+            let vx = vMagX * dirX;
+            let vy = vMagY * dirY;
+            if (Math.abs(vx) < 0.001 && Math.abs(vy) < 0.001 && Array.isArray(movement)) {
+              const [mx, my] = movement;
+              vx = clamp((mx / dragSensitivity) * 0.02, -1.2, 1.2);
+              vy = clamp((my / dragSensitivity) * 0.02, -1.2, 1.2);
+            }
+            if (Math.abs(vx) > 0.005 || Math.abs(vy) > 0.005) startInertia(vx, vy);
+            if (movedRef.current) lastDragEndAt.current = performance.now();
+          }
           movedRef.current = false;
         }
       }
@@ -761,6 +822,34 @@ export default function DomeGallery({
     [openItemFromElement]
   );
 
+  const lastWheelTimeRef = useRef(0);
+
+  useEffect(() => {
+    const main = mainRef.current;
+    if (!main) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      const now = Date.now();
+      if (now - lastWheelTimeRef.current < 1000) return;
+
+      const scrollFunc = (window as any).alphaQubitScrollToScreen;
+      if (!scrollFunc) return;
+
+      if (e.deltaY > 15) { // scroll down -> next screen (6)
+        lastWheelTimeRef.current = now;
+        scrollFunc(6);
+      } else if (e.deltaY < -15) { // scroll up -> previous screen (4)
+        lastWheelTimeRef.current = now;
+        scrollFunc(4);
+      }
+    };
+
+    main.addEventListener('wheel', handleWheel, { passive: true });
+    return () => {
+      main.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
+
   useEffect(() => {
     return () => {
       document.body.classList.remove('dg-scroll-lock');
@@ -780,7 +869,11 @@ export default function DomeGallery({
         ['--image-filter' as any]: grayscale ? 'grayscale(1)' : 'none'
       }}
     >
-      <main ref={mainRef} className="sphere-main">
+      <main ref={mainRef} className="sphere-main" style={{ cursor: 'grab' }}>
+        <div className="absolute bottom-28 md:bottom-12 left-1/2 -translate-x-1/2 z-30 pointer-events-none text-[10px] md:text-xs font-mono tracking-widest text-zinc-500/80 bg-zinc-950/40 px-3 py-1.5 rounded-full border border-zinc-900/40 backdrop-blur-sm select-none whitespace-nowrap">
+          上下滑动切换页面 / 长按并拖拽旋转球体 (Hold and drag to rotate / Swipe to scroll)
+        </div>
+
         <div className="stage">
           <div ref={sphereRef} className="sphere">
             {items.map((it, i) => (

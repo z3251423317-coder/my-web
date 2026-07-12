@@ -1978,6 +1978,13 @@ const App: React.FC = () => {
     }, 1000); // 1 second safe fallback to release scroll state locks
   };
 
+  useEffect(() => {
+    (window as any).alphaQubitScrollToScreen = scrollToScreen;
+    return () => {
+      delete (window as any).alphaQubitScrollToScreen;
+    };
+  }, [scrollToScreen]);
+
   // Sync scroll detection for header logo
   useEffect(() => {
     const container = document.getElementById('slides-container');

@@ -2109,6 +2109,92 @@ export default function Admin() {
           )}
         </div>
       </div>
+
+      {/* Custom Prompt Modal */}
+      {promptState && promptState.isOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md bg-zinc-950 border border-zinc-850 rounded-xl p-5 shadow-2xl space-y-4">
+            <div className="space-y-1">
+              <h3 className="text-sm font-bold text-white tracking-wide">提示 / Prompt</h3>
+              <p className="text-xs text-zinc-400 leading-relaxed whitespace-pre-wrap">{promptState.message}</p>
+            </div>
+            <input
+              type="text"
+              id="custom-prompt-input-element"
+              defaultValue={promptState.defaultValue}
+              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-amber-500/50"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const val = (e.currentTarget as HTMLInputElement).value;
+                  promptState.resolve(val);
+                  setPromptState(null);
+                } else if (e.key === 'Escape') {
+                  promptState.resolve(null);
+                  setPromptState(null);
+                }
+              }}
+              autoFocus
+            />
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  promptState.resolve(null);
+                  setPromptState(null);
+                }}
+                className="px-4 py-2 text-xs font-bold text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg border border-zinc-800 transition-all cursor-pointer"
+              >
+                取消 / Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById('custom-prompt-input-element') as HTMLInputElement;
+                  promptState.resolve(el ? el.value : null);
+                  setPromptState(null);
+                }}
+                className="px-4 py-2 text-xs font-bold text-zinc-950 bg-amber-500 hover:bg-amber-400 rounded-lg transition-all cursor-pointer"
+              >
+                确定 / OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Confirm Modal */}
+      {confirmState && confirmState.isOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-sm bg-zinc-950 border border-zinc-850 rounded-xl p-5 shadow-2xl space-y-4">
+            <div className="space-y-2">
+              <h3 className="text-sm font-bold text-white tracking-wide">确认 / Confirm</h3>
+              <p className="text-xs text-zinc-400 leading-relaxed whitespace-pre-wrap">{confirmState.message}</p>
+            </div>
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  confirmState.resolve(false);
+                  setConfirmState(null);
+                }}
+                className="px-4 py-2 text-xs font-bold text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg border border-zinc-800 transition-all cursor-pointer"
+              >
+                取消 / Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  confirmState.resolve(true);
+                  setConfirmState(null);
+                }}
+                className="px-4 py-2 text-xs font-bold text-zinc-950 bg-red-500 hover:bg-red-400 rounded-lg transition-all cursor-pointer"
+              >
+                确定 / OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2879,6 +2965,6 @@ function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId,
     
       
 
-      -e     </div>
+    </div>
   );
 }

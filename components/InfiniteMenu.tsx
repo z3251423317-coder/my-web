@@ -473,23 +473,81 @@ class ArcballControl {
   _rotationVelocity: number;
   _combinedQuat: quat;
 
+  longPressTimer: any = null;
+  isLongPressed = false;
+  startPointerPos = vec2.create();
+  hasSwiped = false;
+
   #onPointerDown = (e: PointerEvent) => {
     vec2.set(this.pointerPos, e.clientX, e.clientY);
+    vec2.set(this.startPointerPos, e.clientX, e.clientY);
     vec2.copy(this.previousPointerPos, this.pointerPos);
     this.isPointerDown = true;
+    this.isLongPressed = false;
+    this.hasSwiped = false;
+
+    if (this.longPressTimer) clearTimeout(this.longPressTimer);
+    this.longPressTimer = setTimeout(() => {
+      this.isLongPressed = true;
+      this.canvas.style.cursor = 'grabbing';
+    }, 250);
   };
 
   #onPointerUp = () => {
     this.isPointerDown = false;
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
+    }
+    this.isLongPressed = false;
+    this.canvas.style.cursor = 'grab';
   };
 
   #onPointerLeave = () => {
     this.isPointerDown = false;
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
+    }
+    this.isLongPressed = false;
+    this.canvas.style.cursor = 'grab';
   };
 
   #onPointerMove = (e: PointerEvent) => {
     if (this.isPointerDown) {
-      vec2.set(this.pointerPos, e.clientX, e.clientY);
+      if (this.isLongPressed) {
+        vec2.set(this.pointerPos, e.clientX, e.clientY);
+      } else {
+        const deltaX = e.clientX - this.startPointerPos[0];
+        const deltaY = e.clientY - this.startPointerPos[1];
+        const dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        
+        if (dist > 10) {
+          // Moved before long press, cancel long press
+          if (this.longPressTimer) {
+            clearTimeout(this.longPressTimer);
+            this.longPressTimer = null;
+          }
+          
+          if (!this.hasSwiped) {
+            const absY = Math.abs(deltaY);
+            const absX = Math.abs(deltaX);
+            
+            if (absY > absX * 1.3 && absY > 30) {
+              this.hasSwiped = true;
+              const scrollFunc = (window as any).alphaQubitScrollToScreen;
+              if (scrollFunc) {
+                if (deltaY < -30) {
+                  scrollFunc(5); // swipe UP -> screen 5
+                } else if (deltaY > 30) {
+                  scrollFunc(3); // swipe DOWN -> screen 3
+                }
+              }
+              this.isPointerDown = false; // end swipe drag interaction
+            }
+          }
+        }
+      }
     }
   };
 
@@ -508,9 +566,11 @@ class ArcballControl {
     canvas.addEventListener('pointermove', this.#onPointerMove);
 
     canvas.style.touchAction = 'none';
+    canvas.style.cursor = 'grab';
   }
 
   destroy() {
+    if (this.longPressTimer) clearTimeout(this.longPressTimer);
     this.canvas.removeEventListener('pointerdown', this.#onPointerDown);
     this.canvas.removeEventListener('pointerup', this.#onPointerUp);
     this.canvas.removeEventListener('pointerleave', this.#onPointerLeave);
@@ -522,7 +582,7 @@ class ArcballControl {
     let angleFactor = timeScale;
     let snapRotation = quat.create();
 
-    if (this.isPointerDown) {
+    if (this.isPointerDown && this.isLongPressed) {
       const INTENSITY = 0.3 * timeScale;
       const ANGLE_AMPLIFICATION = 5 / timeScale;
 
@@ -1272,6 +1332,33 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick, act
   const [isMoving, setIsMoving] = useState(false);
   const sketchRef = useRef<InfiniteGridMenu | null>(null);
   const itemsRef = useRef(items);
+  const lastWheelTimeRef = useRef(0);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      const now = Date.now();
+      if (now - lastWheelTimeRef.current < 1000) return;
+
+      const scrollFunc = (window as any).alphaQubitScrollToScreen;
+      if (!scrollFunc) return;
+
+      if (e.deltaY > 15) { // scroll down -> next screen (5)
+        lastWheelTimeRef.current = now;
+        scrollFunc(5);
+      } else if (e.deltaY < -15) { // scroll up -> previous screen (3)
+        lastWheelTimeRef.current = now;
+        scrollFunc(3);
+      }
+    };
+
+    canvas.addEventListener('wheel', handleWheel, { passive: true });
+    return () => {
+      canvas.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
 
   useEffect(() => {
     itemsRef.current = items;
@@ -1357,6 +1444,10 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick, act
   return (
     <div className="relative w-full h-full min-h-screen flex items-center justify-center select-none overflow-hidden bg-transparent">
       <canvas id="infinite-grid-menu-canvas" ref={canvasRef} className="absolute inset-0 w-full h-full" />
+
+      <div className="absolute bottom-28 md:bottom-12 left-1/2 -translate-x-1/2 z-30 pointer-events-none text-[10px] md:text-xs font-mono tracking-widest text-zinc-500/80 bg-zinc-950/40 px-3 py-1.5 rounded-full border border-zinc-900/40 backdrop-blur-sm select-none whitespace-nowrap">
+        上下滑动切换页面 / 长按并拖拽旋转球体 (Hold and drag to rotate / Swipe to scroll)
+      </div>
 
       {activeItem && (
         <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-6 md:p-10 z-20">
