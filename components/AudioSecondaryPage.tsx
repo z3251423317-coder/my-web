@@ -92,7 +92,7 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
       setPasswordInput('');
       setIsPasswordError(false);
     }
-  }, [isOpen, activeCard]);
+  }, [isOpen, activeCard?.id, activeCard?.title, activeCard?.isEncrypted, activeCard?.password]);
 
   const handleUpdate = (updatedModules: AudioModule[]) => {
     setAudioModules(updatedModules);

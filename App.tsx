@@ -696,6 +696,34 @@ const DEFAULT_DATA_FINGERPRINT = "fp_v23_" + JSON.stringify(DEFAULT_MARQUEE_CARD
  * ■ SECTION 3: CORE REACT COMPONENT & ROOT STATES
  * ================================================================================= */
 
+
+function CardPasswordInput({ card, updateCard }: { card: MarqueeCard, updateCard: (id: number, fields: Partial<MarqueeCard>) => void }) {
+  const [password, setPassword] = useState(card.password || "");
+  const prevCardPassword = useRef(card.password);
+
+  useEffect(() => {
+    if (prevCardPassword.current !== card.password) {
+      setPassword(card.password || "");
+      prevCardPassword.current = card.password;
+    }
+  }, [card.password]);
+
+  return (
+    <input 
+      type="password" 
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      onBlur={() => {
+        prevCardPassword.current = password;
+        updateCard(card.id, { password });
+      }}
+      className="w-full pl-8 pr-2.5 py-1.5 bg-zinc-950 border border-zinc-850 rounded-lg text-xs text-white placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
+      placeholder="Enter protection password..."
+      autoComplete="new-password"
+    />
+  );
+}
+
 const App: React.FC = () => {
   const isAiStudio = typeof window !== 'undefined' && (
     window.location.hostname.includes('ais-dev-') || 
@@ -2103,6 +2131,7 @@ const App: React.FC = () => {
     };
 
     const updateCard = (id: number, fields: Partial<MarqueeCard>) => {
+      console.log("updateCard called", id, fields);
       if (!cards || !saveCards) return;
       const updated = cards.map(c => c.id === id ? { ...c, ...fields } : c);
       saveCards(updated);
@@ -2626,13 +2655,7 @@ const App: React.FC = () => {
                           </label>
                           <div className="relative">
                             <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-amber-500/70" />
-                            <input 
-                              type="password" 
-                              value={card.password || ""}
-                              onChange={(e) => updateCard(card.id, { password: e.target.value })}
-                              className="w-full pl-8 pr-2.5 py-1.5 bg-zinc-950 border border-zinc-850 rounded-lg text-xs text-white placeholder-zinc-700 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/20"
-                              placeholder="Enter protection password..."
-                            />
+                            <CardPasswordInput card={card} updateCard={updateCard} />
                           </div>
                         </div>
                       )}
