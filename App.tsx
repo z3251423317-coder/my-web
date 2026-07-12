@@ -793,6 +793,14 @@ const App: React.FC = () => {
               setScreen7Tabs(data.screen7Tabs);
               localStorage.setItem("alphaqubit_screen7_tabs", JSON.stringify(data.screen7Tabs));
             }
+            if (data.screen3TabsBg) {
+              setScreen3TabsBg(data.screen3TabsBg);
+              localStorage.setItem("alphaqubit_screen3_tabs_bg", data.screen3TabsBg);
+            }
+            if (data.screen7TabsBg) {
+              setScreen7TabsBg(data.screen7TabsBg);
+              localStorage.setItem("alphaqubit_screen7_tabs_bg", data.screen7TabsBg);
+            }
             if (data.screen3Tabs) {
               setScreen3Tabs(data.screen3Tabs);
               localStorage.setItem("alphaqubit_screen3_tabs", JSON.stringify(data.screen3Tabs));
@@ -828,6 +836,14 @@ const App: React.FC = () => {
           if (fallback.screen7Tabs) {
             setScreen7Tabs(fallback.screen7Tabs);
             localStorage.setItem("alphaqubit_screen7_tabs", JSON.stringify(fallback.screen7Tabs));
+          }
+          if (fallback.screen3TabsBg) {
+            setScreen3TabsBg(fallback.screen3TabsBg);
+            localStorage.setItem("alphaqubit_screen3_tabs_bg", fallback.screen3TabsBg);
+          }
+          if (fallback.screen7TabsBg) {
+            setScreen7TabsBg(fallback.screen7TabsBg);
+            localStorage.setItem("alphaqubit_screen7_tabs_bg", fallback.screen7TabsBg);
           }
           if (fallback.screen3Tabs) {
             setScreen3Tabs(fallback.screen3Tabs);
@@ -1199,6 +1215,15 @@ const App: React.FC = () => {
   };
 
   const [activeScreen3Tab, setActiveScreen3Tab] = useState<string>("全部");
+  const [screen3TabsBg, setScreen3TabsBg] = useState<string>(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem("alphaqubit_screen3_tabs_bg") || "transparent";
+    return "transparent";
+  });
+  const [screen7TabsBg, setScreen7TabsBg] = useState<string>(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem("alphaqubit_screen7_tabs_bg") || "transparent";
+    return "transparent";
+  });
+
 
 
 
@@ -3364,7 +3389,7 @@ const App: React.FC = () => {
                     {/* Category tabs for Screen 3 */}
                     {s.id === 3 && screen3Tabs && screen3Tabs.length > 0 && (
                       <div className="w-full flex justify-center py-2 px-4 select-none pointer-events-auto mb-2">
-                        <div className="flex items-center gap-2 md:gap-3 bg-transparent p-1.5 rounded-full max-w-full overflow-x-auto no-scrollbar scroll-smooth">
+                        <div className="flex items-center gap-2 md:gap-3 p-1.5 rounded-full max-w-full overflow-x-auto no-scrollbar scroll-smooth flex-nowrap" style={{ backgroundColor: screen3TabsBg }}>
                           {/* 全部 Button */}
                           <button
                             type="button"
@@ -3400,7 +3425,7 @@ const App: React.FC = () => {
                     {/* Category tabs for Screen 7 */}
                     {s.id === 7 && screen7Tabs && screen7Tabs.length > 0 && (
                       <div className="w-full flex justify-center py-2 px-4 select-none pointer-events-auto mb-2">
-                        <div className="flex items-center gap-2 md:gap-3 bg-transparent p-1.5 rounded-full max-w-full overflow-x-auto no-scrollbar scroll-smooth">
+                        <div className="flex items-center gap-2 md:gap-3 p-1.5 rounded-full max-w-full overflow-x-auto no-scrollbar scroll-smooth flex-nowrap" style={{ backgroundColor: screen7TabsBg }}>
                           {/* 全部 Button */}
                           <button
                             type="button"

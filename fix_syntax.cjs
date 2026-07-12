@@ -1,13 +1,11 @@
 const fs = require('fs');
-let app = fs.readFileSync('App.tsx', 'utf8');
 
-app = app.replace(
-  /BG & AUDIO \/ 背景与音频\n                <\/button>\n        <\/div>/,
-  `BG & AUDIO / 背景与音频
-                </button>
-              </div>
-            )}`
-);
+let appCode = fs.readFileSync('App.tsx', 'utf-8');
+appCode = appCode.replace(/style=\{\{ backgroundColor: screen3TabsBg \}\}(?!>)/g, 'style={{ backgroundColor: screen3TabsBg }}>');
+appCode = appCode.replace(/style=\{\{ backgroundColor: screen7TabsBg \}\}(?!>)/g, 'style={{ backgroundColor: screen7TabsBg }}>');
+fs.writeFileSync('App.tsx', appCode);
 
-fs.writeFileSync('App.tsx', app);
-console.log("Fixed syntax error");
+let adminCode = fs.readFileSync('components/Admin.tsx', 'utf-8');
+adminCode = adminCode.replace(/text-\\\\\\[11px\\\\\\]/g, 'text-[11px]');
+adminCode = adminCode.replace(/text-\\[11px\\]/g, 'text-[11px]');
+fs.writeFileSync('components/Admin.tsx', adminCode);

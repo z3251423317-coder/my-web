@@ -117,6 +117,24 @@ export default function Admin() {
   const [screen3Tabs, setScreen3Tabs] = useState<string[]>([]);
   const [collapsedScreen3Cats, setCollapsedScreen3Cats] = useState<Record<string, boolean>>({});
   const [activeScreen3CardId, setActiveScreen3CardId] = useState<number | null>(null);
+  const [screen3TabsBg, setScreen3TabsBg] = useState<string>("transparent");
+  const [screen7TabsBg, setScreen7TabsBg] = useState<string>("transparent");
+
+  const [promptState, setPromptState] = useState<{isOpen: boolean, message: string, defaultValue: string, resolve: (val: string | null) => void} | null>(null);
+  const [confirmState, setConfirmState] = useState<{isOpen: boolean, message: string, resolve: (val: boolean) => void} | null>(null);
+
+  const customPrompt = (message: string, defaultValue: string): Promise<string | null> => {
+    return new Promise((resolve) => {
+      setPromptState({ isOpen: true, message, defaultValue, resolve });
+    });
+  };
+
+  const customConfirm = (message: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      setConfirmState({ isOpen: true, message, resolve });
+    });
+  };
+
   const [relationshipCards, setRelationshipCards] = useState<RelationshipCard[]>([]);
   const [screen7GlowEnabled, setScreen7GlowEnabled] = useState(true);
   const [screen7GlowColor, setScreen7GlowColor] = useState('#fbbf24');
@@ -185,6 +203,8 @@ export default function Admin() {
     if (Array.isArray(data.relationshipCards)) setRelationshipCards(data.relationshipCards);
     if (Array.isArray(data.screen7Cards)) setScreen7Cards(data.screen7Cards);
     if (Array.isArray(data.screen7Tabs)) setScreen7Tabs(data.screen7Tabs);
+    if (data.screen3TabsBg) setScreen3TabsBg(data.screen3TabsBg);
+    if (data.screen7TabsBg) setScreen7TabsBg(data.screen7TabsBg);
     if (Array.isArray(data.screen3Tabs)) {
       setScreen3Tabs(data.screen3Tabs);
     } else {
@@ -255,12 +275,11 @@ export default function Admin() {
 
   // Reset to static system defaults with confirmation
   const handleResetToDefault = async () => {
-    if (window.confirm("确定要重置为系统默认配置吗？这会覆盖云端当前的修改。")) {
+    if (await customConfirm("确定要重置为系统默认配置吗？这会覆盖云端当前的修改。")) {
       importConfig(defaultUserData);
       showToast("已重置为本地默认数据，请点击“发布保存”同步至云端。", "info");
     }
   };
-
   // Copy raw JSON to clipboard
   const handleCopyJSON = () => {
     try {
@@ -517,7 +536,7 @@ export default function Admin() {
                   </button>
                   <button
                     onClick={async () => {
-                      if (window.confirm("这会直接清除云端并重写本地自带的默认数据配置文件到云端，确定吗？")) {
+                      if (await customConfirm("这会直接清除云端并重写本地自带的默认数据配置文件到云端，确定吗？")) {
                         setSaving(true);
                         try {
                           await setDoc(doc(db, 'app_config', 'master'), defaultUserData);
@@ -598,7 +617,7 @@ export default function Admin() {
                   />
 
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       const input = document.getElementById('pasted_json_input') as HTMLTextAreaElement;
                       if (input && input.value.trim()) {
                         handleImportJSON(input.value);
@@ -863,7 +882,7 @@ export default function Admin() {
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-mono tracking-wider text-zinc-400 block font-bold uppercase">首屏顶部圆柱药丸导航 (PillNav items)</span>
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           const newId = `nav_${Date.now()}`;
                           const newItem = { id: newId, label: '新导航链接', href: '#screen-1' };
                           setPillNavItems([...pillNavItems, newItem]);
@@ -953,7 +972,7 @@ export default function Admin() {
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-mono tracking-wider text-zinc-400 block font-bold uppercase">情感特征分析档案 (Relationship Cards / PDF files)</span>
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           const newId = `rel_${Date.now()}`;
                           const newCard: RelationshipCard = {
                             id: newId,
@@ -1187,7 +1206,7 @@ export default function Admin() {
                         </div>
                         <button
                           type="button"
-                          onClick={() => {
+                          onClick={async () => {
                             const input = document.getElementById('new-category-input-screen3') as HTMLInputElement;
                             const val = input?.value.trim();
                             if (val) {
@@ -1207,7 +1226,13 @@ export default function Admin() {
                           <span>创建新分类 / Add Category</span>
                         </button>
                       </div>
-                      <p className="text-[11px] text-zinc-400 leading-relaxed">
+                      
+                      <div className="flex items-center justify-between p-3 bg-zinc-950/40 rounded-xl border border-zinc-850 mt-3">
+                        <span className="text-xs text-zinc-400 font-bold">标签容器背景色 (Tab Bg Color)</span>
+                        <input type="color" value={screen3TabsBg === 'transparent' ? '#000000' : screen3TabsBg} onChange={(e) => setScreen3TabsBg(e.target.value)} className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0" />
+                      </div>
+                      
+                      <p className="text-\[11px\] text-zinc-400 leading-relaxed">
                         💡 <strong>操作指南：</strong>创建完上方的主题分类后，它将以独立的文件夹面板显示在下方。您可以直接在所属面板中<strong>添加并配置其专属的技术卡片</strong>，使整个后台结构更加清晰。
                       </p>
                     </div>
@@ -1307,8 +1332,8 @@ export default function Admin() {
                                   {!isUncategorized && (
                                     <button
                                       type="button"
-                                      onClick={() => {
-                                        const newName = window.prompt(`重命名分类“${catName}”：`, catName);
+                                      onClick={async () => {
+                                        const newName = await customPrompt(`重命名分类“${catName}”：`, catName);
                                         if (newName && newName.trim() && newName.trim() !== catName) {
                                           const trimmed = newName.trim();
                                           if (screen3Tabs.includes(trimmed)) {
@@ -1332,8 +1357,8 @@ export default function Admin() {
                                   {!isUncategorized && (
                                     <button
                                       type="button"
-                                      onClick={() => {
-                                        if (window.confirm(`确定要删除分类“${catName}”吗？\n警告：删除后，该分类下的 ${catCards.length} 张卡片将自动归为“未分类”。`)) {
+                                      onClick={async () => {
+                                        if (await customConfirm(`确定要删除分类“${catName}”吗？\n警告：删除后，该分类下的 ${catCards.length} 张卡片将自动归为“未分类”。`)) {
                                           setScreen3Tabs(screen3Tabs.filter(t => t !== catName));
                                         }
                                       }}
@@ -1389,8 +1414,8 @@ export default function Admin() {
                                         };
 
                                         // Delete card logic
-                                        const deleteCardLocal = () => {
-                                          if (window.confirm(`确定要删除技术节点“${card.title}”吗？`)) {
+                                        const deleteCardLocal = async () => {
+                                          if (await customConfirm(`确定要删除技术节点“${card.title}”吗？`)) {
                                             setMarqueeCards(marqueeCards.filter(c => c.id !== card.id));
                                             if (isCardActive) setActiveScreen3CardId(null);
                                           }
@@ -1668,7 +1693,7 @@ export default function Admin() {
                         </div>
                         <button
                           type="button"
-                          onClick={() => {
+                          onClick={async () => {
                             const input = document.getElementById('new-category-input') as HTMLInputElement;
                             const val = input?.value.trim();
                             if (val) {
@@ -1688,7 +1713,13 @@ export default function Admin() {
                           <span>创建新分类 / Add Category</span>
                         </button>
                       </div>
-                      <p className="text-[11px] text-zinc-400 leading-relaxed">
+                      
+                      <div className="flex items-center justify-between p-3 bg-zinc-950/40 rounded-xl border border-zinc-850 mt-3">
+                        <span className="text-xs text-zinc-400 font-bold">标签容器背景色 (Tab Bg Color)</span>
+                        <input type="color" value={screen7TabsBg === 'transparent' ? '#000000' : screen7TabsBg} onChange={(e) => setScreen7TabsBg(e.target.value)} className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0" />
+                      </div>
+                      
+                      <p className="text-\[11px\] text-zinc-400 leading-relaxed">
                         💡 <strong>操作指南：</strong>创建完上方的主题分类后，它将以独立的文件夹面板显示在下方。您可以直接在所属面板中<strong>添加并配置其专属的技术卡片</strong>，使整个后台结构更加清晰。
                       </p>
                     </div>
@@ -1788,8 +1819,8 @@ export default function Admin() {
                                   {!isUncategorized && (
                                     <button
                                       type="button"
-                                      onClick={() => {
-                                        const newName = window.prompt(`重命名分类“${catName}”：`, catName);
+                                      onClick={async () => {
+                                        const newName = await customPrompt(`重命名分类“${catName}”：`, catName);
                                         if (newName && newName.trim() && newName.trim() !== catName) {
                                           const trimmed = newName.trim();
                                           if (screen7Tabs.includes(trimmed)) {
@@ -1813,8 +1844,8 @@ export default function Admin() {
                                   {!isUncategorized && (
                                     <button
                                       type="button"
-                                      onClick={() => {
-                                        if (window.confirm(`确定要删除分类“${catName}”吗？\n警告：删除后，该分类下的 ${catCards.length} 张卡片将自动归为“未分类”。`)) {
+                                      onClick={async () => {
+                                        if (await customConfirm(`确定要删除分类“${catName}”吗？\n警告：删除后，该分类下的 ${catCards.length} 张卡片将自动归为“未分类”。`)) {
                                           setScreen7Tabs(screen7Tabs.filter(t => t !== catName));
                                         }
                                       }}
@@ -1870,8 +1901,8 @@ export default function Admin() {
                                         };
 
                                         // Delete card logic
-                                        const deleteCardLocal = () => {
-                                          if (window.confirm(`确定要删除技术节点“${card.title}”吗？`)) {
+                                        const deleteCardLocal = async () => {
+                                          if (await customConfirm(`确定要删除技术节点“${card.title}”吗？`)) {
                                             setScreen7Cards(screen7Cards.filter(c => c.id !== card.id));
                                             if (isCardActive) setActiveScreen7CardId(null);
                                           }
@@ -2082,9 +2113,6 @@ export default function Admin() {
   );
 }
 
-// =================================================================================
-// ■ INLINE FORM GROUP HELPER TO RENDER COMPLEX REUSABLE CARD COLLECTIONS
-// =================================================================================
 interface CardListProps {
   title: string;
   cards: MarqueeCard[];
@@ -2119,7 +2147,7 @@ function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId,
     setSelectedId(nextId);
   };
 
-  const deleteCard = (id: number) => {
+  const deleteCard = async (id: number) => {
     if (cards.length <= 1) {
       if (!window.confirm("这是最后一张卡片。删除它后该板块可能会显示为空（白屏）。您确定要删除最后一张卡片吗？")) {
         return;
@@ -2408,7 +2436,7 @@ function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId,
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-mono tracking-wider text-amber-400 block font-bold uppercase">📅 子分类/月份卡片管理 (Sub-cards / Months)</span>
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         const subCardsList = activeCard.subCards || [];
                         const nextSubId = `sub_${Date.now()}`;
                         const newSub = {
@@ -2438,7 +2466,7 @@ function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId,
                         (activeCard.subCards || []).map((sub) => (
                           <div 
                             key={sub.id}
-                            onClick={() => {
+                            onClick={async () => {
                               setSelectedSubCardId(sub.id);
                               setSelectedSubAudioId(null);
                             }}
@@ -2523,7 +2551,7 @@ function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId,
                                 <div className="flex items-center justify-between">
                                   <span className="text-[9px] font-mono tracking-wider text-amber-400 block font-bold uppercase">🔊 绑定子分类音频单元 ({activeSub.title})</span>
                                   <button
-                                    onClick={() => {
+                                    onClick={async () => {
                                       const modules = activeSub.audioModules || [];
                                       const nextModId = `audio_${Date.now()}`;
                                       const newMod: AudioModule = {
@@ -2679,7 +2707,7 @@ function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId,
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-mono tracking-wider text-amber-400 block font-bold uppercase">🔊 绑定卡片音频单元 (Audio Modules)</span>
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         const modules = activeCard.audioModules || [];
                         const nextModId = `audio_${Date.now()}`;
                         const newMod: AudioModule = {
@@ -2848,6 +2876,9 @@ function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId,
           )}
         </div>
       </div>
-    </div>
+    
+      
+
+      -e     </div>
   );
 }
