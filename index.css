@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&family=Liu+Jian+Mao+Cao&family=Long+Cang&display=swap');
 
 html {
   scroll-behavior: smooth;
@@ -22,6 +22,10 @@ body {
 
 .font-display {
   font-family: 'Space Grotesk', sans-serif !important;
+}
+
+.font-calligraphy {
+  font-family: 'Liu Jian Mao Cao', 'Long Cang', cursive !important;
 }
 
 /* Elegant custom scrollbar styling - Hidden but scrollable as requested */

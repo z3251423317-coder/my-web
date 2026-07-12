@@ -3718,7 +3718,7 @@ const App: React.FC = () => {
                   >
                     
                     {/* Highly polished headline */}
-                    <h1 className={`${s.id === 1 ? 'font-mono text-[86px] leading-[61px]' : 'font-display text-3xl md:text-4xl lg:text-5xl xl:text-6xl'} font-extrabold tracking-tight leading-none text-white drop-shadow-md`}>
+                    <h1 className={`${s.id === 1 ? 'font-calligraphy font-normal text-[100px] md:text-[140px] leading-[1.1]' : 'font-display font-extrabold text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-tight leading-none'} text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]`}>
                       <ShinyText text={s.title} color="#bdbdbd" shineColor="#ffffff" speed={3} style={s.id === 2 ? { fontSize: '46px' } : undefined} />
                     </h1>
 
