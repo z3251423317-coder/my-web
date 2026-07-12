@@ -88,6 +88,7 @@ interface ScreenData {
   ctaUrl?: string;
   bgMusicUrl?: string;
   mobileMusicUrl?: string;
+  useVideoAudio?: boolean;
 }
 
 export default function Admin() {
@@ -840,6 +841,23 @@ export default function Admin() {
                       <span className="text-xs font-mono w-8 text-right">{currentScreen.overlayBlur ?? 0}px</span>
                     </div>
                   </div>
+
+                  <div className="sm:col-span-3 flex items-center justify-between p-3 rounded-lg bg-zinc-900 border border-zinc-800 my-1">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-zinc-200">🔊 使用背景视频原声 / Use Video Audio</span>
+                      <span className="text-[10px] text-zinc-500 leading-normal">勾选后将自动静音并替换此屏配置的主音频，直接播放背景 MP4 视频自带的音轨，避免音视频对不上的问题。</span>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer select-none">
+                      <input 
+                        type="checkbox" 
+                        checked={!!currentScreen.useVideoAudio}
+                        onChange={(e) => updateScreenField(currentScreen.id, 'useVideoAudio', e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:bg-amber-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
+                    </label>
+                  </div>
+
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest block font-bold">板块独立背景音乐 - PC端 (BGM URL - PC)</label>
                     <input 

@@ -39,6 +39,7 @@ export interface ScreenData {
   logoLoopLogos?: { src: string; alt: string; href?: string }[];
   bgMusicUrl?: string;
   mobileMusicUrl?: string;
+  useVideoAudio?: boolean;
 }
 
 export interface AudioModule {

@@ -557,6 +557,7 @@ interface SafeVideoProps {
   src: string;
   className?: string;
   style?: React.CSSProperties;
+  muted?: boolean;
 }
 
 // Global tracker to handle cases where user has interacted with the page before a video component mounts
@@ -570,16 +571,22 @@ if (typeof window !== "undefined") {
   window.addEventListener("touchstart", markInteracted, { capture: true, passive: true });
 }
 
-const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style }) => {
+const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style, muted = true }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = muted;
+    }
+  }, [muted]);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     // Force muted & playsinline programmatically to bypass React bugs & aggressive browser rules
-    video.defaultMuted = true;
-    video.muted = true;
+    video.defaultMuted = muted;
+    video.muted = muted;
     video.setAttribute("playsinline", "true");
     video.setAttribute("webkit-playsinline", "true");
     
@@ -679,7 +686,7 @@ const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style }) => {
       style={style}
       src={src}
       loop
-      muted
+      muted={muted}
       playsInline
       webkit-playsinline="true"
       autoPlay
@@ -1256,6 +1263,19 @@ const App: React.FC = () => {
     if (typeof window !== 'undefined') return localStorage.getItem("alphaqubit_screen7_tabs_bg") || "transparent";
     return "transparent";
   });
+
+  const [globalMuted, setGlobalMuted] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("alphaqubit_global_muted");
+      return saved === "true";
+    }
+    return false;
+  });
+
+  const saveGlobalMuted = (muted: boolean) => {
+    setGlobalMuted(muted);
+    localStorage.setItem("alphaqubit_global_muted", String(muted));
+  };
 
 
 
@@ -2159,14 +2179,29 @@ const App: React.FC = () => {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, mode: 'bg' | 'temp' | 'mobile' = 'bg') => {
       if (e.target.files && e.target.files[0]) {
         const file = e.target.files[0];
+        const isVideo = file.type.startsWith('video/');
+        
+        if (isVideo) {
+          const objectUrl = URL.createObjectURL(file);
+          if (mode === 'temp') {
+            onUpdateScreen({ ...currentScreen, tempBgUrl: objectUrl, tempBgType: 'video' });
+          } else if (mode === 'mobile') {
+            onUpdateScreen({ ...currentScreen, bgUrlMobile: objectUrl, bgTypeMobile: 'video' });
+          } else {
+            onUpdateScreen({ ...currentScreen, bgUrl: objectUrl, bgType: 'video' });
+          }
+          alert("已成功加载本地视频流（Blob）。由于移动端浏览器对 Base64 视频存在硬性解码限制，本地视频已使用高性能临时流（Blob）通道加载，在此浏览器窗口内可完美播放背景视频的原声轨。温馨提示：临时流仅在当前网页会话中有效，刷新后大文件背景将重置。若需跨设备或永久部署，建议在输入框中填入 MP4 在线直链。");
+          return;
+        }
+
         const reader = new FileReader();
         reader.onloadend = () => {
           if (mode === 'temp') {
-            onUpdateScreen({ ...currentScreen, tempBgUrl: reader.result as string, tempBgType: file.type.startsWith('video') ? 'video' : 'image' });
+            onUpdateScreen({ ...currentScreen, tempBgUrl: reader.result as string, tempBgType: 'image' });
           } else if (mode === 'mobile') {
-            onUpdateScreen({ ...currentScreen, bgUrlMobile: reader.result as string, bgTypeMobile: file.type.startsWith('video') ? 'video' : 'image' });
+            onUpdateScreen({ ...currentScreen, bgUrlMobile: reader.result as string, bgTypeMobile: 'image' });
           } else {
-            onUpdateScreen({ ...currentScreen, bgUrl: reader.result as string, bgType: file.type.startsWith('video') ? 'video' : 'image' });
+            onUpdateScreen({ ...currentScreen, bgUrl: reader.result as string, bgType: 'image' });
           }
         };
         reader.readAsDataURL(file);
@@ -2268,6 +2303,22 @@ const App: React.FC = () => {
                   <div className="flex items-center gap-2 border-b border-zinc-900 pb-2">
                     <Music className="w-4 h-4 text-amber-500" />
                     <span className="text-xs font-mono font-bold text-zinc-300 uppercase tracking-widest">音乐管理 (Audio Management)</span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-zinc-950 border border-zinc-800 my-2">
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-bold text-zinc-350">使用视频原声</span>
+                      <span className="text-[9px] text-zinc-500">播放背景视频自带的音轨</span>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer select-none">
+                      <input 
+                        type="checkbox" 
+                        checked={!!currentScreen.useVideoAudio}
+                        onChange={(e) => onUpdateScreen({...currentScreen, useVideoAudio: e.target.checked})}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:bg-amber-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
+                    </label>
                   </div>
                   
                   <div className="space-y-1">
@@ -3038,6 +3089,7 @@ const App: React.FC = () => {
                     src={bgUrlToUse}
                     className="absolute inset-0 w-full h-full object-cover"
                     style={{ opacity: activeScreen.bgOpacity !== undefined ? activeScreen.bgOpacity / 100 : undefined }}
+                    muted={globalMuted || !activeScreen.useVideoAudio}
                   />
                 )}
 
@@ -3489,7 +3541,7 @@ const App: React.FC = () => {
                     )}
 
                     {/* Flex track running marquee animation with dragging/touch support. */}
-                    <div className="relative w-screen left-1/2 -ml-[50vw] py-8 overflow-hidden select-none my-2 bg-transparent pointer-events-auto">
+                    <div className="relative w-screen left-1/2 -ml-[50vw] py-8 overflow-hidden select-none my-2 bg-transparent pointer-events-auto -translate-y-8 lg:-translate-y-12 transition-transform duration-300">
                       <ScrollMarquee
                         items={
                           s.id === 7 
@@ -3788,7 +3840,7 @@ const App: React.FC = () => {
 
                     {/* Screen 9: Mock headquarters location address and real clock */}
                     {s.id === 9 && (
-                      <div className="w-full max-w-md glassmorphism-card text-zinc-300 rounded-2xl p-6 space-y-4">
+                      <div className="w-full max-w-md glassmorphism-card text-zinc-300 rounded-2xl p-6 space-y-4 -translate-y-8 lg:-translate-y-14 transition-transform duration-300">
                         <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
                           <span className="text-xs text-white uppercase tracking-wider font-bold font-display">AlphaQubit Headquarters</span>
                           <span className="text-xs text-amber-500 font-mono font-bold animate-pulse">{currentTime} UTC</span>
@@ -4242,24 +4294,32 @@ const App: React.FC = () => {
                           return;
                         }
 
-                        // If the file is smaller than 1.5MB, convert to base64 so it can store in localStorage
-                        if (file.size < 1.5 * 1024 * 1024) {
+                        // If it is a video, ALWAYS use Object URL (Blob) because iOS & mobile Safari strictly block Base64 encoded video playback
+                        if (isVideo) {
+                          const objectUrl = URL.createObjectURL(file);
+                          updateScreenFields({
+                            bgType: 'video',
+                            bgUrl: objectUrl
+                          });
+                          alert("已成功加载本地视频流（Blob）。由于移动端浏览器对 Base64 视频存在硬性解码限制，本地视频已使用高性能临时流（Blob）通道加载，在此浏览器窗口内可完美播放背景视频的原声轨。温馨提示：临时流仅在当前网页会话中有效，刷新后大文件背景将重置。若需跨设备或永久部署，建议在输入框中填入 MP4 在线直链。");
+                        } else if (file.size < 1.5 * 1024 * 1024) {
+                          // Small image: convert to base64 so it can store in localStorage
                           const reader = new FileReader();
                           reader.onload = (event) => {
                             const dataUrl = event.target?.result as string;
                             if (dataUrl) {
                               updateScreenFields({
-                                bgType: isVideo ? 'video' : 'image',
+                                bgType: 'image',
                                 bgUrl: dataUrl
                               });
                             }
                           };
                           reader.readAsDataURL(file);
                         } else {
-                          // Larger file: create Object URL and remind user
+                          // Larger image: create Object URL and remind user
                           const objectUrl = URL.createObjectURL(file);
                           updateScreenFields({
-                            bgType: isVideo ? 'video' : 'image',
+                            bgType: 'image',
                             bgUrl: objectUrl
                           });
                           alert(`文件较大 (${(file.size / 1024 / 1024).toFixed(1)}MB)，已使用本地临时超链。可在当前会话中实时预览。由于浏览器 LocalStorage 限制（5MB 软限制），刷新网页后大文件背景将重置。若需跨关机或永久保存，请尽力压制媒体文件至 1.5MB 以内。`);
@@ -4293,6 +4353,22 @@ const App: React.FC = () => {
                   <div className="flex items-center gap-2 border-b border-zinc-900 pb-2">
                     <Music className="w-4 h-4 text-amber-500" />
                     <span className="text-[10px] text-zinc-400 uppercase font-bold">音乐管理 (Audio Management)</span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 rounded bg-zinc-900/40 border border-zinc-800">
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-bold text-zinc-300">使用视频原声</span>
+                      <span className="text-[9px] text-zinc-500">播放背景视频自带的音轨</span>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer select-none">
+                      <input 
+                        type="checkbox" 
+                        checked={!!activeScreen.useVideoAudio}
+                        onChange={(e) => updateScreenField('useVideoAudio', e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:bg-amber-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
+                    </label>
                   </div>
                   
                   <div className="space-y-1">
@@ -4793,9 +4869,11 @@ const App: React.FC = () => {
         }}
       />
       <MusicPlayer 
-        musicUrl={activeScreen.bgMusicUrl} 
-        mobileMusicUrl={activeScreen.mobileMusicUrl}
+        musicUrl={activeScreen.useVideoAudio ? undefined : activeScreen.bgMusicUrl} 
+        mobileMusicUrl={activeScreen.useVideoAudio ? undefined : activeScreen.mobileMusicUrl}
         isMobile={isMobile}
+        isMuted={globalMuted}
+        onToggleMute={() => saveGlobalMuted(!globalMuted)}
       />
 
       {/* Enlarged Card Modal for Screen 7 */}
