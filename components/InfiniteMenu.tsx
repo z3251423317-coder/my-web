@@ -1445,8 +1445,8 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick, act
     <div className="relative w-full h-full min-h-screen flex items-center justify-center select-none overflow-hidden bg-transparent">
       <canvas id="infinite-grid-menu-canvas" ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
-      <div className="absolute bottom-28 md:bottom-12 left-1/2 -translate-x-1/2 z-30 pointer-events-none text-[10px] md:text-xs font-mono tracking-widest text-zinc-500/80 bg-zinc-950/40 px-3 py-1.5 rounded-full border border-zinc-900/40 backdrop-blur-sm select-none whitespace-nowrap">
-        上下滑动切换页面 / 长按并拖拽旋转球体 (Hold and drag to rotate / Swipe to scroll)
+      <div className="absolute top-28 md:top-24 left-1/2 -translate-x-1/2 z-30 pointer-events-none text-[10px] md:text-xs font-mono tracking-widest text-zinc-500/80 bg-zinc-950/40 px-3 py-1.5 rounded-full border border-zinc-900/40 backdrop-blur-sm select-none whitespace-nowrap">
+        上下滑动切换页面 / 长按并拖拽旋转球体
       </div>
 
       {activeItem && (

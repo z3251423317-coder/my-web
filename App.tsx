@@ -339,7 +339,7 @@ const DEFAULT_SCREENS: ScreenData[] = [
     "overlayBlur": 0,
     "tintColor": "slate",
     "align": "left",
-    "ctaText": "Discover the Science",
+    "ctaText": "",
     "ctaUrl": "#screen-2",
     "bgMusicUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
   },
@@ -376,7 +376,7 @@ const DEFAULT_SCREENS: ScreenData[] = [
     "overlayBlur": 3,
     "tintColor": "indigo",
     "align": "right",
-    "ctaText": "Explore Architecture",
+    "ctaText": "",
     "ctaUrl": "#screen-4",
     "bgMusicUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
   },
@@ -751,7 +751,12 @@ const App: React.FC = () => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          return parsed.map((s: any) => {
+            if (s.id === 1 || s.id === 3) {
+              return { ...s, ctaText: "" };
+            }
+            return s;
+          });
         }
       } catch (e) {
         console.error("Failed to parse screens from localStorage", e);
@@ -3274,13 +3279,6 @@ const App: React.FC = () => {
                       >
                         {/* Title and Instruction Header */}
                         <div className="text-center space-y-3 mb-2 mt-1 md:mt-2">
-                          <motion.span 
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            className="px-4 py-1.5 bg-amber-500/10 text-amber-500 rounded-full text-[10px] font-mono tracking-widest uppercase font-bold border border-amber-500/20 inline-block shadow-sm shadow-amber-500/5"
-                          >
-                            {s.label || "INTERACTIVE TRIAL DECK / 纠错算法看板"}
-                          </motion.span>
                           <h2 className="text-3xl md:text-5xl font-display font-black tracking-tighter text-white uppercase leading-none">
                             {s.title || "Sycamore Syndrome Diagnostic Suite"}
                           </h2>
@@ -3371,9 +3369,11 @@ const App: React.FC = () => {
                         transition={{ duration: 0.6 }}
                         className="space-y-3 max-w-3xl"
                       >
-                        <span className="font-mono text-amber-500 text-[10px] tracking-widest font-bold uppercase block bg-amber-500/10 px-2.5 py-1 rounded w-fit border border-amber-500/20">
-                          {s.label} • SYSTEM CHASSIS ARCHITECTURE
-                        </span>
+                        {s.id !== 3 && s.id !== 7 && (
+                          <span className="font-mono text-amber-500 text-[10px] tracking-widest font-bold uppercase block bg-amber-500/10 px-2.5 py-1 rounded w-fit border border-amber-500/20">
+                            {s.label} • SYSTEM CHASSIS ARCHITECTURE
+                          </span>
+                        )}
                         <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-none">
                           <ShinyText 
                             text={s.title} 
@@ -3562,30 +3562,32 @@ const App: React.FC = () => {
                     </div>
 
                     {/* Bottom Action Footer for Screen 4 */}
-                    <div className="flex flex-col sm:flex-row items-center gap-4 justify-between pt-4">
-                      {s.ctaText && (
-                        <div>
-                          <a 
-                            href={s.ctaUrl || "#"}
-                            onClick={(e) => {
-                              if (s.ctaUrl?.startsWith('#')) {
-                                e.preventDefault();
-                                const targetId = parseInt(s.ctaUrl.replace('#screen-', '')) || (s.id + 1);
-                                scrollToScreen(targetId <= 9 ? targetId : 1);
-                              }
-                            }}
-                            className="group inline-flex items-center gap-2 px-6 py-2.5 bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-bold font-display tracking-widest uppercase rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
-                          >
-                            <span>{s.ctaText}</span>
-                            <ChevronRight className="w-4 h-4 translate-x-0 group-hover:translate-x-1 transition-transform" />
-                          </a>
+                    {s.id !== 3 && s.id !== 7 && (
+                      <div className="flex flex-col sm:flex-row items-center gap-4 justify-between pt-4">
+                        {s.ctaText && (
+                          <div>
+                            <a 
+                              href={s.ctaUrl || "#"}
+                              onClick={(e) => {
+                                if (s.ctaUrl?.startsWith('#')) {
+                                  e.preventDefault();
+                                  const targetId = parseInt(s.ctaUrl.replace('#screen-', '')) || (s.id + 1);
+                                  scrollToScreen(targetId <= 9 ? targetId : 1);
+                                }
+                              }}
+                              className="group inline-flex items-center gap-2 px-6 py-2.5 bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-bold font-display tracking-widest uppercase rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                            >
+                              <span>{s.ctaText}</span>
+                              <ChevronRight className="w-4 h-4 translate-x-0 group-hover:translate-x-1 transition-transform" />
+                            </a>
+                          </div>
+                        )}
+                        
+                        <div className="text-zinc-500 font-mono text-[10px] tracking-wider uppercase">
+                          Current Frame: {marqueeCards.length} Syndrome Cells • Auto Scroll: Left to Right (Hover to Pause)
                         </div>
-                      )}
-                      
-                      <div className="text-zinc-500 font-mono text-[10px] tracking-wider uppercase">
-                        Current Frame: {marqueeCards.length} Syndrome Cells • Auto Scroll: Left to Right (Hover to Pause)
                       </div>
-                    </div>
+                    )}
 
                   </div>
                 ) : (
@@ -3674,7 +3676,7 @@ const App: React.FC = () => {
                     )}
 
                     {/* Primary Button */}
-                    {s.ctaText && (
+                    {s.ctaText && s.id !== 1 && (
                       <div className={`flex ${(s.align === 'center' && s.id !== 9) ? 'justify-center' : s.align === 'right' ? 'justify-end' : 'justify-start'} pt-3`}>
                         <a 
                           href={s.ctaUrl || "#"}

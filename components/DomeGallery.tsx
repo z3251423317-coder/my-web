@@ -200,6 +200,7 @@ export default function DomeGallery({
   const longPressTimerRef = useRef<any>(null);
   const isLongPressedRef = useRef<boolean>(false);
   const hasSwipedRef = useRef<boolean>(false);
+  const preventTileClickRef = useRef<boolean>(false);
 
   const scrollLockedRef = useRef(false);
   const lockScroll = useCallback(() => {
@@ -385,6 +386,7 @@ export default function DomeGallery({
 
         isLongPressedRef.current = false;
         hasSwipedRef.current = false;
+        preventTileClickRef.current = false;
 
         if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
         longPressTimerRef.current = setTimeout(() => {
@@ -400,8 +402,12 @@ export default function DomeGallery({
         const dxTotal = evt.clientX - startPosRef.current.x;
         const dyTotal = evt.clientY - startPosRef.current.y;
 
+        const dist2 = dxTotal * dxTotal + dyTotal * dyTotal;
+        if (dist2 > 64) {
+          preventTileClickRef.current = true;
+        }
+
         if (!isLongPressedRef.current) {
-          const dist2 = dxTotal * dxTotal + dyTotal * dyTotal;
           if (dist2 > 100) { // dist > 10px (dist2 > 100)
             if (longPressTimerRef.current) {
               clearTimeout(longPressTimerRef.current);
@@ -412,6 +418,7 @@ export default function DomeGallery({
               const absX = Math.abs(dxTotal);
               if (absY > absX * 1.3 && absY > 30) {
                 hasSwipedRef.current = true;
+                preventTileClickRef.current = true;
                 const scrollFunc = (window as any).alphaQubitScrollToScreen;
                 if (scrollFunc) {
                   if (dyTotal < -30) {
@@ -422,6 +429,11 @@ export default function DomeGallery({
                 }
                 draggingRef.current = false;
                 movedRef.current = false;
+                
+                // Clear preventTileClickRef after a short delay so trailing clicks/pointerups are fully swallowed
+                setTimeout(() => {
+                  preventTileClickRef.current = false;
+                }, 350);
                 return;
               }
             }
@@ -430,7 +442,6 @@ export default function DomeGallery({
 
         if (isLongPressedRef.current) {
           if (!movedRef.current) {
-            const dist2 = dxTotal * dxTotal + dyTotal * dyTotal;
             if (dist2 > 16) movedRef.current = true;
           }
           const nextX = clamp(
@@ -472,6 +483,12 @@ export default function DomeGallery({
             if (Math.abs(vx) > 0.005 || Math.abs(vy) > 0.005) startInertia(vx, vy);
             if (movedRef.current) lastDragEndAt.current = performance.now();
           }
+
+          // Clear preventTileClickRef after a short delay so trailing clicks/pointerups are fully swallowed
+          setTimeout(() => {
+            preventTileClickRef.current = false;
+          }, 150);
+
           movedRef.current = false;
         }
       }
@@ -801,6 +818,7 @@ export default function DomeGallery({
 
   const onTileClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
+      if (preventTileClickRef.current) return;
       if (draggingRef.current) return;
       if (movedRef.current) return;
       if (performance.now() - lastDragEndAt.current < 80) return;
@@ -813,6 +831,7 @@ export default function DomeGallery({
   const onTilePointerUp = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (e.pointerType !== 'touch') return;
+      if (preventTileClickRef.current) return;
       if (draggingRef.current) return;
       if (movedRef.current) return;
       if (performance.now() - lastDragEndAt.current < 80) return;
@@ -870,8 +889,8 @@ export default function DomeGallery({
       }}
     >
       <main ref={mainRef} className="sphere-main" style={{ cursor: 'grab' }}>
-        <div className="absolute bottom-28 md:bottom-12 left-1/2 -translate-x-1/2 z-30 pointer-events-none text-[10px] md:text-xs font-mono tracking-widest text-zinc-500/80 bg-zinc-950/40 px-3 py-1.5 rounded-full border border-zinc-900/40 backdrop-blur-sm select-none whitespace-nowrap">
-          上下滑动切换页面 / 长按并拖拽旋转球体 (Hold and drag to rotate / Swipe to scroll)
+        <div className="absolute top-28 md:top-24 left-1/2 -translate-x-1/2 z-30 pointer-events-none text-[10px] md:text-xs font-mono tracking-widest text-zinc-500/80 bg-zinc-950/40 px-3 py-1.5 rounded-full border border-zinc-900/40 backdrop-blur-sm select-none whitespace-nowrap">
+          上下滑动切换页面 / 长按并拖拽旋转球体
         </div>
 
         <div className="stage">
