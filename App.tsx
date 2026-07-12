@@ -3279,10 +3279,10 @@ const App: React.FC = () => {
                       >
                         {/* Title and Instruction Header */}
                         <div className="text-center space-y-3 mb-2 mt-1 md:mt-2">
-                          <h2 className="text-3xl md:text-5xl font-display font-black tracking-tighter text-white uppercase leading-none">
+                          <h2 className="text-3xl md:text-5xl font-display font-black tracking-tighter text-white uppercase leading-none drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
                             {s.title || "Sycamore Syndrome Diagnostic Suite"}
                           </h2>
-                          <p className="text-[11px] md:text-sm text-zinc-400 max-w-2xl mx-auto font-sans font-medium leading-relaxed opacity-80">
+                          <p className="text-[11px] md:text-sm text-zinc-200 max-w-2xl mx-auto font-sans font-medium leading-relaxed">
                             {s.description || s.subtitle || "Click any card in the continuous right-to-left feed to lock onto the signal, analyze real-time spatial error patterns, and review physical latency metrics."}
                           </p>
                         </div>
