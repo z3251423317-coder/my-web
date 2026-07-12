@@ -35,7 +35,7 @@ import { db } from './firebase-config';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import defaultUserData from './user_data.json';
 
-import { DEFAULT_MARQUEE_CARDS, DEFAULT_QUANTUM_CARDS, DEFAULT_DOME_CARDS, DEFAULT_SCREEN7_CARDS, MarqueeCard } from './src/cardData';
+import { DEFAULT_MARQUEE_CARDS, DEFAULT_QUANTUM_CARDS, DEFAULT_DOME_CARDS, DEFAULT_SCREEN7_CARDS, DEFAULT_SCREEN7_TABS, DEFAULT_SCREEN3_TABS, MarqueeCard } from './src/cardData';
 
 /* =================================================================================
  * ■ SECTION 2: CONSTANTS, DEFAULT CONFIGURATIONS & COMPONENT SCHEMAS
@@ -789,6 +789,14 @@ const App: React.FC = () => {
             if (data.trialCards) setTrialCards(data.trialCards);
             if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
             if (data.screen7Cards) setScreen7Cards(data.screen7Cards);
+            if (data.screen7Tabs) {
+              setScreen7Tabs(data.screen7Tabs);
+              localStorage.setItem("alphaqubit_screen7_tabs", JSON.stringify(data.screen7Tabs));
+            }
+            if (data.screen3Tabs) {
+              setScreen3Tabs(data.screen3Tabs);
+              localStorage.setItem("alphaqubit_screen3_tabs", JSON.stringify(data.screen3Tabs));
+            }
             if (data.screen7GlowEnabled !== undefined) {
               setScreen7GlowEnabled(!!data.screen7GlowEnabled);
               localStorage.setItem("alphaqubit_screen7_glow_enabled", String(!!data.screen7GlowEnabled));
@@ -817,6 +825,17 @@ const App: React.FC = () => {
           if (fallback.trialCards) setTrialCards(fallback.trialCards);
           if (fallback.relationshipCards) setRelationshipCards(fallback.relationshipCards);
           if (fallback.screen7Cards) setScreen7Cards(fallback.screen7Cards);
+          if (fallback.screen7Tabs) {
+            setScreen7Tabs(fallback.screen7Tabs);
+            localStorage.setItem("alphaqubit_screen7_tabs", JSON.stringify(fallback.screen7Tabs));
+          }
+          if (fallback.screen3Tabs) {
+            setScreen3Tabs(fallback.screen3Tabs);
+            localStorage.setItem("alphaqubit_screen3_tabs", JSON.stringify(fallback.screen3Tabs));
+          } else {
+            setScreen3Tabs(DEFAULT_SCREEN3_TABS);
+            localStorage.setItem("alphaqubit_screen3_tabs", JSON.stringify(DEFAULT_SCREEN3_TABS));
+          }
           if (fallback.screen7GlowEnabled !== undefined) {
             setScreen7GlowEnabled(!!fallback.screen7GlowEnabled);
             localStorage.setItem("alphaqubit_screen7_glow_enabled", String(!!fallback.screen7GlowEnabled));
@@ -1128,6 +1147,59 @@ const App: React.FC = () => {
       });
     }
   };
+
+  const [screen7Tabs, setScreen7Tabs] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem("alphaqubit_screen7_tabs");
+        if (saved) {
+          return JSON.parse(saved);
+        }
+      } catch (e) {
+        console.error("Failed to parse saved screen 7 tabs", e);
+      }
+    }
+    return JSON.parse(JSON.stringify(DEFAULT_SCREEN7_TABS));
+  });
+
+  const saveScreen7Tabs = (updated: string[]) => {
+    setScreen7Tabs(updated);
+    localStorage.setItem("alphaqubit_screen7_tabs", JSON.stringify(updated));
+    if (db && typeof window !== 'undefined') {
+      import('firebase/firestore').then(({ doc, setDoc }) => {
+        setDoc(doc(db, 'system_config', 'screen7Tabs'), { data: updated }).catch(console.error);
+      });
+    }
+  };
+
+  const [activeScreen7Tab, setActiveScreen7Tab] = useState<string>("全部");
+
+  const [screen3Tabs, setScreen3Tabs] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem("alphaqubit_screen3_tabs");
+        if (saved) {
+          return JSON.parse(saved);
+        }
+      } catch (e) {
+        console.error("Failed to parse saved screen 3 tabs", e);
+      }
+    }
+    return JSON.parse(JSON.stringify(DEFAULT_SCREEN3_TABS));
+  });
+
+  const saveScreen3Tabs = (updated: string[]) => {
+    setScreen3Tabs(updated);
+    localStorage.setItem("alphaqubit_screen3_tabs", JSON.stringify(updated));
+    if (db && typeof window !== 'undefined') {
+      import('firebase/firestore').then(({ doc, setDoc }) => {
+        setDoc(doc(db, 'system_config', 'screen3Tabs'), { data: updated }).catch(console.error);
+      });
+    }
+  };
+
+  const [activeScreen3Tab, setActiveScreen3Tab] = useState<string>("全部");
+
 
 
   const saveTrialCards = (updated: MarqueeCard[]) => {
@@ -1757,6 +1829,7 @@ const App: React.FC = () => {
       trialCards: trialCards,
       relationshipCards: relationshipCards,
       screen7Cards: screen7Cards,
+      screen7Tabs: screen7Tabs,
     };
     const codeStr = JSON.stringify(masterData, null, 2);
     setCopyToast(codeStr);
@@ -1808,6 +1881,11 @@ const App: React.FC = () => {
       if (Array.isArray(parsed.screen7Cards)) {
         setScreen7Cards(parsed.screen7Cards);
         localStorage.setItem("alphaqubit_screen7_cards", JSON.stringify(parsed.screen7Cards));
+        importCount++;
+      }
+      if (Array.isArray(parsed.screen7Tabs)) {
+        setScreen7Tabs(parsed.screen7Tabs);
+        localStorage.setItem("alphaqubit_screen7_tabs", JSON.stringify(parsed.screen7Tabs));
         importCount++;
       }
 
@@ -2977,39 +3055,71 @@ const App: React.FC = () => {
                 )}
 
                 <div className="absolute inset-0 w-full h-full pointer-events-auto">
-                  <InfiniteMenu
-                    active={isSelected}
-                    scale={1.4}
-                    items={sphereCards.map((card, idx) => ({
-                      id: card.id,
-                      image: card.image || [
-                        "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop", // Qubit Topology
-                        "https://images.unsplash.com/photo-1507668077129-56e32842fceb?q=80&w=600&auto=format&fit=crop", // Primal Syndrome
-                        "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=600&auto=format&fit=crop", // Stabilizer Parity
-                        "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=600&auto=format&fit=crop", // Decoder Mesh
-                        "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=600&auto=format&fit=crop", // Cosmic Ray Shield
-                        "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=600&auto=format&fit=crop", // Synergy Routing
-                        "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop", // Coherent Decay
-                        "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=600&auto=format&fit=crop", // MWPM Solver
-                        "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=600&auto=format&fit=crop", // Decoder Latency
-                        "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=600&auto=format&fit=crop"  // Weight Distribution
-                      ][idx % 10],
-                      title: card.title,
-                      description: card.desc,
-                      link: card.url,
-                      category: card.cat
-                    }))}
-                    onItemClick={(item) => {
-                      const originalCard = sphereCards.find(c => c.id === item.id);
-                      if (originalCard) {
-                        if (originalCard.url) {
-                          window.open(originalCard.url, '_blank', 'noopener,noreferrer');
-                        } else {
-                          handleCardClick(originalCard);
+                  {sphereCards.length > 0 ? (
+                    <InfiniteMenu
+                      active={isSelected}
+                      scale={1.4}
+                      items={sphereCards.map((card, idx) => ({
+                        id: card.id,
+                        image: card.image || [
+                          "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop", // Qubit Topology
+                          "https://images.unsplash.com/photo-1507668077129-56e32842fceb?q=80&w=600&auto=format&fit=crop", // Primal Syndrome
+                          "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=600&auto=format&fit=crop", // Stabilizer Parity
+                          "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=600&auto=format&fit=crop", // Decoder Mesh
+                          "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=600&auto=format&fit=crop", // Cosmic Ray Shield
+                          "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=600&auto=format&fit=crop", // Synergy Routing
+                          "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop", // Coherent Decay
+                          "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=600&auto=format&fit=crop", // MWPM Solver
+                          "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=600&auto=format&fit=crop", // Decoder Latency
+                          "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=600&auto=format&fit=crop"  // Weight Distribution
+                        ][idx % 10],
+                        title: card.title,
+                        description: card.desc,
+                        link: card.url,
+                        category: card.cat
+                      }))}
+                      onItemClick={(item) => {
+                        const originalCard = sphereCards.find(c => c.id === item.id);
+                        if (originalCard) {
+                          if (originalCard.url) {
+                            window.open(originalCard.url, '_blank', 'noopener,noreferrer');
+                          } else {
+                            handleCardClick(originalCard);
+                          }
                         }
-                      }
-                    }}
-                  />
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-[#070913]/95 text-center px-6 relative overflow-hidden">
+                      {/* Grid overlay for a gorgeous techy background */}
+                      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f293710_1px,transparent_1px),linear-gradient(to_bottom,#1f293710_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+                      
+                      <div className="relative z-10 max-w-md space-y-6">
+                        <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto animate-pulse">
+                          <Settings className="w-8 h-8 text-amber-500" />
+                        </div>
+                        <div className="space-y-2">
+                          <h3 className="text-lg font-bold font-display tracking-widest text-white uppercase">
+                            CRYOGENIC CORE STANDBY
+                          </h3>
+                          <p className="text-xs text-zinc-400 font-sans leading-relaxed">
+                            球形粒子系统当前未加载任何信息节点。
+                            <br />
+                            请点击右上角「打开控制台」或进入后台管理添加卡片以激活系统。
+                          </p>
+                        </div>
+                        {isAiStudio && (
+                          <button
+                            onClick={() => setActiveConsoleScreenId(4)}
+                            className="inline-flex items-center gap-2 px-5 py-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 text-[11px] font-mono tracking-widest uppercase rounded-lg transition-all duration-300 font-extrabold cursor-pointer shadow-lg shadow-amber-500/10"
+                          >
+                            <Settings className="w-3.5 h-3.5" />
+                            <span>打开控制台 / Configure Nodes</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
               </section>
@@ -3251,10 +3361,86 @@ const App: React.FC = () => {
                       )}
                     </div>
 
+                    {/* Category tabs for Screen 3 */}
+                    {s.id === 3 && screen3Tabs && screen3Tabs.length > 0 && (
+                      <div className="w-full flex justify-center py-2 px-4 select-none pointer-events-auto mb-2">
+                        <div className="flex items-center gap-2 md:gap-3 bg-transparent p-1.5 rounded-full max-w-full overflow-x-auto no-scrollbar scroll-smooth">
+                          {/* 全部 Button */}
+                          <button
+                            type="button"
+                            onClick={() => setActiveScreen3Tab("全部")}
+                            className={`px-4 py-1.5 rounded-full text-xs font-sans tracking-wide transition-all duration-300 ${
+                              activeScreen3Tab === "全部"
+                                ? "bg-amber-500 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/35 scale-[1.02]"
+                                : "text-zinc-400 hover:text-white hover:bg-zinc-800/30"
+                            }`}
+                          >
+                            全部
+                          </button>
+                          
+                          {/* Custom Tab Buttons */}
+                          {screen3Tabs.map((tab, tIdx) => (
+                            <button
+                              key={tIdx}
+                              type="button"
+                              onClick={() => setActiveScreen3Tab(tab)}
+                              className={`px-4 py-1.5 rounded-full text-xs font-sans tracking-wide whitespace-nowrap transition-all duration-300 ${
+                                activeScreen3Tab === tab
+                                  ? "bg-amber-500 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/35 scale-[1.02]"
+                                  : "text-zinc-400 hover:text-white hover:bg-zinc-800/30"
+                              }`}
+                            >
+                              {tab}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Category tabs for Screen 7 */}
+                    {s.id === 7 && screen7Tabs && screen7Tabs.length > 0 && (
+                      <div className="w-full flex justify-center py-2 px-4 select-none pointer-events-auto mb-2">
+                        <div className="flex items-center gap-2 md:gap-3 bg-transparent p-1.5 rounded-full max-w-full overflow-x-auto no-scrollbar scroll-smooth">
+                          {/* 全部 Button */}
+                          <button
+                            type="button"
+                            onClick={() => setActiveScreen7Tab("全部")}
+                            className={`px-4 py-1.5 rounded-full text-xs font-sans tracking-wide transition-all duration-300 ${
+                              activeScreen7Tab === "全部"
+                                ? "bg-amber-500 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/35 scale-[1.02]"
+                                : "text-zinc-400 hover:text-white hover:bg-zinc-800/30"
+                            }`}
+                          >
+                            全部
+                          </button>
+                          
+                          {/* Custom Tab Buttons */}
+                          {screen7Tabs.map((tab, tIdx) => (
+                            <button
+                              key={tIdx}
+                              type="button"
+                              onClick={() => setActiveScreen7Tab(tab)}
+                              className={`px-4 py-1.5 rounded-full text-xs font-sans tracking-wide whitespace-nowrap transition-all duration-300 ${
+                                activeScreen7Tab === tab
+                                  ? "bg-amber-500 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/35 scale-[1.02]"
+                                  : "text-zinc-400 hover:text-white hover:bg-zinc-800/30"
+                              }`}
+                            >
+                              {tab}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Flex track running marquee animation with dragging/touch support. */}
                     <div className="relative w-screen left-1/2 -ml-[50vw] py-8 overflow-hidden select-none my-2 bg-transparent pointer-events-auto">
                       <ScrollMarquee
-                        items={s.id === 7 ? screen7Cards : marqueeCards}
+                        items={
+                          s.id === 7 
+                            ? screen7Cards.filter(card => activeScreen7Tab === "全部" || card.cat === activeScreen7Tab) 
+                            : marqueeCards.filter(card => activeScreen3Tab === "全部" || card.cat === activeScreen3Tab)
+                        }
                         speed={domeAutoRotateSpeed || 1}
                         reverse={s.id !== 7} // s.id === 3 will scroll reverse (left to right / RTL-LTR), s.id === 7 will scroll forward
                         autoPlay={domeAutoRotate}

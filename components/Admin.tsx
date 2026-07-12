@@ -5,7 +5,8 @@ import {
   Layers, Palette, Shield, Zap, ChevronLeft, ChevronRight, HelpCircle, 
   RefreshCw, CheckCircle, Database, AlertCircle, Play, Pause, Save, 
   Home, FileText, Globe, Cpu, Sliders, Music, Lock, Layout, ArrowRight, 
-  Trash2, Plus, Edit3, Info, Eye, Upload, Video, Image as ImageIcon, AlertTriangle, Copy, Check
+  Trash2, Plus, Edit3, Info, Eye, Upload, Video, Image as ImageIcon, AlertTriangle, Copy, Check, X,
+  ChevronDown, ChevronUp, Folder, FolderPlus
 } from 'lucide-react';
 import defaultUserData from '../user_data.json';
 
@@ -86,6 +87,7 @@ interface ScreenData {
   ctaText?: string;
   ctaUrl?: string;
   bgMusicUrl?: string;
+  mobileMusicUrl?: string;
 }
 
 export default function Admin() {
@@ -109,6 +111,12 @@ export default function Admin() {
   const [domeCards, setDomeCards] = useState<MarqueeCard[]>([]);
   const [trialCards, setTrialCards] = useState<MarqueeCard[]>([]);
   const [screen7Cards, setScreen7Cards] = useState<MarqueeCard[]>([]);
+  const [screen7Tabs, setScreen7Tabs] = useState<string[]>([]);
+  const [collapsedScreen7Cats, setCollapsedScreen7Cats] = useState<Record<string, boolean>>({});
+  const [activeScreen7CardId, setActiveScreen7CardId] = useState<number | null>(null);
+  const [screen3Tabs, setScreen3Tabs] = useState<string[]>([]);
+  const [collapsedScreen3Cats, setCollapsedScreen3Cats] = useState<Record<string, boolean>>({});
+  const [activeScreen3CardId, setActiveScreen3CardId] = useState<number | null>(null);
   const [relationshipCards, setRelationshipCards] = useState<RelationshipCard[]>([]);
   const [screen7GlowEnabled, setScreen7GlowEnabled] = useState(true);
   const [screen7GlowColor, setScreen7GlowColor] = useState('#fbbf24');
@@ -176,6 +184,12 @@ export default function Admin() {
     if (Array.isArray(data.trialCards)) setTrialCards(data.trialCards);
     if (Array.isArray(data.relationshipCards)) setRelationshipCards(data.relationshipCards);
     if (Array.isArray(data.screen7Cards)) setScreen7Cards(data.screen7Cards);
+    if (Array.isArray(data.screen7Tabs)) setScreen7Tabs(data.screen7Tabs);
+    if (Array.isArray(data.screen3Tabs)) {
+      setScreen3Tabs(data.screen3Tabs);
+    } else {
+      setScreen3Tabs(["HARDWARE ENGINE", "METRIC ANALYZIS", "OPTIMIZER"]);
+    }
     if (data.screen7GlowEnabled !== undefined) setScreen7GlowEnabled(!!data.screen7GlowEnabled);
     if (data.screen7GlowColor) setScreen7GlowColor(data.screen7GlowColor);
   };
@@ -193,8 +207,10 @@ export default function Admin() {
       trialCards,
       relationshipCards,
       screen7Cards,
+      screen7Tabs,
       screen7GlowEnabled,
-      screen7GlowColor
+      screen7GlowColor,
+      screen3Tabs
     };
   };
 
@@ -806,11 +822,21 @@ export default function Admin() {
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest block font-bold">板块独立背景音乐 (BGM URL)</label>
+                    <label className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest block font-bold">板块独立背景音乐 - PC端 (BGM URL - PC)</label>
                     <input 
                       type="text" 
                       value={currentScreen.bgMusicUrl || ''} 
                       onChange={(e) => updateScreenField(currentScreen.id, 'bgMusicUrl', e.target.value)}
+                      className="w-full px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white font-mono"
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest block font-bold">移动端专属背景音乐 (Mobile BGM URL)</label>
+                    <input 
+                      type="text" 
+                      value={currentScreen.mobileMusicUrl || ''} 
+                      onChange={(e) => updateScreenField(currentScreen.id, 'mobileMusicUrl', e.target.value)}
                       className="w-full px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white font-mono"
                       placeholder="https://..."
                     />
@@ -1121,13 +1147,441 @@ export default function Admin() {
                  * ■ CHILD DATA: SCREEN 3 (MARQUEE CARDS)
                  * ================================================================================= */}
                 {currentScreen.id === 3 && (
-                  <CardListFormGroup 
-                    title="递归大脑底层滚动单元 (Marquee Cards)" 
-                    cards={marqueeCards} 
-                    saveCards={setMarqueeCards} 
-                    selectedId={selectedMarqueeCardId} 
-                    setSelectedId={setSelectedMarqueeCardId} 
-                  />
+                  <div className="space-y-6 animate-fadeIn">
+                    {/* Upper Category Creator */}
+                    <div className="p-5 bg-zinc-950/60 border border-zinc-850 rounded-2xl space-y-4 shadow-xl">
+                      <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+                        <div className="flex items-center gap-2">
+                          <FolderPlus className="w-5 h-5 text-amber-500 animate-pulse" />
+                          <span className="text-xs font-mono tracking-wider text-amber-400 font-bold uppercase">
+                            第三屏分类管理中心 (Category Management)
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-mono text-zinc-500">
+                          已建分类: {screen3Tabs.length} 个
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-col md:flex-row gap-3">
+                        <div className="flex-1">
+                          <input
+                            id="new-category-input-screen3"
+                            type="text"
+                            placeholder="输入要创建的分类名称（例如：HARDWARE ENGINE、OPTIMIZER）..."
+                            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-amber-500/50 transition-all font-sans"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const val = e.currentTarget.value.trim();
+                                if (val) {
+                                  if (screen3Tabs.includes(val)) {
+                                    alert("该分类已存在！");
+                                  } else {
+                                    setScreen3Tabs([...screen3Tabs, val]);
+                                    e.currentTarget.value = '';
+                                  }
+                                }
+                              }
+                            }}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const input = document.getElementById('new-category-input-screen3') as HTMLInputElement;
+                            const val = input?.value.trim();
+                            if (val) {
+                              if (screen3Tabs.includes(val)) {
+                                alert("该分类已存在！");
+                              } else {
+                                setScreen3Tabs([...screen3Tabs, val]);
+                                if (input) input.value = '';
+                              }
+                            } else {
+                              alert("请输入分类名称！");
+                            }
+                          }}
+                          className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs rounded-xl shadow-lg shadow-amber-500/10 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer"
+                        >
+                          <Plus className="w-3.5 h-3.5 stroke-[3px]" />
+                          <span>创建新分类 / Add Category</span>
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-zinc-400 leading-relaxed">
+                        💡 <strong>操作指南：</strong>创建完上方的主题分类后，它将以独立的文件夹面板显示在下方。您可以直接在所属面板中<strong>添加并配置其专属的技术卡片</strong>，使整个后台结构更加清晰。
+                      </p>
+                    </div>
+
+                    {/* Collapsible & Nested Category List */}
+                    <div className="space-y-4">
+                      {(() => {
+                        // Gather uncategorized cards that don't belong to any tab
+                        const uncategorizedCards = marqueeCards.filter(c => !screen3Tabs.includes(c.cat));
+                        const allCategories = [...screen3Tabs];
+                        if (uncategorizedCards.length > 0) {
+                          allCategories.push("__uncategorized__");
+                        }
+
+                        if (allCategories.length === 0) {
+                          return (
+                            <div className="p-8 bg-zinc-950/20 border border-dashed border-zinc-800 rounded-2xl text-center space-y-3">
+                              <Folder className="w-8 h-8 text-zinc-600 mx-auto" />
+                              <div className="space-y-1">
+                                <p className="text-xs text-zinc-400 font-bold">暂无任何分类内容</p>
+                                <p className="text-[11px] text-zinc-500">请在上方输入框中添加第一个分类，开始整理卡片模块！</p>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        return allCategories.map((catName) => {
+                          const isUncategorized = catName === "__uncategorized__";
+                          const displayName = isUncategorized ? "未分类 / 默认卡片" : catName;
+                          const catCards = isUncategorized 
+                            ? uncategorizedCards 
+                            : marqueeCards.filter(c => c.cat === catName);
+                          
+                          const isCollapsed = !!collapsedScreen3Cats[catName];
+                          
+                          // Toggle collapse
+                          const toggleCollapse = () => {
+                            setCollapsedScreen3Cats(prev => ({
+                              ...prev,
+                              [catName]: !prev[catName]
+                            }));
+                          };
+
+                          // Add card to this category
+                          const addCardToCategory = () => {
+                            const nextId = marqueeCards.length > 0 ? Math.max(...marqueeCards.map(c => c.id)) + 1 : 1;
+                            const newCard: MarqueeCard = {
+                              id: nextId,
+                              title: `新${isUncategorized ? "默认" : catName}节点卡片`,
+                              cat: isUncategorized ? (screen3Tabs[0] || '默认') : catName,
+                              desc: '请在此输入该节点的具体技术原理或诊断介绍。',
+                              url: '',
+                              colorType: 'blue',
+                              isLit: true
+                            };
+                            setMarqueeCards([...marqueeCards, newCard]);
+                            setActiveScreen3CardId(nextId);
+                            // Auto expand if collapsed
+                            if (isCollapsed) {
+                              setCollapsedScreen3Cats(prev => ({
+                                ...prev,
+                                [catName]: false
+                              }));
+                            }
+                          };
+
+                          return (
+                            <div 
+                              key={catName} 
+                              className={`border rounded-2xl overflow-hidden transition-all duration-300 ${
+                                isUncategorized 
+                                  ? 'bg-red-950/10 border-red-900/30' 
+                                  : 'bg-zinc-950/40 border-zinc-850 hover:border-zinc-800'
+                              }`}
+                            >
+                              {/* Category Header */}
+                              <div className="flex items-center justify-between p-4 bg-zinc-950/85 border-b border-zinc-850 select-none">
+                                <div 
+                                  className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                                  onClick={toggleCollapse}
+                                >
+                                  <div className={`p-1.5 rounded-lg ${isUncategorized ? 'bg-red-500/10 text-red-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                                    <Folder className="w-4 h-4" />
+                                  </div>
+                                  <div className="truncate">
+                                    <h4 className="text-xs font-bold text-white tracking-wide font-sans flex items-center gap-2">
+                                      <span>{displayName}</span>
+                                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono font-normal">
+                                        {catCards.length} 个技术节点
+                                      </span>
+                                    </h4>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 pl-4">
+                                  {/* Rename Category (Skip if uncategorized) */}
+                                  {!isUncategorized && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newName = window.prompt(`重命名分类“${catName}”：`, catName);
+                                        if (newName && newName.trim() && newName.trim() !== catName) {
+                                          const trimmed = newName.trim();
+                                          if (screen3Tabs.includes(trimmed)) {
+                                            alert("此名称已存在！");
+                                            return;
+                                          }
+                                          // Update screen3Tabs
+                                          setScreen3Tabs(screen3Tabs.map(t => t === catName ? trimmed : t));
+                                          // Update cards with this category
+                                          setMarqueeCards(marqueeCards.map(c => c.cat === catName ? { ...c, cat: trimmed } : c));
+                                        }
+                                      }}
+                                      className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-lg border border-zinc-800 text-[11px] font-medium transition-all"
+                                      title="重命名该分类"
+                                    >
+                                      重命名
+                                    </button>
+                                  )}
+
+                                  {/* Delete Category (Skip if uncategorized) */}
+                                  {!isUncategorized && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (window.confirm(`确定要删除分类“${catName}”吗？\n警告：删除后，该分类下的 ${catCards.length} 张卡片将自动归为“未分类”。`)) {
+                                          setScreen3Tabs(screen3Tabs.filter(t => t !== catName));
+                                        }
+                                      }}
+                                      className="p-1.5 bg-red-950/35 hover:bg-red-500 hover:text-zinc-950 text-red-400 rounded-lg border border-red-900/30 text-[11px] font-medium transition-all"
+                                      title="删除该分类"
+                                    >
+                                      删除
+                                    </button>
+                                  )}
+
+                                  {/* Collapse Toggle button */}
+                                  <button
+                                    type="button"
+                                    onClick={toggleCollapse}
+                                    className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-lg border border-zinc-800 transition-all"
+                                  >
+                                    {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Category Content */}
+                              {!isCollapsed && (
+                                <div className="p-4 space-y-4 bg-zinc-900/20">
+                                  {/* Category Toolbar / Quick Add inside category */}
+                                  <div className="flex justify-between items-center bg-zinc-950/40 p-2.5 rounded-xl border border-zinc-850">
+                                    <span className="text-[10px] font-mono text-zinc-400">
+                                      {displayName}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={addCardToCategory}
+                                      className="px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500 hover:text-zinc-950 text-amber-400 font-bold text-xs rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <Plus className="w-3.5 h-3.5 stroke-[2.5px]" />
+                                      <span>在此分类下直接添加节点</span>
+                                    </button>
+                                  </div>
+
+                                  {/* Cards List in this category */}
+                                  <div className="space-y-2.5">
+                                    {catCards.length === 0 ? (
+                                      <div className="py-6 text-center text-zinc-500 text-xs italic border border-dashed border-zinc-850 rounded-xl">
+                                        暂无属于该分类的内容，请点击上方按钮添加。
+                                      </div>
+                                    ) : (
+                                      catCards.map((card) => {
+                                        const isCardActive = activeScreen3CardId === card.id;
+
+                                        // Update card logic
+                                        const updateCardFieldLocal = (fields: Partial<MarqueeCard>) => {
+                                          setMarqueeCards(marqueeCards.map(c => c.id === card.id ? { ...c, ...fields } : c));
+                                        };
+
+                                        // Delete card logic
+                                        const deleteCardLocal = () => {
+                                          if (window.confirm(`确定要删除技术节点“${card.title}”吗？`)) {
+                                            setMarqueeCards(marqueeCards.filter(c => c.id !== card.id));
+                                            if (isCardActive) setActiveScreen3CardId(null);
+                                          }
+                                        };
+
+                                        return (
+                                          <div 
+                                            key={card.id}
+                                            className={`border rounded-xl transition-all duration-300 ${
+                                              isCardActive 
+                                                ? 'bg-zinc-950 border-amber-500/50 shadow-lg shadow-amber-500/[0.03]' 
+                                                : 'bg-zinc-950/30 border-zinc-850 hover:bg-zinc-950/60 hover:border-zinc-800'
+                                            }`}
+                                          >
+                                            {/* Card row header */}
+                                            <div className="flex items-center justify-between p-3 select-none">
+                                              <div 
+                                                className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                                                onClick={() => setActiveScreen3CardId(isCardActive ? null : card.id)}
+                                              >
+                                                {/* Color Type dot indicator */}
+                                                <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                                                  card.colorType === 'emerald' ? 'bg-emerald-500' :
+                                                  card.colorType === 'amber' ? 'bg-amber-500' :
+                                                  card.colorType === 'red' ? 'bg-red-500' :
+                                                  card.colorType === 'purple' ? 'bg-purple-500' : 'bg-blue-500'
+                                                }`} />
+                                                
+                                                <div className="truncate flex-1">
+                                                  <span className="text-xs font-bold text-white block">
+                                                    {card.title || <span className="text-zinc-500 italic">未命名卡片</span>}
+                                                  </span>
+                                                  <span className="text-[10px] text-zinc-400 block truncate mt-0.5">
+                                                    {card.desc || "无描述..."}
+                                                  </span>
+                                                </div>
+
+                                                {/* IsLit glow pill */}
+                                                <div className="shrink-0 flex items-center gap-1.5">
+                                                  <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-bold ${
+                                                    card.isLit 
+                                                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' 
+                                                      : 'bg-zinc-900 text-zinc-500 border border-zinc-800'
+                                                  }`}>
+                                                    {card.isLit ? 'GLOW/高亮' : 'OFF/普通'}
+                                                  </span>
+                                                </div>
+                                              </div>
+
+                                              <div className="flex items-center gap-1.5 pl-3 shrink-0">
+                                                {/* Edit Button */}
+                                                <button
+                                                  type="button"
+                                                  onClick={() => setActiveScreen3CardId(isCardActive ? null : card.id)}
+                                                  className={`p-1.5 rounded-lg border text-xs transition-all ${
+                                                    isCardActive 
+                                                      ? 'bg-amber-500 text-zinc-950 border-amber-500 font-extrabold' 
+                                                      : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border-zinc-800'
+                                                  }`}
+                                                >
+                                                  {isCardActive ? '收起' : '编辑内容'}
+                                                </button>
+
+                                                {/* Delete Button */}
+                                                <button
+                                                  type="button"
+                                                  onClick={deleteCardLocal}
+                                                  className="p-1.5 bg-zinc-900 hover:bg-red-500 hover:text-zinc-950 text-zinc-400 border border-zinc-800 hover:border-red-500 rounded-lg transition-all"
+                                                  title="删除此卡片"
+                                                >
+                                                  <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                              </div>
+                                            </div>
+
+                                            {/* Card row active fields */}
+                                            {isCardActive && (
+                                              <div className="p-4 border-t border-zinc-850 bg-zinc-950/85 rounded-b-xl space-y-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                  {/* Title */}
+                                                  <div className="space-y-1.5">
+                                                    <label className="text-[10px] text-zinc-400 block font-bold uppercase tracking-wider">
+                                                      卡片标题 (Title)
+                                                    </label>
+                                                    <input 
+                                                      type="text"
+                                                      value={card.title}
+                                                      onChange={(e) => updateCardFieldLocal({ title: e.target.value })}
+                                                      className="w-full px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white focus:ring-1 focus:ring-amber-500/50 focus:outline-none"
+                                                      placeholder="卡片主标题"
+                                                    />
+                                                  </div>
+
+                                                  {/* Color Type */}
+                                                  <div className="space-y-1.5">
+                                                    <label className="text-[10px] text-zinc-400 block font-bold uppercase tracking-wider">
+                                                      高亮颜色主题 (Color Theme)
+                                                    </label>
+                                                    <select
+                                                      value={card.colorType || 'blue'}
+                                                      onChange={(e) => updateCardFieldLocal({ colorType: e.target.value as any })}
+                                                      className="w-full px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white focus:ring-1 focus:ring-amber-500/50 focus:outline-none"
+                                                    >
+                                                      <option value="blue">蓝色光束 (Blue)</option>
+                                                      <option value="emerald">翠绿微芒 (Emerald)</option>
+                                                      <option value="amber">琥珀金黄 (Amber)</option>
+                                                      <option value="red">猩红预警 (Red)</option>
+                                                      <option value="purple">量子幻紫 (Purple)</option>
+                                                    </select>
+                                                  </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                  {/* Detail link URL */}
+                                                  <div className="space-y-1.5">
+                                                    <label className="text-[10px] text-zinc-400 block font-bold uppercase tracking-wider">
+                                                      外部详情链接 (Details Link URL - 选填)
+                                                    </label>
+                                                    <input 
+                                                      type="text"
+                                                      value={card.url || ''}
+                                                      onChange={(e) => updateCardFieldLocal({ url: e.target.value })}
+                                                      className="w-full px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white focus:ring-1 focus:ring-amber-500/50 focus:outline-none font-mono"
+                                                      placeholder="例：https://example.com/paper"
+                                                    />
+                                                  </div>
+
+                                                  {/* Move Category */}
+                                                  <div className="space-y-1.5">
+                                                    <label className="text-[10px] text-zinc-400 block font-bold uppercase tracking-wider">
+                                                      移动所属分类 (Move to Category)
+                                                    </label>
+                                                    <select
+                                                      value={card.cat}
+                                                      onChange={(e) => updateCardFieldLocal({ cat: e.target.value })}
+                                                      className="w-full px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white focus:ring-1 focus:ring-amber-500/50 focus:outline-none"
+                                                    >
+                                                      {screen3Tabs.map((tabOpt, optIdx) => (
+                                                        <option key={optIdx} value={tabOpt}>{tabOpt}</option>
+                                                      ))}
+                                                    </select>
+                                                  </div>
+                                                </div>
+
+                                                {/* Description */}
+                                                <div className="space-y-1.5">
+                                                  <label className="text-[10px] text-zinc-400 block font-bold uppercase tracking-wider">
+                                                    核心技术细节 / 详细描述 (Technical Details)
+                                                  </label>
+                                                  <textarea 
+                                                    value={card.desc}
+                                                    rows={3}
+                                                    onChange={(e) => updateCardFieldLocal({ desc: e.target.value })}
+                                                    className="w-full px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white focus:ring-1 focus:ring-amber-500/50 focus:outline-none resize-y leading-relaxed"
+                                                    placeholder="请输入该节点的具体功能 and 技术原理，这会显示在卡片的详细视窗中..."
+                                                  />
+                                                </div>
+
+                                                {/* isLit Switch */}
+                                                <div className="flex items-center justify-between p-2.5 bg-zinc-900 rounded-xl border border-zinc-850">
+                                                  <div className="space-y-0.5">
+                                                    <span className="text-xs font-bold text-white block">启用量子流发光特效 (Glow Effect)</span>
+                                                    <span className="text-[10px] text-zinc-400 block">高亮显示该项，在前台以更显眼的发光卡片呈现</span>
+                                                  </div>
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => updateCardFieldLocal({ isLit: !card.isLit })}
+                                                    className={`px-3 py-1 rounded-full text-xs font-mono font-bold transition-all ${
+                                                      card.isLit 
+                                                        ? 'bg-amber-500 text-zinc-950 font-extrabold shadow-[0_0_8px_rgba(245,158,11,0.4)]' 
+                                                        : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300'
+                                                    }`}
+                                                  >
+                                                    {card.isLit ? "已启用 GLOWING" : "未启用 STATIC"}
+                                                  </button>
+                                                </div>
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      })
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </div>
                 )}
 
                 {/* =================================================================================
@@ -1174,14 +1628,441 @@ export default function Admin() {
                  * ■ CHILD DATA: SCREEN 7, 8, 9 (HARDCODED VIEWS METADATA NOTE)
                  * ================================================================================= */}
                 {currentScreen.id === 7 && (
-                  <CardListFormGroup 
-                    title="流程式向左滑动的里程碑控制台 (Screen 7 Marquee Cards)" 
-                    cards={screen7Cards} 
-                    saveCards={setScreen7Cards} 
-                    selectedId={selectedTrialCardId} 
-                    setSelectedId={setSelectedTrialCardId} 
-                    enableSubCards={false}
-                  />
+                  <div className="space-y-6 animate-fadeIn">
+                    {/* Upper Category Creator */}
+                    <div className="p-5 bg-zinc-950/60 border border-zinc-850 rounded-2xl space-y-4 shadow-xl">
+                      <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+                        <div className="flex items-center gap-2">
+                          <FolderPlus className="w-5 h-5 text-amber-500 animate-pulse" />
+                          <span className="text-xs font-mono tracking-wider text-amber-400 font-bold uppercase">
+                            第七屏分类管理中心 (Category Management)
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-mono text-zinc-500">
+                          已建分类: {screen7Tabs.length} 个
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-col md:flex-row gap-3">
+                        <div className="flex-1">
+                          <input
+                            id="new-category-input"
+                            type="text"
+                            placeholder="输入要创建的分类名称（例如：硬件设计、物理实验）..."
+                            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-amber-500/50 transition-all font-sans"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const val = e.currentTarget.value.trim();
+                                if (val) {
+                                  if (screen7Tabs.includes(val)) {
+                                    alert("该分类已存在！");
+                                  } else {
+                                    setScreen7Tabs([...screen7Tabs, val]);
+                                    e.currentTarget.value = '';
+                                  }
+                                }
+                              }
+                            }}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const input = document.getElementById('new-category-input') as HTMLInputElement;
+                            const val = input?.value.trim();
+                            if (val) {
+                              if (screen7Tabs.includes(val)) {
+                                alert("该分类已存在！");
+                              } else {
+                                setScreen7Tabs([...screen7Tabs, val]);
+                                if (input) input.value = '';
+                              }
+                            } else {
+                              alert("请输入分类名称！");
+                            }
+                          }}
+                          className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs rounded-xl shadow-lg shadow-amber-500/10 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer"
+                        >
+                          <Plus className="w-3.5 h-3.5 stroke-[3px]" />
+                          <span>创建新分类 / Add Category</span>
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-zinc-400 leading-relaxed">
+                        💡 <strong>操作指南：</strong>创建完上方的主题分类后，它将以独立的文件夹面板显示在下方。您可以直接在所属面板中<strong>添加并配置其专属的技术卡片</strong>，使整个后台结构更加清晰。
+                      </p>
+                    </div>
+
+                    {/* Collapsible & Nested Category List */}
+                    <div className="space-y-4">
+                      {(() => {
+                        // Gather uncategorized cards that don't belong to any tab
+                        const uncategorizedCards = screen7Cards.filter(c => !screen7Tabs.includes(c.cat));
+                        const allCategories = [...screen7Tabs];
+                        if (uncategorizedCards.length > 0) {
+                          allCategories.push("__uncategorized__");
+                        }
+
+                        if (allCategories.length === 0) {
+                          return (
+                            <div className="p-8 bg-zinc-950/20 border border-dashed border-zinc-800 rounded-2xl text-center space-y-3">
+                              <Folder className="w-8 h-8 text-zinc-600 mx-auto" />
+                              <div className="space-y-1">
+                                <p className="text-xs text-zinc-400 font-bold">暂无任何分类内容</p>
+                                <p className="text-[11px] text-zinc-500">请在上方输入框中添加第一个分类，开始整理卡片模块！</p>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        return allCategories.map((catName) => {
+                          const isUncategorized = catName === "__uncategorized__";
+                          const displayName = isUncategorized ? "未分类 / 默认卡片" : catName;
+                          const catCards = isUncategorized 
+                            ? uncategorizedCards 
+                            : screen7Cards.filter(c => c.cat === catName);
+                          
+                          const isCollapsed = !!collapsedScreen7Cats[catName];
+                          
+                          // Toggle collapse
+                          const toggleCollapse = () => {
+                            setCollapsedScreen7Cats(prev => ({
+                              ...prev,
+                              [catName]: !prev[catName]
+                            }));
+                          };
+
+                          // Add card to this category
+                          const addCardToCategory = () => {
+                            const nextId = screen7Cards.length > 0 ? Math.max(...screen7Cards.map(c => c.id)) + 1 : 1;
+                            const newCard: MarqueeCard = {
+                              id: nextId,
+                              title: `新${isUncategorized ? "默认" : catName}节点卡片`,
+                              cat: isUncategorized ? (screen7Tabs[0] || '默认') : catName,
+                              desc: '请在此输入该节点的具体技术原理或诊断介绍。',
+                              url: '',
+                              colorType: 'blue',
+                              isLit: true
+                            };
+                            setScreen7Cards([...screen7Cards, newCard]);
+                            setActiveScreen7CardId(nextId);
+                            // Auto expand if collapsed
+                            if (isCollapsed) {
+                              setCollapsedScreen7Cats(prev => ({
+                                ...prev,
+                                [catName]: false
+                              }));
+                            }
+                          };
+
+                          return (
+                            <div 
+                              key={catName} 
+                              className={`border rounded-2xl overflow-hidden transition-all duration-300 ${
+                                isUncategorized 
+                                  ? 'bg-red-950/10 border-red-900/30' 
+                                  : 'bg-zinc-950/40 border-zinc-850 hover:border-zinc-800'
+                              }`}
+                            >
+                              {/* Category Header */}
+                              <div className="flex items-center justify-between p-4 bg-zinc-950/85 border-b border-zinc-850 select-none">
+                                <div 
+                                  className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                                  onClick={toggleCollapse}
+                                >
+                                  <div className={`p-1.5 rounded-lg ${isUncategorized ? 'bg-red-500/10 text-red-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                                    <Folder className="w-4 h-4" />
+                                  </div>
+                                  <div className="truncate">
+                                    <h4 className="text-xs font-bold text-white tracking-wide font-sans flex items-center gap-2">
+                                      <span>{displayName}</span>
+                                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono font-normal">
+                                        {catCards.length} 个技术节点
+                                      </span>
+                                    </h4>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 pl-4">
+                                  {/* Rename Category (Skip if uncategorized) */}
+                                  {!isUncategorized && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newName = window.prompt(`重命名分类“${catName}”：`, catName);
+                                        if (newName && newName.trim() && newName.trim() !== catName) {
+                                          const trimmed = newName.trim();
+                                          if (screen7Tabs.includes(trimmed)) {
+                                            alert("此名称已存在！");
+                                            return;
+                                          }
+                                          // Update screen7Tabs
+                                          setScreen7Tabs(screen7Tabs.map(t => t === catName ? trimmed : t));
+                                          // Update cards with this category
+                                          setScreen7Cards(screen7Cards.map(c => c.cat === catName ? { ...c, cat: trimmed } : c));
+                                        }
+                                      }}
+                                      className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-lg border border-zinc-800 text-[11px] font-medium transition-all"
+                                      title="重命名该分类"
+                                    >
+                                      重命名
+                                    </button>
+                                  )}
+
+                                  {/* Delete Category (Skip if uncategorized) */}
+                                  {!isUncategorized && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (window.confirm(`确定要删除分类“${catName}”吗？\n警告：删除后，该分类下的 ${catCards.length} 张卡片将自动归为“未分类”。`)) {
+                                          setScreen7Tabs(screen7Tabs.filter(t => t !== catName));
+                                        }
+                                      }}
+                                      className="p-1.5 bg-red-950/35 hover:bg-red-500 hover:text-zinc-950 text-red-400 rounded-lg border border-red-900/30 text-[11px] font-medium transition-all"
+                                      title="删除该分类"
+                                    >
+                                      删除
+                                    </button>
+                                  )}
+
+                                  {/* Collapse Toggle button */}
+                                  <button
+                                    type="button"
+                                    onClick={toggleCollapse}
+                                    className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-lg border border-zinc-800 transition-all"
+                                  >
+                                    {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Category Content */}
+                              {!isCollapsed && (
+                                <div className="p-4 space-y-4 bg-zinc-900/20">
+                                  {/* Category Toolbar / Quick Add inside category */}
+                                  <div className="flex justify-between items-center bg-zinc-950/40 p-2.5 rounded-xl border border-zinc-850">
+                                    <span className="text-[10px] font-mono text-zinc-400">
+                                      {displayName}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={addCardToCategory}
+                                      className="px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500 hover:text-zinc-950 text-amber-400 font-bold text-xs rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <Plus className="w-3.5 h-3.5 stroke-[2.5px]" />
+                                      <span>在此分类下直接添加节点</span>
+                                    </button>
+                                  </div>
+
+                                  {/* Cards List in this category */}
+                                  <div className="space-y-2.5">
+                                    {catCards.length === 0 ? (
+                                      <div className="py-6 text-center text-zinc-500 text-xs italic border border-dashed border-zinc-850 rounded-xl">
+                                        暂无属于该分类的内容，请点击上方按钮添加。
+                                      </div>
+                                    ) : (
+                                      catCards.map((card) => {
+                                        const isCardActive = activeScreen7CardId === card.id;
+
+                                        // Update card logic
+                                        const updateCardFieldLocal = (fields: Partial<MarqueeCard>) => {
+                                          setScreen7Cards(screen7Cards.map(c => c.id === card.id ? { ...c, ...fields } : c));
+                                        };
+
+                                        // Delete card logic
+                                        const deleteCardLocal = () => {
+                                          if (window.confirm(`确定要删除技术节点“${card.title}”吗？`)) {
+                                            setScreen7Cards(screen7Cards.filter(c => c.id !== card.id));
+                                            if (isCardActive) setActiveScreen7CardId(null);
+                                          }
+                                        };
+
+                                        return (
+                                          <div 
+                                            key={card.id}
+                                            className={`border rounded-xl transition-all duration-300 ${
+                                              isCardActive 
+                                                ? 'bg-zinc-950 border-amber-500/50 shadow-lg shadow-amber-500/[0.03]' 
+                                                : 'bg-zinc-950/30 border-zinc-850 hover:bg-zinc-950/60 hover:border-zinc-800'
+                                            }`}
+                                          >
+                                            {/* Card row header */}
+                                            <div className="flex items-center justify-between p-3 select-none">
+                                              <div 
+                                                className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                                                onClick={() => setActiveScreen7CardId(isCardActive ? null : card.id)}
+                                              >
+                                                {/* Color Type dot indicator */}
+                                                <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                                                  card.colorType === 'emerald' ? 'bg-emerald-500' :
+                                                  card.colorType === 'amber' ? 'bg-amber-500' :
+                                                  card.colorType === 'red' ? 'bg-red-500' :
+                                                  card.colorType === 'purple' ? 'bg-purple-500' : 'bg-blue-500'
+                                                }`} />
+                                                
+                                                <div className="truncate flex-1">
+                                                  <span className="text-xs font-bold text-white block">
+                                                    {card.title || <span className="text-zinc-500 italic">未命名卡片</span>}
+                                                  </span>
+                                                  <span className="text-[10px] text-zinc-400 block truncate mt-0.5">
+                                                    {card.desc || "无描述..."}
+                                                  </span>
+                                                </div>
+
+                                                {/* IsLit glow pill */}
+                                                <div className="shrink-0 flex items-center gap-1.5">
+                                                  <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-bold ${
+                                                    card.isLit 
+                                                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' 
+                                                      : 'bg-zinc-900 text-zinc-500 border border-zinc-800'
+                                                  }`}>
+                                                    {card.isLit ? 'GLOW/高亮' : 'OFF/普通'}
+                                                  </span>
+                                                </div>
+                                              </div>
+
+                                              <div className="flex items-center gap-1.5 pl-3 shrink-0">
+                                                {/* Edit Button */}
+                                                <button
+                                                  type="button"
+                                                  onClick={() => setActiveScreen7CardId(isCardActive ? null : card.id)}
+                                                  className={`p-1.5 rounded-lg border text-xs transition-all ${
+                                                    isCardActive 
+                                                      ? 'bg-amber-500 text-zinc-950 border-amber-500 font-extrabold' 
+                                                      : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border-zinc-800'
+                                                  }`}
+                                                >
+                                                  {isCardActive ? '收起' : '编辑内容'}
+                                                </button>
+
+                                                {/* Delete Button */}
+                                                <button
+                                                  type="button"
+                                                  onClick={deleteCardLocal}
+                                                  className="p-1.5 bg-zinc-900 hover:bg-red-500 hover:text-zinc-950 text-zinc-400 border border-zinc-800 hover:border-red-500 rounded-lg transition-all"
+                                                  title="删除此卡片"
+                                                >
+                                                  <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                              </div>
+                                            </div>
+
+                                            {/* Card row active fields */}
+                                            {isCardActive && (
+                                              <div className="p-4 border-t border-zinc-850 bg-zinc-950/85 rounded-b-xl space-y-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                  {/* Title */}
+                                                  <div className="space-y-1.5">
+                                                    <label className="text-[10px] text-zinc-400 block font-bold uppercase tracking-wider">
+                                                      卡片标题 (Title)
+                                                    </label>
+                                                    <input 
+                                                      type="text"
+                                                      value={card.title}
+                                                      onChange={(e) => updateCardFieldLocal({ title: e.target.value })}
+                                                      className="w-full px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white focus:ring-1 focus:ring-amber-500/50 focus:outline-none"
+                                                      placeholder="卡片主标题"
+                                                    />
+                                                  </div>
+
+                                                  {/* Color Type */}
+                                                  <div className="space-y-1.5">
+                                                    <label className="text-[10px] text-zinc-400 block font-bold uppercase tracking-wider">
+                                                      高亮颜色主题 (Color Theme)
+                                                    </label>
+                                                    <select
+                                                      value={card.colorType || 'blue'}
+                                                      onChange={(e) => updateCardFieldLocal({ colorType: e.target.value as any })}
+                                                      className="w-full px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white focus:ring-1 focus:ring-amber-500/50 focus:outline-none"
+                                                    >
+                                                      <option value="blue">蓝色光束 (Blue)</option>
+                                                      <option value="emerald">翠绿微芒 (Emerald)</option>
+                                                      <option value="amber">琥珀金黄 (Amber)</option>
+                                                      <option value="red">猩红预警 (Red)</option>
+                                                      <option value="purple">量子幻紫 (Purple)</option>
+                                                    </select>
+                                                  </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                  {/* Detail link URL */}
+                                                  <div className="space-y-1.5">
+                                                    <label className="text-[10px] text-zinc-400 block font-bold uppercase tracking-wider">
+                                                      外部详情链接 (Details Link URL - 选填)
+                                                    </label>
+                                                    <input 
+                                                      type="text"
+                                                      value={card.url || ''}
+                                                      onChange={(e) => updateCardFieldLocal({ url: e.target.value })}
+                                                      className="w-full px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white focus:ring-1 focus:ring-amber-500/50 focus:outline-none font-mono"
+                                                      placeholder="例：https://example.com/paper"
+                                                    />
+                                                  </div>
+
+                                                  {/* Move Category */}
+                                                  <div className="space-y-1.5">
+                                                    <label className="text-[10px] text-zinc-400 block font-bold uppercase tracking-wider">
+                                                      移动所属分类 (Move to Category)
+                                                    </label>
+                                                    <select
+                                                      value={card.cat}
+                                                      onChange={(e) => updateCardFieldLocal({ cat: e.target.value })}
+                                                      className="w-full px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white focus:ring-1 focus:ring-amber-500/50 focus:outline-none"
+                                                    >
+                                                      {screen7Tabs.map((tabOpt, optIdx) => (
+                                                        <option key={optIdx} value={tabOpt}>{tabOpt}</option>
+                                                      ))}
+                                                    </select>
+                                                  </div>
+                                                </div>
+
+                                                {/* Description */}
+                                                <div className="space-y-1.5">
+                                                  <label className="text-[10px] text-zinc-400 block font-bold uppercase tracking-wider">
+                                                    核心技术细节 / 详细描述 (Technical Details)
+                                                  </label>
+                                                  <textarea 
+                                                    value={card.desc}
+                                                    rows={3}
+                                                    onChange={(e) => updateCardFieldLocal({ desc: e.target.value })}
+                                                    className="w-full px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white focus:ring-1 focus:ring-amber-500/50 focus:outline-none resize-y leading-relaxed"
+                                                    placeholder="请输入该节点的具体功能和技术原理，这会显示在卡片的详细视窗中..."
+                                                  />
+                                                </div>
+
+                                                {/* isLit Switch */}
+                                                <div className="flex items-center justify-between p-2.5 bg-zinc-900 rounded-xl border border-zinc-850">
+                                                  <div className="space-y-0.5">
+                                                    <span className="text-xs font-bold text-white block">启用量子流发光特效 (Glow Effect)</span>
+                                                    <span className="text-[10px] text-zinc-400 block">高亮显示该项，在前台以更显眼的发光卡片呈现</span>
+                                                  </div>
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => updateCardFieldLocal({ isLit: !card.isLit })}
+                                                    className={`px-3 py-1 rounded-full text-xs font-mono font-bold transition-all ${
+                                                      card.isLit 
+                                                        ? 'bg-amber-500 text-zinc-950 font-extrabold shadow-[0_0_8px_rgba(245,158,11,0.4)]' 
+                                                        : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300'
+                                                    }`}
+                                                  >
+                                                    {card.isLit ? "已启用 GLOWING" : "未启用 STATIC"}
+                                                  </button>
+                                                </div>
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      })
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </div>
                 )}
                 
                 {[8, 9].includes(currentScreen.id) && (
@@ -1211,9 +2092,10 @@ interface CardListProps {
   selectedId: number | null;
   setSelectedId: React.Dispatch<React.SetStateAction<number | null>>;
   enableSubCards?: boolean;
+  availableCategories?: string[];
 }
 
-function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId, enableSubCards }: CardListProps) {
+function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId, enableSubCards, availableCategories }: CardListProps) {
   const [selectedAudioId, setSelectedAudioId] = useState<string | null>(null);
   const [selectedSubCardId, setSelectedSubCardId] = useState<string | null>(null);
   const [selectedSubAudioId, setSelectedSubAudioId] = useState<string | null>(null);
@@ -1225,7 +2107,7 @@ function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId,
     const newCard: MarqueeCard = {
       id: nextId,
       title: '新模块卡片',
-      cat: '诊断分类',
+      cat: availableCategories && availableCategories.length > 0 ? availableCategories[0] : '诊断分类',
       desc: '请在这里配置卡片的详细介绍。',
       url: '',
       colorType: 'blue',
@@ -1318,12 +2200,25 @@ function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId,
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[9px] text-zinc-400 block font-bold">{isDomeGallery ? "所属分类/标签" : "分类标识 (Category)"}</label>
-                  <input 
-                    type="text"
-                    value={activeCard.cat}
-                    onChange={(e) => updateCardField(activeCard.id, 'cat', e.target.value)}
-                    className="w-full px-2 py-1 bg-zinc-950 border border-zinc-800 rounded text-xs text-white"
-                  />
+                  {availableCategories && availableCategories.length > 0 ? (
+                    <select
+                      value={activeCard.cat}
+                      onChange={(e) => updateCardField(activeCard.id, 'cat', e.target.value)}
+                      className="w-full px-2 py-1 bg-zinc-950 border border-zinc-800 rounded text-xs text-white"
+                    >
+                      <option value="">-- 请选择分类 --</option>
+                      {availableCategories.map((c, i) => (
+                        <option key={i} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input 
+                      type="text"
+                      value={activeCard.cat}
+                      onChange={(e) => updateCardField(activeCard.id, 'cat', e.target.value)}
+                      className="w-full px-2 py-1 bg-zinc-950 border border-zinc-800 rounded text-xs text-white"
+                    />
+                  )}
                 </div>
               </div>
 

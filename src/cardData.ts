@@ -165,3 +165,7 @@ export const DEFAULT_SCREEN7_CARDS: MarqueeCard[] = [
     "isLit": true
   }
 ];
+
+export const DEFAULT_SCREEN7_TABS: string[] = ["硬件设计", "编译优化", "物理实验"];
+export const DEFAULT_SCREEN3_TABS: string[] = ["HARDWARE ENGINE", "METRIC ANALYZIS", "OPTIMIZER"];
+
