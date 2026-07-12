@@ -40,8 +40,32 @@
 @media (max-width: 768px) {
   .pill-nav {
     width: 100%;
-    justify-content: space-between;
-    padding: 4px 8px;
+    justify-content: flex-start;
+    padding: 4px;
+    overflow: hidden;
+  }
+  
+  .pill-nav-items {
+    flex: 1;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .pill-nav-items::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pill-list {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+
+  .pill {
+    padding: 0 10px;
+    font-size: 10px;
+    height: 34px;
   }
 }
 
@@ -180,7 +204,7 @@
   }
 
   .mobile-only {
-    display: block;
+    display: none;
   }
 }
 

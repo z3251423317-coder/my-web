@@ -1451,12 +1451,8 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick, act
 
       {activeItem && (
         <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-6 md:p-10 z-20">
-          {/* Top category / title */}
-          <div className={`transition-all duration-500 transform ${isMoving ? 'opacity-0 -translate-y-4' : 'opacity-100 translate-y-0'}`}>
-            <span className="font-mono text-amber-500 text-[10px] tracking-widest font-bold uppercase block bg-amber-500/10 px-2.5 py-1 rounded w-fit border border-amber-500/20">
-              ACTIVE QUANTUM NODE
-            </span>
-          </div>
+          {/* Top category / title - removed as requested */}
+          <div />
 
           {/* Spacer to maintain flex layout for top and bottom elements */}
           <div />

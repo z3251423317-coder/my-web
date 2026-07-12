@@ -330,7 +330,9 @@ const DEFAULT_SCREENS: ScreenData[] = [
     "label": "01. Title Hero",
     "title": "塑造",
     "subtitle": "我不在执迷寻找\n我是谁由我自己塑造",
+    "subtitleDelay": 2.0,
     "description": "A state-of-the-art recurrent, transformer-based neural network model that learns to decode surface code errors with unprecedented reliability on real quantum processors.",
+    "descriptionDelay": 3.5,
     "bgType": "video",
     "bgUrl": "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E5%8F%91%E7%8E%B0%E6%9B%B4%E5%A4%9A%E7%B2%BE%E5%BD%A9%E8%A7%86%E9%A2%91%20-%20%E6%8A%96%E9%9F%B3%E6%90%9C%E7%B4%A2.mp4",
     "bgTypeMobile": "video",
@@ -3234,6 +3236,21 @@ const App: React.FC = () => {
                   )}
                 </div>
 
+                {/* Centered Scroll Indicator at bottom of each slide */}
+                {idx < screens.length - 1 && (
+                  <div className="absolute bottom-6 left-0 w-full flex justify-center z-20 animate-bounce pointer-events-none">
+                    <button 
+                      onClick={() => {
+                        const nextScreen = screens[idx + 1];
+                        if (nextScreen) scrollToScreen(nextScreen.id);
+                      }}
+                      className="flex flex-col items-center gap-1 text-[10px] text-zinc-400 hover:text-white transition-colors pointer-events-auto"
+                    >
+                      <span>下移一屏</span>
+                      <ArrowDown className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </section>
             );
           }
@@ -3287,6 +3304,22 @@ const App: React.FC = () => {
                     autoRotateSpeed={domeAutoRotateSpeed}
                   />
                 </div>
+
+                {/* Centered Scroll Indicator at bottom of each slide */}
+                {idx < screens.length - 1 && (
+                  <div className="absolute bottom-6 left-0 w-full flex justify-center z-20 animate-bounce pointer-events-none">
+                    <button 
+                      onClick={() => {
+                        const nextScreen = screens[idx + 1];
+                        if (nextScreen) scrollToScreen(nextScreen.id);
+                      }}
+                      className="flex flex-col items-center gap-1 text-[10px] text-zinc-400 hover:text-white transition-colors pointer-events-auto"
+                    >
+                      <span>下移一屏</span>
+                      <ArrowDown className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </section>
             );
           }
@@ -3331,7 +3364,7 @@ const App: React.FC = () => {
                       >
                         {/* Title and Instruction Header */}
                         <div className="text-center space-y-3 mb-2 mt-1 md:mt-2">
-                          <h2 className="text-3xl md:text-5xl font-display font-black tracking-tighter text-white uppercase leading-none drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
+                          <h2 className="text-3xl md:text-5xl font-display font-black tracking-tighter text-white uppercase leading-tight drop-shadow-[0_4px_10px_rgba(0,0,0,0.4)]">
                             {s.title || "Sycamore Syndrome Diagnostic Suite"}
                           </h2>
                           <p className="text-[11px] md:text-sm text-zinc-200 max-w-2xl mx-auto font-sans font-medium leading-relaxed">
@@ -3396,6 +3429,21 @@ const App: React.FC = () => {
                   </AnimatePresence>
                 </div>
 
+                {/* Centered Scroll Indicator at bottom of each slide */}
+                {idx < screens.length - 1 && (
+                  <div className="absolute bottom-6 left-0 w-full flex justify-center z-20 animate-bounce pointer-events-none">
+                    <button 
+                      onClick={() => {
+                        const nextScreen = screens[idx + 1];
+                        if (nextScreen) scrollToScreen(nextScreen.id);
+                      }}
+                      className="flex flex-col items-center gap-1 text-[10px] text-zinc-400 hover:text-white transition-colors pointer-events-auto"
+                    >
+                      <span>下移一屏</span>
+                      <ArrowDown className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </section>
             );
           }
@@ -3413,20 +3461,20 @@ const App: React.FC = () => {
                   <div className="relative w-full py-12 flex flex-col justify-between h-auto min-h-[500px]">
                     
                     {/* Header Info + Controls Button */}
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-4">
+                    <div className="flex flex-col md:flex-row items-center md:items-end text-center md:text-left justify-between gap-6 mb-4">
                       <motion.div 
                         initial={{ opacity: 0, y: -20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: false, amount: 0.1 }}
                         transition={{ duration: 0.6 }}
-                        className="space-y-3 max-w-3xl"
+                        className="space-y-3 max-w-3xl flex flex-col items-center md:items-start"
                       >
                         {s.id !== 3 && s.id !== 7 && (
                           <span className="font-mono text-amber-500 text-[10px] tracking-widest font-bold uppercase block bg-amber-500/10 px-2.5 py-1 rounded w-fit border border-amber-500/20">
                             {s.label} • SYSTEM CHASSIS ARCHITECTURE
                           </span>
                         )}
-                        <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-none">
+                        <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-none text-center md:text-left">
                           <ShinyText 
                             text={s.title} 
                             color="#bdbdbd" 
@@ -3444,7 +3492,12 @@ const App: React.FC = () => {
                             }} 
                           />
                         </h1>
-                        <p className="text-zinc-400 text-xs md:text-sm font-sans font-light leading-relaxed max-w-2xl">
+                        {s.subtitle && (
+                          <h2 className="font-serif italic text-[15px] md:text-[18px] text-zinc-300 font-light tracking-wide drop-shadow-sm whitespace-pre-line text-center md:text-left">
+                            {s.subtitle}
+                          </h2>
+                        )}
+                        <p className="text-zinc-400 text-xs md:text-sm font-sans font-light leading-relaxed max-w-2xl text-center md:text-left">
                           {s.description}
                         </p>
                       </motion.div>
@@ -3644,7 +3697,7 @@ const App: React.FC = () => {
                   </div>
                 ) : (
                   <div className={`w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center py-12 ${
-                    (s.align === 'center' && s.id !== 9) ? 'text-center' : s.align === 'right' ? 'text-right' : 'text-left'
+                    s.align === 'center' ? 'text-center' : s.align === 'right' ? 'text-center lg:text-right' : 'text-center lg:text-left'
                   }`}>
                     
                     {/* Left Column Content - Standard Layouts */}
@@ -3654,13 +3707,13 @@ const App: React.FC = () => {
                     viewport={{ once: false, amount: 0.15 }}
                     transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
                     className={`${
-                      s.align === 'center' && s.id !== 9
-                        ? 'lg:col-span-12 max-w-5xl mx-auto' 
+                      s.align === 'center'
+                        ? 'lg:col-span-12 max-w-5xl mx-auto flex flex-col items-center text-center' 
                         : s.align === 'right' 
-                          ? 'lg:col-span-7 lg:col-start-6 order-1' 
+                          ? 'lg:col-span-7 lg:col-start-6 order-1 flex flex-col items-center text-center lg:items-end lg:text-right' 
                           : s.id === 1
-                            ? 'lg:col-span-7 order-1 lg:order-1 z-50 relative pointer-events-auto'
-                            : 'lg:col-span-7 order-1 lg:order-1'
+                            ? 'lg:col-span-7 order-1 lg:order-1 z-50 relative pointer-events-auto flex flex-col items-center text-center lg:items-start lg:text-left'
+                            : 'lg:col-span-7 order-1 lg:order-1 flex flex-col items-center text-center lg:items-start lg:text-left'
                     } space-y-6 md:space-y-8`}
                   >
                     
@@ -3671,18 +3724,30 @@ const App: React.FC = () => {
 
                     {/* Subheading */}
                     {s.subtitle && (
-                      <h2 className="font-serif italic text-[18px] text-zinc-300 font-light max-w-4xl tracking-wide drop-shadow-sm whitespace-pre-line">
+                      <motion.h2 
+                        initial={{ opacity: s.subtitleDelay !== undefined ? (s.subtitleDelay ? 0 : 1) : (s.id === 1 ? 0 : 1) }}
+                        whileInView={{ opacity: 1 }}
+                        viewport={{ once: false, amount: 0.15 }}
+                        transition={{ duration: 1, delay: s.subtitleDelay ?? (s.id === 1 ? 2 : 0) }}
+                        className={`font-serif italic text-[18px] text-zinc-300 font-light max-w-4xl tracking-wide drop-shadow-sm whitespace-pre-line ${
+                        s.align === 'center' ? 'mx-auto' : s.align === 'right' ? 'mx-auto lg:ml-auto lg:mr-0 text-center lg:text-right' : 'mx-auto lg:ml-0 lg:mr-auto text-center lg:text-left'
+                      }`}>
                         {s.subtitle}
-                      </h2>
+                      </motion.h2>
                     )}
 
                     {/* Core narrative description paragraph */}
                     {s.description && (
-                      <p className={`text-zinc-300 text-sm md:text-base leading-relaxed font-sans font-light max-w-3xl ${
-                        (s.align === 'center' && s.id !== 9) ? 'mx-auto' : s.align === 'right' ? 'ml-auto text-right' : 'text-left'
+                      <motion.p 
+                        initial={{ opacity: s.descriptionDelay !== undefined ? (s.descriptionDelay ? 0 : 1) : (s.id === 1 ? 0 : 1) }}
+                        whileInView={{ opacity: 1 }}
+                        viewport={{ once: false, amount: 0.15 }}
+                        transition={{ duration: 1, delay: s.descriptionDelay ?? (s.id === 1 ? 3.5 : 0) }}
+                        className={`text-zinc-300 text-sm md:text-base leading-relaxed font-sans font-light max-w-3xl ${
+                        s.align === 'center' ? 'mx-auto' : s.align === 'right' ? 'mx-auto lg:ml-auto lg:mr-0 text-center lg:text-right' : 'mx-auto lg:ml-0 lg:mr-auto text-center lg:text-left'
                       }`}>
                         {s.description}
-                      </p>
+                      </motion.p>
                     )}
 
                     {/* Render custom integrated interactive widgets depending on the screen index */}
@@ -3729,7 +3794,7 @@ const App: React.FC = () => {
 
                     {/* Primary Button */}
                     {s.ctaText && s.id !== 1 && (
-                      <div className={`flex ${(s.align === 'center' && s.id !== 9) ? 'justify-center' : s.align === 'right' ? 'justify-end' : 'justify-start'} pt-3`}>
+                      <div className={`flex w-full ${s.align === 'center' ? 'justify-center' : s.align === 'right' ? 'justify-center lg:justify-end' : 'justify-center lg:justify-start'} pt-3`}>
                         <a 
                           href={s.ctaUrl || "#"}
                           onClick={(e) => {
@@ -3761,7 +3826,7 @@ const App: React.FC = () => {
                     viewport={{ once: false, amount: 0.15 }}
                     transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
                     className={`${
-                      s.align === 'center' && s.id !== 9
+                      s.align === 'center'
                         ? 'hidden' 
                         : s.align === 'right' 
                           ? 'lg:col-span-5 order-2 lg:order-1 z-30' 
@@ -3892,13 +3957,13 @@ const App: React.FC = () => {
 
               {/* Centered Scroll Indicator at bottom of each slide */}
               {idx < screens.length - 1 && (
-                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-20 animate-bounce">
+                <div className="absolute bottom-6 left-0 w-full flex justify-center z-20 animate-bounce pointer-events-none">
                   <button 
                     onClick={() => {
                       const nextScreen = screens[idx + 1];
                       if (nextScreen) scrollToScreen(nextScreen.id);
                     }}
-                    className="flex flex-col items-center gap-1 text-[10px] text-zinc-400 hover:text-white transition-colors"
+                    className="flex flex-col items-center gap-1 text-[10px] text-zinc-400 hover:text-white transition-colors pointer-events-auto"
                   >
                     <span>下移一屏</span>
                     <ArrowDown className="w-3.5 h-3.5" />

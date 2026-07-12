@@ -76,6 +76,8 @@ interface ScreenData {
   title: string;
   subtitle: string;
   description: string;
+  subtitleDelay?: number;
+  descriptionDelay?: number;
   bgType: 'video' | 'image' | 'gradient' | string;
   bgUrl: string;
   bgTypeMobile?: 'video' | 'image' | 'gradient' | string;
@@ -193,10 +195,19 @@ export default function Admin() {
 
   // Helper to parse loaded data safely into states
   const importConfig = (data: any) => {
+    setSelectedPillNavId(null);
     if (data.version) setVersion(data.version);
     if (data.timestamp) setTimestamp(data.timestamp);
     if (Array.isArray(data.screens)) setScreens(data.screens);
-    if (Array.isArray(data.pillNavItems)) setPillNavItems(data.pillNavItems);
+    if (Array.isArray(data.pillNavItems)) {
+      setPillNavItems(
+        data.pillNavItems.map((item: any, idx: number) => ({
+          id: item.id || `nav_${idx}_${Date.now()}`,
+          label: item.label,
+          href: item.href
+        }))
+      );
+    }
     if (Array.isArray(data.marqueeCards)) setMarqueeCards(data.marqueeCards);
     if (Array.isArray(data.sphereCards)) setSphereCards(data.sphereCards);
     if (Array.isArray(data.domeCards)) setDomeCards(data.domeCards);
@@ -710,6 +721,31 @@ export default function Admin() {
                       value={currentScreen.description} 
                       onChange={(e) => updateScreenField(currentScreen.id, 'description', e.target.value)}
                       className="w-full h-16 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white focus:border-amber-500/50 focus:outline-none font-sans"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest block font-bold">副标题渐显延迟 (Subtitle Delay) - 秒</label>
+                    <input 
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      value={currentScreen.subtitleDelay || 0} 
+                      onChange={(e) => updateScreenField(currentScreen.id, 'subtitleDelay', parseFloat(e.target.value))}
+                      className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white focus:border-amber-500/50 focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest block font-bold">正文渐显延迟 (Description Delay) - 秒</label>
+                    <input 
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      value={currentScreen.descriptionDelay || 0} 
+                      onChange={(e) => updateScreenField(currentScreen.id, 'descriptionDelay', parseFloat(e.target.value))}
+                      className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white focus:border-amber-500/50 focus:outline-none"
                     />
                   </div>
                 </div>

@@ -261,7 +261,7 @@ const PillNav: React.FC<PillNavProps> = ({
           <img src={logo} alt={logoAlt} ref={logoImgRef} />
         </a>
 
-        <div className="pill-nav-items desktop-only" ref={navItemsRef}>
+        <div className="pill-nav-items" ref={navItemsRef}>
           <ul className="pill-list" role="menubar">
             {items.map((item, i) => (
               <li key={item.href || `item-${i}`} role="none">

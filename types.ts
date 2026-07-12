@@ -25,6 +25,9 @@ export interface ScreenData {
   bgUrlMobile?: string;
   bgOpacity?: number; // 0 to 100 for background (video/image/gradient) opacity override
   
+  subtitleDelay?: number;
+  descriptionDelay?: number;
+  
   // Temperature and its background
   temperature?: number;
   tempBgUrl?: string;
