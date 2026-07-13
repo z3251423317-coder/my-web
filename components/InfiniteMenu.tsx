@@ -1469,11 +1469,6 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick, act
             <p className="text-zinc-300 text-xs md:text-sm font-sans font-light leading-relaxed drop-shadow-sm max-w-sm line-clamp-3 group-hover/center:text-zinc-200 transition-colors">
               {activeItem.description}
             </p>
-            
-            <div className="mt-4 opacity-0 group-hover/center:opacity-100 transition-opacity flex items-center gap-2 text-amber-500 font-mono text-[10px] tracking-widest uppercase">
-              <span>View Detail / 查看详情</span>
-              <span className="text-lg">⊕</span>
-            </div>
           </div>
 
           {/* Bottom active action button */}
