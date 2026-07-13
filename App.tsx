@@ -67,6 +67,7 @@ interface ScrollMarqueeProps {
   speed?: number;
   reverse?: boolean;
   autoPlay?: boolean;
+  active?: boolean;
 }
 
 const ScrollMarquee: React.FC<ScrollMarqueeProps> = ({ 
@@ -74,7 +75,8 @@ const ScrollMarquee: React.FC<ScrollMarqueeProps> = ({
   renderItem, 
   speed = 1, 
   reverse = false,
-  autoPlay = true 
+  autoPlay = true,
+  active = true
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
@@ -137,7 +139,7 @@ const ScrollMarquee: React.FC<ScrollMarqueeProps> = ({
 
   useEffect(() => {
     const inner = innerRef.current;
-    if (!inner || items.length === 0) return;
+    if (!inner || items.length === 0 || !active) return;
 
     let animationFrameId: number;
     let lastTime = performance.now();
@@ -179,7 +181,7 @@ const ScrollMarquee: React.FC<ScrollMarqueeProps> = ({
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [items, speed, reverse, isDown, isHovered, autoPlay]);
+  }, [items, speed, reverse, isDown, isHovered, autoPlay, active]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     const el = containerRef.current;
@@ -3428,6 +3430,7 @@ const App: React.FC = () => {
                             speed={domeAutoRotateSpeed || 1}
                             reverse={false}
                             autoPlay={domeAutoRotate && !isAnyModalOpen}
+                            active={isSelected}
                             renderItem={(card, idx, groupIdx) => {
                               const glowColors: Record<string, string> = {
                                 indigo: 'rgba(99, 102, 241, 0.65)',
@@ -3656,6 +3659,7 @@ const App: React.FC = () => {
                         speed={domeAutoRotateSpeed || 1}
                         reverse={s.id !== 7} // s.id === 3 will scroll reverse (left to right / RTL-LTR), s.id === 7 will scroll forward
                         autoPlay={domeAutoRotate && !isAnyModalOpen}
+                        active={isSelected}
                         renderItem={(card, idx, groupIdx) => {
                           const isCardGray = s.id === 7 && !card.isLit;
                           const isGlowActive = card.isLit && card.glowEnabled !== false;

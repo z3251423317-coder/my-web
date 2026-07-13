@@ -70,7 +70,7 @@ export const HeroScene: React.FC = () => {
     <div className="absolute inset-0 z-0 opacity-60 pointer-events-none">
       <Canvas 
         camera={{ position: [0, 0, 6], fov: 45 }}
-        dpr={isMobile ? 1.0 : [1, 1.5]}
+        dpr={isMobile ? 0.85 : [1, 1.25]}
         gl={{ antialias: !isMobile, powerPreference: "high-performance" }}
       >
         <ambientLight intensity={0.5} />
@@ -100,7 +100,7 @@ export const QuantumComputerScene: React.FC = () => {
     <div className="w-full h-full absolute inset-0">
       <Canvas 
         camera={{ position: [0, 0, 4.5], fov: 45 }}
-        dpr={isMobile ? 1.0 : [1, 1.5]}
+        dpr={isMobile ? 0.85 : [1, 1.25]}
         gl={{ 
           antialias: !isMobile, 
           alpha: true, 

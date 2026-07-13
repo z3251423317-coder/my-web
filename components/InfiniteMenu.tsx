@@ -837,6 +837,7 @@ class InfiniteGridMenu {
   SPHERE_RADIUS = 2;
 
   #time = 0;
+  #lastRenderTime = 0;
   #deltaTime = 0;
   #deltaFrames = 0;
   #frames = 0;
@@ -1002,8 +1003,19 @@ class InfiniteGridMenu {
   run(time = 0) {
     if (this.destroyed) return;
     if (this.paused) return;
+
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const minFrameTime = isMobile ? 24 : 15; // ~41 fps on mobile, full speed on desktop
+
+    const elapsedSinceLastRender = time - this.#lastRenderTime;
+    if (elapsedSinceLastRender < minFrameTime) {
+      this.animationFrameId = requestAnimationFrame(t => this.run(t));
+      return;
+    }
+
     this.#deltaTime = Math.min(32, time - this.#time);
     this.#time = time;
+    this.#lastRenderTime = time;
     this.#deltaFrames = this.#deltaTime / this.TARGET_FRAME_DURATION;
     this.#frames += this.#deltaFrames;
 
