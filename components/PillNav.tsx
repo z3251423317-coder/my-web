@@ -138,7 +138,10 @@ const PillNav: React.FC<PillNavProps> = ({
         gsap.to(navItems, {
           width: 'auto',
           duration: 0.6,
-          ease
+          ease,
+          onComplete: () => {
+            gsap.set(navItems, { clearProps: 'width,overflow' });
+          }
         });
       }
     }

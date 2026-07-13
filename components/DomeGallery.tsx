@@ -848,6 +848,7 @@ export default function DomeGallery({
     if (!main) return;
 
     const handleWheel = (e: WheelEvent) => {
+      if (document.body.classList.contains('dg-scroll-lock')) return;
       const now = Date.now();
       if (now - lastWheelTimeRef.current < 1000) return;
 

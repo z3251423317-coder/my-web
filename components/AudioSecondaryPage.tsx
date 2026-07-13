@@ -629,9 +629,9 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
                           return (
                             <motion.div 
                               key={i}
-                              animate={{ height: [8, 32, 10, 24, 8] }}
+                              animate={{ scaleY: [0.25, 1, 0.3, 0.75, 0.25] }}
                               transition={{ repeat: Infinity, duration: 1.2, delay: delay, ease: 'easeInOut' }}
-                              className="w-1.5 bg-amber-500 rounded-full"
+                              className="w-1.5 h-8 bg-amber-500 rounded-full origin-bottom"
                             />
                           );
                         })

@@ -2739,6 +2739,8 @@ const App: React.FC = () => {
     );
   };
 
+  const isAnyModalOpen = isAudioSecondaryPageOpen || isPdfSecondaryPageOpen || isSubCardModalOpen || (activeCardDetail !== null);
+
   /* =================================================================================
    * ■ SECTION 6: MAIN LAYOUT, DOM TREE & SCREEN-BY-SCREEN RENDERING
    * ================================================================================= */
@@ -3378,7 +3380,7 @@ const App: React.FC = () => {
                             items={trialCards}
                             speed={domeAutoRotateSpeed || 1}
                             reverse={false}
-                            autoPlay={domeAutoRotate}
+                            autoPlay={domeAutoRotate && !isAnyModalOpen}
                             renderItem={(card, idx, groupIdx) => {
                               const glowColors: Record<string, string> = {
                                 indigo: 'rgba(99, 102, 241, 0.65)',
@@ -3603,7 +3605,7 @@ const App: React.FC = () => {
                         }
                         speed={domeAutoRotateSpeed || 1}
                         reverse={s.id !== 7} // s.id === 3 will scroll reverse (left to right / RTL-LTR), s.id === 7 will scroll forward
-                        autoPlay={domeAutoRotate}
+                        autoPlay={domeAutoRotate && !isAnyModalOpen}
                         renderItem={(card, idx, groupIdx) => {
                           const isCardGray = s.id === 7 && !card.isLit;
                           const isGlowActive = card.isLit && card.glowEnabled !== false;
@@ -3718,7 +3720,7 @@ const App: React.FC = () => {
                   >
                     
                     {/* Highly polished headline */}
-                    <h1 className={`${s.id === 1 ? 'font-calligraphy font-normal text-[100px] md:text-[140px] leading-[1.1]' : 'font-display font-extrabold text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-tight leading-none'} text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]`}>
+                    <h1 className={`${s.id === 1 ? 'font-calligraphy font-normal text-[112px] leading-[1.1]' : 'font-display font-extrabold text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-tight leading-none'} text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]`}>
                       <ShinyText text={s.title} color="#bdbdbd" shineColor="#ffffff" speed={3} style={s.id === 2 ? { fontSize: '46px' } : undefined} />
                     </h1>
 

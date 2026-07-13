@@ -37,6 +37,16 @@ html, body {
   scrollbar-width: none;  /* Firefox */
 }
 
+body.dg-scroll-lock {
+  overflow: hidden !important;
+  touch-action: none !important;
+}
+
+body.dg-scroll-lock #slides-container {
+  overflow-y: hidden !important;
+  touch-action: none !important;
+}
+
 /* Slide in animation for control drawers */
 @keyframes slideIn {
   from {

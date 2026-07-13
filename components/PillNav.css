@@ -47,7 +47,7 @@
   
   .pill-nav-items {
     flex: 1;
-    overflow-x: auto;
+    overflow-x: auto !important;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
