@@ -3197,11 +3197,7 @@ const App: React.FC = () => {
                       onItemClick={(item) => {
                         const originalCard = sphereCards.find(c => c.id === item.id);
                         if (originalCard) {
-                          if (originalCard.url) {
-                            window.open(originalCard.url, '_blank', 'noopener,noreferrer');
-                          } else {
-                            handleCardClick(originalCard);
-                          }
+                          handleCardClick(originalCard);
                         }
                       }}
                     />
@@ -3499,7 +3495,10 @@ const App: React.FC = () => {
                             {s.subtitle}
                           </h2>
                         )}
-                        <p className="text-zinc-400 text-xs md:text-sm font-sans font-light leading-relaxed max-w-2xl text-center md:text-left">
+                        <p 
+                          onClick={() => setActiveCardDetail({ id: -idx, title: s.title, cat: s.label, desc: s.description, colorType: 'amber' } as any)}
+                          className="text-zinc-400 text-xs md:text-sm font-sans font-light leading-relaxed max-w-lg text-center md:text-left line-clamp-3 cursor-pointer hover:text-zinc-300 transition-colors"
+                        >
                           {s.description}
                         </p>
                       </motion.div>
@@ -3745,7 +3744,8 @@ const App: React.FC = () => {
                         whileInView={{ opacity: 1 }}
                         viewport={{ once: false, amount: 0.15 }}
                         transition={{ duration: 1, delay: s.descriptionDelay ?? (s.id === 1 ? 3.5 : 0) }}
-                        className={`text-zinc-300 text-sm md:text-base leading-relaxed font-sans font-light max-w-3xl ${
+                        onClick={() => setActiveCardDetail({ id: -idx - 100, title: s.title, cat: s.label, desc: s.description, colorType: 'amber' } as any)}
+                        className={`text-zinc-300 text-sm md:text-base leading-relaxed font-sans font-light max-w-xl line-clamp-4 cursor-pointer hover:text-white transition-colors ${
                         s.align === 'center' ? 'mx-auto' : s.align === 'right' ? 'mx-auto lg:ml-auto lg:mr-0 text-center lg:text-right' : 'mx-auto lg:ml-0 lg:mr-auto text-center lg:text-left'
                       }`}>
                         {s.description}
@@ -4867,7 +4867,7 @@ const App: React.FC = () => {
                   <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-zinc-700 to-transparent my-5 shrink-0" />
 
                   {/* Subtitle / Description */}
-                  <p className="text-zinc-300 text-sm md:text-base font-sans font-light leading-relaxed max-w-sm mx-auto whitespace-pre-wrap break-words">
+                  <p className="text-zinc-300 text-sm md:text-base font-sans font-light leading-relaxed max-w-md mx-auto whitespace-pre-wrap break-words">
                     {activeCardDetail.desc}
                   </p>
                 </div>

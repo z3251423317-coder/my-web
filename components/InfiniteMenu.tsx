@@ -1458,25 +1458,40 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick, act
           <div />
 
           {/* Centered item details in the absolute center of the 3D sphere */}
-          <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center text-center w-[90%] max-w-xl pointer-events-none z-10">
-            <h2 className={`font-display font-extrabold text-2xl md:text-3xl text-white tracking-tight drop-shadow-lg mb-3 transition-all duration-500 ${isMoving ? 'opacity-0 scale-95 blur-sm' : 'opacity-100 scale-100'}`}>
+          <div 
+            onClick={handleButtonClick}
+            className={`absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center text-center w-[90%] max-w-xl z-10 transition-all duration-500 cursor-pointer group/center ${isMoving ? 'opacity-0 scale-95 blur-sm pointer-events-none' : 'opacity-100 scale-100 pointer-events-auto hover:scale-105'}`}
+          >
+            <h2 className="font-display font-extrabold text-2xl md:text-3xl text-white tracking-tight drop-shadow-lg mb-3 line-clamp-2 group-hover/center:text-amber-400 transition-colors">
               {activeItem.title}
             </h2>
 
-            <p className={`text-zinc-300 text-xs md:text-sm font-sans font-light leading-relaxed drop-shadow-sm max-w-md transition-all duration-500 delay-75 ${isMoving ? 'opacity-0 scale-95 blur-sm' : 'opacity-100 scale-100'}`}>
+            <p className="text-zinc-300 text-xs md:text-sm font-sans font-light leading-relaxed drop-shadow-sm max-w-sm line-clamp-3 group-hover/center:text-zinc-200 transition-colors">
               {activeItem.description}
             </p>
+            
+            <div className="mt-4 opacity-0 group-hover/center:opacity-100 transition-opacity flex items-center gap-2 text-amber-500 font-mono text-[10px] tracking-widest uppercase">
+              <span>View Detail / 查看详情</span>
+              <span className="text-lg">⊕</span>
+            </div>
           </div>
 
           {/* Bottom active action button */}
           <div className="flex justify-center pb-48 sm:pb-2">
             <button
-              onClick={handleButtonClick}
-              className={`pointer-events-auto group inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 text-xs font-bold font-display tracking-widest uppercase rounded-xl shadow-xl transition-all duration-500 transform cursor-pointer ${
+              onClick={(e) => {
+                e.stopPropagation();
+                if (activeItem.link) {
+                  window.open(activeItem.link, '_blank', 'noopener,noreferrer');
+                } else {
+                  handleButtonClick();
+                }
+              }}
+              className={`pointer-events-auto group inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 text-xs font-bold font-display tracking-widest uppercase rounded-xl shadow-xl transition-all duration-500 transform cursor-pointer mt-0 -mb-5 ${
                 isMoving ? 'opacity-0 translate-y-6 scale-90 pointer-events-none' : 'opacity-100 translate-y-0 scale-100'
               }`}
             >
-              <span>{activeItem.link ? "OPEN LINK / 打开链接" : "ENTER NODE / 进入节点"}</span>
+              <span>{activeItem.link ? "OPEN LINK / 打开链接" : "VIEW DETAIL / 查看详情"}</span>
               <p className="font-sans text-sm font-bold transition-transform group-hover:translate-x-0.5">&#x2197;</p>
             </button>
           </div>
