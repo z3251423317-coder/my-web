@@ -1481,13 +1481,6 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick, act
 
           {/* Centered item details in the absolute center of the 3D sphere */}
           <div 
-            onClick={(e) => {
-              if (dragDistanceRef.current > 10) {
-                e.stopPropagation();
-                return;
-              }
-              handleButtonClick();
-            }}
             onContextMenu={(e) => {
               e.preventDefault();
             }}
@@ -1497,9 +1490,6 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick, act
                 startPosRef.current = { x: e.clientX, y: e.clientY };
                 dragDistanceRef.current = 0;
                 forwardPointerEventToCanvas('pointerdown', e);
-                if (e.cancelable) {
-                  e.preventDefault();
-                }
               }
             }}
             onPointerMove={(e) => {
@@ -1514,6 +1504,9 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick, act
               if (e.currentTarget.hasPointerCapture(e.pointerId)) {
                 e.currentTarget.releasePointerCapture(e.pointerId);
                 forwardPointerEventToCanvas('pointerup', e);
+                if (dragDistanceRef.current < 8) {
+                  handleButtonClick();
+                }
               }
             }}
             onPointerCancel={(e) => {
