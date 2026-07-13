@@ -2088,7 +2088,7 @@ const App: React.FC = () => {
       setScreens(prev => prev.map(s => s.id === updated.id ? updated : s));
     };
 
-    const hasCards = [3, 4, 5, 6].includes(screenId);
+    const hasCards = [3, 4, 5, 6, 7].includes(screenId);
 
     let cards: MarqueeCard[] | null = null;
     let saveCards: ((updated: MarqueeCard[]) => void) | null = null;
@@ -2105,6 +2105,9 @@ const App: React.FC = () => {
     } else if (screenId === 6) {
       cards = trialCards;
       saveCards = saveTrialCards;
+    } else if (screenId === 7) {
+      cards = screen7Cards;
+      saveCards = saveScreen7Cards;
     }
 
     const showRotateControls = screenId === 5;
@@ -2124,6 +2127,9 @@ const App: React.FC = () => {
     } else if (screenId === 6) {
       consoleTitle = "SLIDER CARD CONSOLE (SCREEN 6) / 移动卡片控制台 (第6屏)";
       screenLabel = "Configure sliding diagnostic cards and metadata on Screen 6";
+    } else if (screenId === 7) {
+      consoleTitle = "ROADMAP CONSOLE (SCREEN 7) / 路线图控制台 (第7屏)";
+      screenLabel = "Configure roadmap milestones and glowing cards on Screen 7";
     }
 
     const addCard = () => {
@@ -2522,7 +2528,7 @@ const App: React.FC = () => {
                     <div className="space-y-0.5">
                       <span className="text-[11px] font-mono text-zinc-300 font-bold tracking-wider uppercase block">
                         AUTO ROTATION / 自动旋转
-                      </span>
+              </span>
                       <span className="text-[10px] text-zinc-500 block">
                         Enable continuous slow horizontal rotation / 启用持续缓慢的水平旋转
                       </span>
@@ -2534,7 +2540,7 @@ const App: React.FC = () => {
                         onChange={(e) => setDomeAutoRotate(e.target.checked)}
                         className="sr-only peer"
                       />
-                      <div className="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500 peer-checked:after:bg-zinc-950"></div>
+                      <div className="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-\x27\x27 after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500 peer-checked:after:bg-zinc-950"></div>
                     </label>
                   </div>
 
@@ -2557,7 +2563,6 @@ const App: React.FC = () => {
                   )}
                 </div>
               )}
-
               {cards.map((card, idx) => {
                 return (
                   <div 
@@ -2688,6 +2693,63 @@ const App: React.FC = () => {
                       </div>
                     </div>
 
+                    {/* Glow & Appearance Row */}
+                    <div className="pt-2 border-t border-zinc-800/40 space-y-4">
+                      {/* Primary Toggle: Card Highlight */}
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <label className="text-[9px] font-mono text-zinc-300 uppercase tracking-widest block font-bold">
+                            CARD HIGHLIGHT / 卡片高亮
+                          </label>
+                          <span className="text-[9px] text-zinc-500 block">点亮该节点卡片使其非灰度显示</span>
+                        </div>
+                        <button
+                          onClick={() => updateCard(card.id, { isLit: !card.isLit })}
+                          className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none ${
+                            card.isLit ? 'bg-amber-500' : 'bg-zinc-800'
+                          }`}
+                        >
+                          <span className={`${card.isLit ? 'translate-x-5' : 'translate-x-1'} inline-block h-3 w-3 transform rounded-full bg-white transition-transform`} />
+                        </button>
+                      </div>
+
+                      {/* Secondary Toggles: Only visible if isLit is true */}
+                      {card.isLit && (
+                        <div className="grid grid-cols-2 gap-4 animate-fadeIn">
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                              <label className="text-[9px] font-mono text-zinc-300 uppercase tracking-widest block font-bold">
+                                GLOW EFFECT / 流光特效
+                              </label>
+                              <span className="text-[9px] text-zinc-500 block">炫酷边缘呼吸灯效</span>
+                            </div>
+                            <button
+                              onClick={() => updateCard(card.id, { glowEnabled: card.glowEnabled === false ? true : false })}
+                              className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none ${
+                                card.glowEnabled !== false ? 'bg-blue-500' : 'bg-zinc-800'
+                              }`}
+                            >
+                              <span className={`${card.glowEnabled !== false ? 'translate-x-5' : 'translate-x-1'} inline-block h-3 w-3 transform rounded-full bg-white transition-transform`} />
+                            </button>
+                          </div>
+
+                          {card.glowEnabled !== false && (
+                            <div className="space-y-1 animate-fadeIn">
+                              <label className="text-[9px] font-mono text-zinc-300 uppercase tracking-widest block font-bold">
+                                Glow Color / 流光颜色
+                              </label>
+                              <input 
+                                type="color" 
+                                value={card.glowColor || "#fbbf24"}
+                                onChange={(e) => updateCard(card.id, { glowColor: e.target.value })}
+                                className="w-full h-7 bg-zinc-950 border border-zinc-800 rounded cursor-pointer"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
                     {/* Encryption Settings */}
                     <div className="pt-2 border-t border-zinc-800/40 space-y-3">
                       <div className="flex items-center justify-between">
@@ -2746,7 +2808,7 @@ const App: React.FC = () => {
    * ================================================================================= */
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-zinc-950 select-none flex flex-col font-sans shadow-none">
+    <div className="relative w-full max-w-full h-screen overflow-hidden bg-zinc-950 select-none flex flex-col font-sans shadow-none">
       {!configLoaded && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-zinc-950">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
@@ -2762,39 +2824,28 @@ const App: React.FC = () => {
         </a>
       )}
 
-      {/* PillNav centered navigation header - only displayed on the first screen */}
-      {activeId === 1 ? (
-        <PillNav 
-          logo="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=100&h=100&fit=crop"
-          logoAlt="α"
-          items={pillNavItems}
-          activeHref="#screen-1"
-          onItemClick={(item) => {
-            if (item.href.startsWith('#screen-')) {
-              const num = parseInt(item.href.replace('#screen-', ''));
-              if (!isNaN(num)) scrollToScreen(num);
-            } else if (item.href.startsWith('#')) {
-              const el = document.querySelector(item.href);
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            } else {
-              window.open(item.href, '_blank');
-            }
-          }}
-          baseColor="#ffffff"
-          pillColor="rgba(255, 255, 255, 0.05)"
-          pillTextColor="#ffffff"
-          hoveredPillTextColor="#000000"
-        />
-      ) : !isMobile ? (
-        /* Floating Brand Badge (Minimal & Floating) - Only on other screens to keep focus clean */
-        <div 
-          onClick={() => scrollToScreen(1)} 
-          className="fixed top-6 left-6 z-40 flex items-center gap-2.5 px-3 py-2 rounded-xl bg-zinc-950/40 hover:bg-zinc-900/60 border border-zinc-850/40 backdrop-blur-md cursor-pointer transition-all select-none"
-        >
-          <div className="w-6 h-6 rounded bg-indigo-600 flex items-center justify-center text-white font-serif font-black text-sm pb-px shadow">α</div>
-          <span className="font-display font-semibold tracking-widest text-[11px] text-zinc-200">ALPHAQUBIT</span>
-        </div>
-            ) : null}
+      {/* PillNav centered navigation header - permanently displayed on all screens */}
+      <PillNav 
+        logo="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=100&h=100&fit=crop"
+        logoAlt="α"
+        items={pillNavItems}
+        activeHref={`#screen-${activeId}`}
+        onItemClick={(item) => {
+          if (item.href.startsWith('#screen-')) {
+            const num = parseInt(item.href.replace('#screen-', ''));
+            if (!isNaN(num)) scrollToScreen(num);
+          } else if (item.href.startsWith('#')) {
+            const el = document.querySelector(item.href);
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          } else {
+            window.open(item.href, '_blank');
+          }
+        }}
+        baseColor="#ffffff"
+        pillColor="rgba(255, 255, 255, 0.05)"
+        pillTextColor="#ffffff"
+        hoveredPillTextColor="#000000"
+      />
 
       {/* DB Status Dot (Only visible inside AI Studio Dev/Localhost) */}
       {/* {dbConnected !== null && isAiStudio && (
@@ -3141,7 +3192,7 @@ const App: React.FC = () => {
       {/* Primary vertical scroll presenter with snapping behavior */}
       <div 
         id="slides-container"
-        className="flex-1 w-full h-full overflow-y-auto snap-y snap-mandatory scroll-smooth relative z-10 bg-transparent pl-0 mb-[-145px]"
+        className="flex-1 w-full h-full overflow-x-hidden overflow-y-auto snap-y snap-mandatory scroll-smooth relative z-10 bg-transparent pl-0 mb-[-145px]"
       >
         {screens.map((s, idx) => {
           const isSelected = s.id === activeId;
@@ -3371,7 +3422,7 @@ const App: React.FC = () => {
                         </div>
 
                         {/* Infinite Right-to-Left Scrolling Track */}
-                        <div className="relative w-screen left-1/2 -ml-[50vw] overflow-hidden py-4 select-none">
+                        <div className="relative -mx-6 md:-mx-12 lg:-mx-16 overflow-hidden py-4 select-none">
                           <ScrollMarquee
                             items={trialCards}
                             speed={domeAutoRotateSpeed || 1}
@@ -3450,7 +3501,7 @@ const App: React.FC = () => {
             <section 
               key={s.id}
               id={`screen-${s.id}`}
-              className={`snap-start snap-always relative w-full min-h-screen lg:h-screen lg:min-h-[600px] overflow-visible lg:overflow-hidden flex items-center justify-center bg-transparent py-12 lg:py-0 ${s.id === 7 ? 'pt-[48px] pl-0 ml-[7px]' : ''}`}
+              className={`snap-start snap-always relative w-full min-h-screen lg:h-screen lg:min-h-[600px] overflow-visible lg:overflow-hidden flex items-center justify-center bg-transparent py-12 lg:py-0 ${s.id === 7 ? 'pt-[48px] pl-0' : ''}`}
             >
               {/* 1700px Content Core ("版心控制在 1700px 左右") */}
               <div className="relative z-10 w-full h-auto lg:h-full max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 flex flex-col justify-center text-white pointer-events-auto">
@@ -3595,7 +3646,7 @@ const App: React.FC = () => {
                     )}
 
                     {/* Flex track running marquee animation with dragging/touch support. */}
-                    <div className="relative w-screen left-1/2 -ml-[50vw] py-8 overflow-hidden select-none my-2 bg-transparent pointer-events-auto -translate-y-8 lg:-translate-y-12 transition-transform duration-300">
+                    <div className="relative -mx-6 md:-mx-12 lg:-mx-16 py-8 overflow-hidden select-none my-2 bg-transparent pointer-events-auto -translate-y-8 lg:-translate-y-12 transition-transform duration-300">
                       <ScrollMarquee
                         items={
                           s.id === 7 
@@ -3756,9 +3807,9 @@ const App: React.FC = () => {
                     
                     {/* Screen 9: Footer Input form & metadata cards */}
                     {s.id === 9 && (
-                      <div className="w-full max-w-xl pt-3">
+                      <div className="w-full max-w-xl pt-3 mx-auto flex flex-col items-center justify-center">
                         {subscribeStatus === 'success' ? (
-                          <div className="p-4 bg-emerald-950/40 border border-emerald-500/60 rounded-xl text-emerald-300 text-xs font-medium flex items-center gap-2">
+                          <div className="p-4 bg-emerald-950/40 border border-emerald-500/60 rounded-xl text-emerald-300 text-xs font-medium flex items-center gap-2 w-full max-w-lg">
                             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                             <span>订阅成功！您的邮箱已成功加入 AlphaQubit 开放日通报名单。</span>
                           </div>
@@ -3772,19 +3823,19 @@ const App: React.FC = () => {
                                 alert("请输入有效的邮箱地址");
                               }
                             }}
-                            className="flex items-center gap-2 p-1.5 bg-zinc-900/80 border border-zinc-700 rounded-xl max-w-lg shadow-lg backdrop-blur-md"
+                            className="w-full flex items-center gap-2 p-1.5 bg-zinc-900/80 border border-zinc-700 rounded-xl max-w-lg shadow-lg backdrop-blur-md mx-auto"
                           >
                             <input 
                               type="email" 
                               placeholder="输入您的电子邮箱加入邮件简讯..."
                               value={subscriberMail}
                               onChange={(e) => setSubscriberMail(e.target.value)}
-                              className="bg-transparent text-xs text-white placeholder-zinc-500 px-3 py-2.5 focus:outline-none flex-1 font-sans"
+                              className="bg-transparent text-xs text-white placeholder-zinc-500 px-3 py-2.5 focus:outline-none flex-1 font-sans min-w-0"
                               required
                             />
                             <button 
                               type="submit"
-                              className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 text-xs font-bold font-display rounded-lg tracking-wider flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
+                              className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 text-xs font-bold font-display rounded-lg tracking-wider flex items-center gap-1.5 transition-all shadow-md cursor-pointer flex-shrink-0"
                             >
                               <span>立即订阅</span>
                               <Send className="w-3.5 h-3.5" />

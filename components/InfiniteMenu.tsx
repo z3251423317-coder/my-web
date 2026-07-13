@@ -1441,6 +1441,28 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick, act
     }
   };
 
+  const dragDistanceRef = useRef(0);
+  const startPosRef = useRef({ x: 0, y: 0 });
+
+  const forwardPointerEventToCanvas = (type: string, e: React.PointerEvent<HTMLDivElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const clone = new PointerEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      pointerId: e.pointerId,
+      pointerType: e.pointerType,
+      clientX: e.clientX,
+      clientY: e.clientY,
+      screenX: e.screenX,
+      screenY: e.screenY,
+      button: e.button,
+      buttons: e.buttons,
+    });
+    canvas.dispatchEvent(clone);
+  };
+
   return (
     <div className="relative w-full h-full min-h-screen flex items-center justify-center select-none overflow-hidden bg-transparent">
       <canvas id="infinite-grid-menu-canvas" ref={canvasRef} className="absolute inset-0 w-full h-full" />
@@ -1459,7 +1481,41 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick, act
 
           {/* Centered item details in the absolute center of the 3D sphere */}
           <div 
-            onClick={handleButtonClick}
+            onClick={(e) => {
+              if (dragDistanceRef.current > 10) {
+                e.stopPropagation();
+                return;
+              }
+              handleButtonClick();
+            }}
+            onPointerDown={(e) => {
+              if (e.button === 0 || e.pointerType === 'touch') {
+                e.currentTarget.setPointerCapture(e.pointerId);
+                startPosRef.current = { x: e.clientX, y: e.clientY };
+                dragDistanceRef.current = 0;
+                forwardPointerEventToCanvas('pointerdown', e);
+              }
+            }}
+            onPointerMove={(e) => {
+              if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+                const dx = e.clientX - startPosRef.current.x;
+                const dy = e.clientY - startPosRef.current.y;
+                dragDistanceRef.current = Math.sqrt(dx * dx + dy * dy);
+                forwardPointerEventToCanvas('pointermove', e);
+              }
+            }}
+            onPointerUp={(e) => {
+              if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+                e.currentTarget.releasePointerCapture(e.pointerId);
+                forwardPointerEventToCanvas('pointerup', e);
+              }
+            }}
+            onPointerCancel={(e) => {
+              if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+                e.currentTarget.releasePointerCapture(e.pointerId);
+                forwardPointerEventToCanvas('pointerup', e);
+              }
+            }}
             className={`absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center text-center w-[90%] max-w-xl z-10 transition-all duration-500 cursor-pointer group/center ${isMoving ? 'opacity-0 scale-95 blur-sm pointer-events-none' : 'opacity-100 scale-100 pointer-events-auto hover:scale-105'}`}
           >
             <h2 className="font-display font-extrabold text-2xl md:text-3xl text-white tracking-tight drop-shadow-lg mb-3 line-clamp-2 group-hover/center:text-amber-400 transition-colors">
@@ -1486,7 +1542,7 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick, act
                 isMoving ? 'opacity-0 translate-y-6 scale-90 pointer-events-none' : 'opacity-100 translate-y-0 scale-100'
               }`}
             >
-              <span>{activeItem.link ? "OPEN LINK / 打开链接" : "VIEW DETAIL / 查看详情"}</span>
+              <span>{activeItem.link ? "OPEN LINK / 打开链接" : "EXPLORE / 探索"}</span>
               <p className="font-sans text-sm font-bold transition-transform group-hover:translate-x-0.5">&#x2197;</p>
             </button>
           </div>

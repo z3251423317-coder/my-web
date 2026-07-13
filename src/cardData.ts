@@ -101,6 +101,8 @@ export const DEFAULT_MARQUEE_CARDS: MarqueeCard[] = [
     "desc": "Automated drift correction module optimizing microwave pulses.",
     "url": "",
     "colorType": "indigo",
+    "isLit": true,
+    "glowColor": "#6366f1",
     "isEncrypted": true,
     "password": "1111",
     "audioModules": [
@@ -131,7 +133,9 @@ export const DEFAULT_MARQUEE_CARDS: MarqueeCard[] = [
     "cat": "OPTIMIZER",
     "desc": "Parallel graph perfect matcher solving threshold parameters.",
     "url": "",
-    "colorType": "amber"
+    "colorType": "amber",
+    "isLit": true,
+    "glowColor": "#fbbf24"
   }
 ];
 

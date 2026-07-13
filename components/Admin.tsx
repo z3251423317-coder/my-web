@@ -1628,23 +1628,65 @@ export default function Admin() {
                                                   />
                                                 </div>
 
-                                                {/* isLit Switch */}
-                                                <div className="flex items-center justify-between p-2.5 bg-zinc-900 rounded-xl border border-zinc-850">
-                                                  <div className="space-y-0.5">
-                                                    <span className="text-xs font-bold text-white block">启用量子流发光特效 (Glow Effect)</span>
-                                                    <span className="text-[10px] text-zinc-400 block">高亮显示该项，在前台以更显眼的发光卡片呈现</span>
+                                                {/* isLit & glowEnabled Switches */}
+                                                <div className="space-y-3 text-left">
+                                                  {/* 1. isLit Toggle (卡片高亮) */}
+                                                  <div className="flex items-center justify-between p-2.5 bg-zinc-900 rounded-xl border border-zinc-850">
+                                                    <div className="space-y-0.5">
+                                                      <span className="text-xs font-bold text-white block">卡片高亮 (Card Highlight)</span>
+                                                      <span className="text-[10px] text-zinc-400 block">高亮显示该项，使其在前台处于亮色激活状态</span>
+                                                    </div>
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => updateCardFieldLocal({ isLit: !card.isLit })}
+                                                      className={`px-3 py-1 rounded-full text-xs font-mono font-bold transition-all ${
+                                                        card.isLit 
+                                                          ? 'bg-amber-500 text-zinc-950 font-extrabold shadow-[0_0_8px_rgba(245,158,11,0.4)]' 
+                                                          : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300'
+                                                      }`}
+                                                    >
+                                                      {card.isLit ? "已启用 HIGH-LIGHT" : "未启用 GRAYSCALE"}
+                                                    </button>
                                                   </div>
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => updateCardFieldLocal({ isLit: !card.isLit })}
-                                                    className={`px-3 py-1 rounded-full text-xs font-mono font-bold transition-all ${
-                                                      card.isLit 
-                                                        ? 'bg-amber-500 text-zinc-950 font-extrabold shadow-[0_0_8px_rgba(245,158,11,0.4)]' 
-                                                        : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300'
-                                                    }`}
-                                                  >
-                                                    {card.isLit ? "已启用 GLOWING" : "未启用 STATIC"}
-                                                  </button>
+
+                                                  {/* 2. glowEnabled Toggle (卡片流光), only visible if isLit is true */}
+                                                  {card.isLit && (
+                                                    <div className="space-y-3 p-2.5 bg-zinc-900/60 border border-zinc-850 rounded-xl">
+                                                      <div className="flex items-center justify-between">
+                                                        <div className="space-y-0.5">
+                                                          <span className="text-xs font-bold text-white block">量子流发光特效 (Glow Effect / 卡片流光)</span>
+                                                          <span className="text-[10px] text-zinc-400 block font-sans">启用炫酷边缘呼吸灯流光效果</span>
+                                                        </div>
+                                                        <button
+                                                          type="button"
+                                                          onClick={() => updateCardFieldLocal({ glowEnabled: card.glowEnabled === false ? true : false })}
+                                                          className={`px-3 py-1 rounded-full text-xs font-mono font-bold transition-all ${
+                                                            card.glowEnabled !== false 
+                                                              ? 'bg-blue-500 text-white font-extrabold shadow-[0_0_8px_rgba(59,130,246,0.4)]' 
+                                                              : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300'
+                                                          }`}
+                                                        >
+                                                          {card.glowEnabled !== false ? "已启用 GLOWING" : "未启用 STATIC"}
+                                                        </button>
+                                                      </div>
+
+                                                      {/* Glow Color Picker */}
+                                                      {card.glowEnabled !== false && (
+                                                        <div className="flex items-center justify-between pt-2 border-t border-zinc-800/50">
+                                                          <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">流光颜色 / Glow Color</span>
+                                                          <div className="flex items-center gap-2">
+                                                            <input 
+                                                              type="color" 
+                                                              value={card.glowColor || "#fbbf24"}
+                                                              onChange={(e) => updateCardFieldLocal({ glowColor: e.target.value })}
+                                                              className="w-8 h-8 bg-zinc-950 border border-zinc-800 rounded cursor-pointer p-0"
+                                                            />
+                                                            <span className="text-xs font-mono text-zinc-400">{card.glowColor || "#fbbf24"}</span>
+                                                          </div>
+                                                        </div>
+                                                      )}
+                                                    </div>
+                                                  )}
                                                 </div>
                                               </div>
                                             )}
@@ -2115,23 +2157,65 @@ export default function Admin() {
                                                   />
                                                 </div>
 
-                                                {/* isLit Switch */}
-                                                <div className="flex items-center justify-between p-2.5 bg-zinc-900 rounded-xl border border-zinc-850">
-                                                  <div className="space-y-0.5">
-                                                    <span className="text-xs font-bold text-white block">启用量子流发光特效 (Glow Effect)</span>
-                                                    <span className="text-[10px] text-zinc-400 block">高亮显示该项，在前台以更显眼的发光卡片呈现</span>
+                                                {/* isLit & glowEnabled Switches */}
+                                                <div className="space-y-3 text-left">
+                                                  {/* 1. isLit Toggle (卡片高亮) */}
+                                                  <div className="flex items-center justify-between p-2.5 bg-zinc-900 rounded-xl border border-zinc-850">
+                                                    <div className="space-y-0.5">
+                                                      <span className="text-xs font-bold text-white block">卡片高亮 (Card Highlight)</span>
+                                                      <span className="text-[10px] text-zinc-400 block">高亮显示该项，使其在前台处于亮色激活状态</span>
+                                                    </div>
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => updateCardFieldLocal({ isLit: !card.isLit })}
+                                                      className={`px-3 py-1 rounded-full text-xs font-mono font-bold transition-all ${
+                                                        card.isLit 
+                                                          ? 'bg-amber-500 text-zinc-950 font-extrabold shadow-[0_0_8px_rgba(245,158,11,0.4)]' 
+                                                          : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300'
+                                                      }`}
+                                                    >
+                                                      {card.isLit ? "已启用 HIGH-LIGHT" : "未启用 GRAYSCALE"}
+                                                    </button>
                                                   </div>
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => updateCardFieldLocal({ isLit: !card.isLit })}
-                                                    className={`px-3 py-1 rounded-full text-xs font-mono font-bold transition-all ${
-                                                      card.isLit 
-                                                        ? 'bg-amber-500 text-zinc-950 font-extrabold shadow-[0_0_8px_rgba(245,158,11,0.4)]' 
-                                                        : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300'
-                                                    }`}
-                                                  >
-                                                    {card.isLit ? "已启用 GLOWING" : "未启用 STATIC"}
-                                                  </button>
+
+                                                  {/* 2. glowEnabled Toggle (卡片流光), only visible if isLit is true */}
+                                                  {card.isLit && (
+                                                    <div className="space-y-3 p-2.5 bg-zinc-900/60 border border-zinc-850 rounded-xl">
+                                                      <div className="flex items-center justify-between">
+                                                        <div className="space-y-0.5">
+                                                          <span className="text-xs font-bold text-white block">量子流发光特效 (Glow Effect / 卡片流光)</span>
+                                                          <span className="text-[10px] text-zinc-400 block font-sans">启用炫酷边缘呼吸灯流光效果</span>
+                                                        </div>
+                                                        <button
+                                                          type="button"
+                                                          onClick={() => updateCardFieldLocal({ glowEnabled: card.glowEnabled === false ? true : false })}
+                                                          className={`px-3 py-1 rounded-full text-xs font-mono font-bold transition-all ${
+                                                            card.glowEnabled !== false 
+                                                              ? 'bg-blue-500 text-white font-extrabold shadow-[0_0_8px_rgba(59,130,246,0.4)]' 
+                                                              : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300'
+                                                          }`}
+                                                        >
+                                                          {card.glowEnabled !== false ? "已启用 GLOWING" : "未启用 STATIC"}
+                                                        </button>
+                                                      </div>
+
+                                                      {/* Glow Color Picker */}
+                                                      {card.glowEnabled !== false && (
+                                                        <div className="flex items-center justify-between pt-2 border-t border-zinc-800/50">
+                                                          <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">流光颜色 / Glow Color</span>
+                                                          <div className="flex items-center gap-2">
+                                                            <input 
+                                                              type="color" 
+                                                              value={card.glowColor || "#fbbf24"}
+                                                              onChange={(e) => updateCardFieldLocal({ glowColor: e.target.value })}
+                                                              className="w-8 h-8 bg-zinc-950 border border-zinc-800 rounded cursor-pointer p-0"
+                                                            />
+                                                            <span className="text-xs font-mono text-zinc-400">{card.glowColor || "#fbbf24"}</span>
+                                                          </div>
+                                                        </div>
+                                                      )}
+                                                    </div>
+                                                  )}
                                                 </div>
                                               </div>
                                             )}

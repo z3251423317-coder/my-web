@@ -164,6 +164,7 @@ const PillNav: React.FC<PillNavProps> = ({
   };
 
   const handleLeave = (i: number) => {
+    if (items[i]?.href === activeHref) return;
     const tl = tlRefs.current[i];
     if (!tl) return;
     activeTweenRefs.current[i]?.kill();
@@ -173,6 +174,56 @@ const PillNav: React.FC<PillNavProps> = ({
       overwrite: 'auto'
     });
   };
+
+  // Synchronize GSAP animation states with activeHref
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      items.forEach((item, i) => {
+        const isActive = activeHref === item.href;
+        const tl = tlRefs.current[i];
+        if (!tl) return;
+        activeTweenRefs.current[i]?.kill();
+        if (isActive) {
+          activeTweenRefs.current[i] = tl.tweenTo(tl.duration(), {
+            duration: 0.35,
+            ease,
+            overwrite: 'auto'
+          });
+        } else {
+          activeTweenRefs.current[i] = tl.tweenTo(0, {
+            duration: 0.25,
+            ease,
+            overwrite: 'auto'
+          });
+        }
+      });
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, [activeHref, items, ease]);
+
+  // Scroll the active item into view on mobile horizontal navbar scroll container
+  useEffect(() => {
+    if (!activeHref) return;
+    const activeIndex = items.findIndex(item => item.href === activeHref);
+    if (activeIndex === -1) return;
+
+    const timer = setTimeout(() => {
+      const navItems = navItemsRef.current;
+      if (navItems) {
+        const activeElement = navItems.querySelectorAll('.pill')[activeIndex];
+        if (activeElement) {
+          activeElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+            inline: 'center'
+          });
+        }
+      }
+    }, 150);
+
+    return () => clearTimeout(timer);
+  }, [activeHref, items]);
 
   const handleLogoEnter = () => {
     const img = logoImgRef.current;
