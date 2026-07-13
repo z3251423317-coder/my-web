@@ -41,6 +41,10 @@ const PillNav: React.FC<PillNavProps> = ({
 }) => {
   const resolvedPillTextColor = pillTextColor ?? baseColor;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const collapseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const circleRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const tlRefs = useRef<any[]>([]);
   const activeTweenRefs = useRef<any[]>([]);
@@ -50,6 +54,47 @@ const PillNav: React.FC<PillNavProps> = ({
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const navItemsRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLAnchorElement>(null);
+
+  // Auto-collapse behavior: collapse 4s after activeHref changes, unless hovered
+  useEffect(() => {
+    setIsCollapsed(false);
+
+    if (collapseTimeoutRef.current) {
+      clearTimeout(collapseTimeoutRef.current);
+    }
+
+    if (!isHovered) {
+      collapseTimeoutRef.current = setTimeout(() => {
+        setIsCollapsed(true);
+      }, 4000);
+    }
+
+    return () => {
+      if (collapseTimeoutRef.current) {
+        clearTimeout(collapseTimeoutRef.current);
+      }
+    };
+  }, [activeHref, isHovered]);
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    setIsCollapsed(false);
+    if (collapseTimeoutRef.current) {
+      clearTimeout(collapseTimeoutRef.current);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    if (collapseTimeoutRef.current) {
+      clearTimeout(collapseTimeoutRef.current);
+    }
+    collapseTimeoutRef.current = setTimeout(() => {
+      setIsCollapsed(true);
+    }, 4000);
+  };
+
+  const activeScreenNum = activeHref ? activeHref.replace('#screen-', '') : '';
 
   useEffect(() => {
     // Reset refs list size when items change
@@ -297,22 +342,42 @@ const PillNav: React.FC<PillNavProps> = ({
   } as React.CSSProperties;
 
   return (
-    <div className="pill-nav-container">
-      <nav className={`pill-nav ${className}`} aria-label="Primary" style={cssVars}>
+    <div 
+      className="pill-nav-container"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <nav className={`pill-nav ${className} ${isCollapsed ? 'is-collapsed' : ''}`} aria-label="Primary" style={cssVars}>
         <a
-          className="pill-logo"
+          className="pill-logo relative"
           href={items?.[0]?.href || '#'}
           aria-label="Home"
           onMouseEnter={handleLogoEnter}
           ref={logoRef}
           onClick={(e) => {
+            if (isCollapsed) {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsCollapsed(false);
+              return;
+            }
             if (onItemClick && items?.[0]) {
               e.preventDefault();
               onItemClick(items[0], 0);
             }
           }}
         >
-          <img src={logo} alt={logoAlt} ref={logoImgRef} />
+          <img 
+            src={logo} 
+            alt={logoAlt} 
+            ref={logoImgRef} 
+            className={`transition-all duration-500 ${isCollapsed ? 'opacity-20 scale-75 blur-[0.5px]' : 'opacity-100 scale-100'}`}
+          />
+          {isCollapsed && activeScreenNum && (
+            <span className="absolute inset-0 flex items-center justify-center text-xs font-mono font-black text-amber-400 tracking-tighter select-none pointer-events-none animate-fade-in">
+              {activeScreenNum.padStart(2, '0')}
+            </span>
+          )}
         </a>
 
         <div className="pill-nav-items" ref={navItemsRef}>

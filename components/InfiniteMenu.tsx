@@ -1488,12 +1488,18 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick, act
               }
               handleButtonClick();
             }}
+            onContextMenu={(e) => {
+              e.preventDefault();
+            }}
             onPointerDown={(e) => {
               if (e.button === 0 || e.pointerType === 'touch') {
                 e.currentTarget.setPointerCapture(e.pointerId);
                 startPosRef.current = { x: e.clientX, y: e.clientY };
                 dragDistanceRef.current = 0;
                 forwardPointerEventToCanvas('pointerdown', e);
+                if (e.cancelable) {
+                  e.preventDefault();
+                }
               }
             }}
             onPointerMove={(e) => {
@@ -1516,13 +1522,14 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick, act
                 forwardPointerEventToCanvas('pointerup', e);
               }
             }}
-            className={`absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center text-center w-[90%] max-w-xl z-10 transition-all duration-500 cursor-pointer group/center ${isMoving ? 'opacity-0 scale-95 blur-sm pointer-events-none' : 'opacity-100 scale-100 pointer-events-auto hover:scale-105'}`}
+            style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }}
+            className={`absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center text-center w-[90%] max-w-xl z-10 transition-all duration-500 cursor-pointer group/center select-none touch-none ${isMoving ? 'opacity-0 scale-95 blur-sm pointer-events-none' : 'opacity-100 scale-100 pointer-events-auto hover:scale-105'}`}
           >
-            <h2 className="font-display font-extrabold text-2xl md:text-3xl text-white tracking-tight drop-shadow-lg mb-3 line-clamp-2 group-hover/center:text-amber-400 transition-colors">
+            <h2 className="font-display font-extrabold text-2xl md:text-3xl text-white tracking-tight drop-shadow-lg mb-3 line-clamp-2 group-hover/center:text-amber-400 transition-colors pointer-events-none select-none">
               {activeItem.title}
             </h2>
 
-            <p className="text-zinc-300 text-xs md:text-sm font-sans font-light leading-relaxed drop-shadow-sm max-w-sm line-clamp-3 group-hover/center:text-zinc-200 transition-colors">
+            <p className="text-zinc-300 text-xs md:text-sm font-sans font-light leading-relaxed drop-shadow-sm max-w-sm line-clamp-3 group-hover/center:text-zinc-200 transition-colors pointer-events-none select-none">
               {activeItem.description}
             </p>
           </div>
