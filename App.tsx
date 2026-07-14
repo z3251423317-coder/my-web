@@ -346,7 +346,11 @@ const DEFAULT_SCREENS: ScreenData[] = [
     "align": "left",
     "ctaText": "",
     "ctaUrl": "#screen-2",
-    "bgMusicUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    "bgMusicUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    "guideEnabled": true,
+    "guideAudio": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+    "guideIdleGif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3g2bWlyYzV2MGMwMDlxZDN3NDR5bHF6Y3BmbnRzbmNlZWdrcTh1YiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/vK6jY8f448xQQ6qL6E/giphy.gif",
+    "guideActiveGif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMTMyNWNscjhhN3AwNHY0bmFmcmE4OTV5dWhkYm9idWRuamIyeTFpMGEmZXA9djFfaW50ZXJuYWxfZ2lmX2J5X2lkJnN0PXM/U3b8v4H97f3bYFfM2c/giphy.gif"
   },
   {
     "id": 2,
@@ -365,7 +369,9 @@ const DEFAULT_SCREENS: ScreenData[] = [
     "align": "left",
     "ctaText": "进入情感供需看板 / DECODE NOW",
     "ctaUrl": "#screen-3",
-    "bgMusicUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    "bgMusicUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    "guideEnabled": true,
+    "guideAudio": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
   },
   {
     "id": 3,
@@ -383,7 +389,9 @@ const DEFAULT_SCREENS: ScreenData[] = [
     "align": "right",
     "ctaText": "",
     "ctaUrl": "#screen-4",
-    "bgMusicUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    "bgMusicUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+    "guideEnabled": true,
+    "guideAudio": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
   },
   {
     "id": 4,
@@ -783,6 +791,11 @@ const App: React.FC = () => {
   const [dbErrorMsg, setDbErrorMsg] = useState<string>("");
   const [isRetryingDb, setIsRetryingDb] = useState<boolean>(false);
   const [showDbDiagnostics, setShowDbDiagnostics] = useState<boolean>(false);
+
+  // Voice guide / assistant states
+  const [guideAudioPlaying, setGuideAudioPlaying] = useState<boolean>(false);
+  const guideAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [showGuideTooltip, setShowGuideTooltip] = useState<boolean>(true);
 
   const loadConfigRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
@@ -1987,6 +2000,36 @@ const App: React.FC = () => {
 
   const activeScreen = screens.find(s => s.id === activeId) || screens[0];
 
+  // Stop playing guide audio when screen changes, and trigger auto-play if enabled
+  useEffect(() => {
+    if (guideAudioRef.current) {
+      guideAudioRef.current.pause();
+      setGuideAudioPlaying(false);
+    }
+
+    if (activeScreen.guideEnabled && activeScreen.guideAudio && activeScreen.guideAutoPlay) {
+      // Auto-play after a short delay to let the screen transition finish
+      const timer = setTimeout(() => {
+        if (!guideAudioRef.current) {
+          guideAudioRef.current = new Audio(activeScreen.guideAudio);
+          guideAudioRef.current.onended = () => {
+            setGuideAudioPlaying(false);
+          };
+        } else {
+          guideAudioRef.current.src = activeScreen.guideAudio;
+        }
+        guideAudioRef.current.play()
+          .then(() => {
+            setGuideAudioPlaying(true);
+          })
+          .catch(err => {
+            console.log("Autoplay of guide audio blocked or failed. User needs to click manually.", err);
+          });
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [activeId, activeScreen.guideAudio, activeScreen.guideEnabled, activeScreen.guideAutoPlay]);
+
   // Helper code to smooth scroll to screen id
   const scrollToScreen = (id: number) => {
     setActiveId(id);
@@ -2829,7 +2872,7 @@ const App: React.FC = () => {
 
       {/* PillNav centered navigation header - permanently displayed on all screens */}
       <PillNav 
-        logo="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=100&h=100&fit=crop"
+        logo="https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg"
         logoAlt="α"
         items={pillNavItems}
         activeHref={`#screen-${activeId}`}
@@ -2982,47 +3025,116 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Elegant, Minimalist Page-Level Navigation Suite (Fixed on Display Page) */}
-      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2 pointer-events-auto">
-          {/* Screen Counter Badge */}
-          <div className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-full font-mono text-[9px] tracking-widest text-zinc-200 font-bold backdrop-blur-md shadow-lg select-none">
-            {activeId.toString().padStart(2, '0')} / {screens.length.toString().padStart(2, '0')}
+      {/* Elegant Draggable Virtual Assistant & Voice Guide - Replaces old screen navigations */}
+      {activeScreen.guideEnabled && (
+        <motion.div 
+          drag
+          dragMomentum={false}
+          initial={{ opacity: 0, scale: 0.8, y: 50 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className="fixed bottom-6 right-6 z-[2000] flex flex-col items-center select-none pointer-events-auto"
+          title="可任意拖动位置 | 点击收听语音讲解"
+        >
+          {/* Speech/Tooltip Bubble */}
+          <AnimatePresence>
+            {showGuideTooltip && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                className="mb-2 px-3 py-1.5 bg-zinc-950/90 border border-zinc-800 rounded-xl text-[10px] text-zinc-300 backdrop-blur-md shadow-2xl max-w-[200px] text-center leading-normal relative flex flex-col items-center"
+              >
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setShowGuideTooltip(false); }}
+                  className="absolute -top-1 -right-1 p-0.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 rounded-full transition-colors"
+                >
+                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                <span className="font-sans font-medium text-amber-400 block mb-0.5">
+                  {guideAudioPlaying ? "🔊 正在为您讲解中..." : "🎙️ 点击听取本屏讲解"}
+                </span>
+                <span className="text-[9px] text-zinc-500 font-sans block">
+                  {guideAudioPlaying ? "再次点击可暂停播放" : "按住可拖动助手到任意位置"}
+                </span>
+                {/* Tiny Triangle Tip */}
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-950 border-r border-b border-zinc-800 rotate-45"></div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Interactive Floating Avatar Wrapper */}
+          <div 
+            onClick={() => {
+              if (guideAudioPlaying) {
+                if (guideAudioRef.current) {
+                  guideAudioRef.current.pause();
+                }
+                setGuideAudioPlaying(false);
+              } else {
+                if (activeScreen.guideAudio) {
+                  if (!guideAudioRef.current) {
+                    guideAudioRef.current = new Audio(activeScreen.guideAudio);
+                    guideAudioRef.current.onended = () => {
+                      setGuideAudioPlaying(false);
+                    };
+                  } else {
+                    guideAudioRef.current.src = activeScreen.guideAudio;
+                  }
+                  guideAudioRef.current.play()
+                    .then(() => {
+                      setGuideAudioPlaying(true);
+                      setShowGuideTooltip(true);
+                    })
+                    .catch(err => {
+                      console.error("Failed to play guide audio", err);
+                      alert("由于浏览器安全策略，请在页面中点击任意位置后再试。");
+                    });
+                } else {
+                  alert("当前页面尚未配置讲解语音哦，请在后台(Admin)中编辑上传。");
+                }
+              }
+            }}
+            className="relative group cursor-pointer active:scale-95 transition-transform"
+          >
+            {/* Glow Ring behind Avatar */}
+            <div className={`absolute -inset-1.5 rounded-full blur-[6px] opacity-75 transition-all duration-500 ${
+              guideAudioPlaying 
+                ? 'bg-amber-500 animate-pulse' 
+                : 'bg-zinc-700/50 group-hover:bg-amber-500/30'
+            }`} />
+
+            {/* Dynamic Equalizer Waves when speaking */}
+            {guideAudioPlaying && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex items-end gap-0.5 h-3">
+                <span className="w-0.5 h-1.5 bg-amber-400 rounded-full animate-[pulse_0.8s_infinite_alternate]" style={{ animationDelay: '0.1s' }} />
+                <span className="w-0.5 h-3 bg-amber-400 rounded-full animate-[pulse_0.8s_infinite_alternate]" style={{ animationDelay: '0.3s' }} />
+                <span className="w-0.5 h-2 bg-amber-400 rounded-full animate-[pulse_0.8s_infinite_alternate]" style={{ animationDelay: '0.2s' }} />
+                <span className="w-0.5 h-1.5 bg-amber-400 rounded-full animate-[pulse_0.8s_infinite_alternate]" style={{ animationDelay: '0.4s' }} />
+              </div>
+            )}
+
+            {/* Avatar GIF/Image Element */}
+            <div className={`w-14 h-14 rounded-full overflow-hidden border-2 relative z-10 bg-zinc-900 shadow-2xl transition-all duration-300 ${
+              guideAudioPlaying 
+                ? 'border-amber-400 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.4)]' 
+                : 'border-zinc-700 hover:border-zinc-400'
+            }`}>
+              <img 
+                src={guideAudioPlaying 
+                  ? (activeScreen.guideActiveGif || activeScreen.guideIdleGif || "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg")
+                  : (activeScreen.guideIdleGif || "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg")
+                } 
+                alt="Guide Assistant" 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg";
+                }}
+              />
+            </div>
           </div>
-
-          {/* Up/Prev Button */}
-          <button 
-            onClick={() => {
-              if (scrollingTo !== null) return;
-              const currentIndex = screens.findIndex(s => s.id === activeId);
-              if (currentIndex > 0) {
-                const prevId = screens[currentIndex - 1].id;
-                scrollToScreen(prevId);
-              }
-            }}
-            disabled={activeId === screens[0]?.id || scrollingTo !== null}
-            title="Previous Screen / 上一屏"
-            className="p-2.5 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 rounded-full backdrop-blur-md text-zinc-300 hover:text-white transition-all cursor-pointer shadow-lg disabled:opacity-30 disabled:pointer-events-none active:scale-90"
-          >
-            <ChevronUp className="w-4 h-4" />
-          </button>
-
-          {/* Down/Next Button */}
-          <button 
-            onClick={() => {
-              if (scrollingTo !== null) return;
-              const currentIndex = screens.findIndex(s => s.id === activeId);
-              if (currentIndex < screens.length - 1) {
-                const nextId = screens[currentIndex + 1].id;
-                scrollToScreen(nextId);
-              }
-            }}
-            disabled={activeId === screens[screens.length - 1]?.id || scrollingTo !== null}
-            title="Next Screen / 下一屏"
-            className="p-2.5 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 rounded-full backdrop-blur-md text-zinc-300 hover:text-white transition-all cursor-pointer shadow-lg disabled:opacity-30 disabled:pointer-events-none active:scale-90"
-          >
-            <ChevronDown className="w-4 h-4" />
-          </button>
-        </div>
+        </motion.div>
+      )}
       
 
       {/* Developer Settings Control Panel (Only visible in DEV, draggable, clean and elegant) */}

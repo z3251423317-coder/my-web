@@ -95,6 +95,11 @@ interface ScreenData {
   bgMusicUrl?: string;
   mobileMusicUrl?: string;
   useVideoAudio?: boolean;
+  guideEnabled?: boolean;
+  guideIdleGif?: string;
+  guideActiveGif?: string;
+  guideAudio?: string;
+  guideAutoPlay?: boolean;
 }
 
 export default function Admin() {
@@ -919,6 +924,82 @@ export default function Admin() {
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* SECTION: VOICE GUIDE & ASSISTANT SETTINGS */}
+              <div className="bg-zinc-900/30 border border-zinc-800 rounded-xl p-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-zinc-800 pb-2.5">
+                  <div>
+                    <h3 className="text-xs font-bold text-white flex items-center gap-2">
+                      <span className="text-amber-400">🎙️</span>
+                      <span>本屏专属语音讲解与虚拟助手 (Voice Guide & Avatar Assistant)</span>
+                    </h3>
+                    <p className="text-[10px] text-zinc-500 mt-0.5">配置此屏的悬浮讲解动图和讲解语音。点击动图可自动播放讲解语音，每一屏的内容完全独立。</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer select-none">
+                    <input 
+                      type="checkbox" 
+                      checked={!!currentScreen.guideEnabled}
+                      onChange={(e) => updateScreenField(currentScreen.id, 'guideEnabled', e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:bg-amber-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
+                  </label>
+                </div>
+
+                {currentScreen.guideEnabled && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                    <div className="space-y-1.5 md:col-span-2">
+                      <label className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest block font-bold">讲解语音音频链接 (Guide Audio URL)</label>
+                      <input 
+                        type="text" 
+                        value={currentScreen.guideAudio || ''} 
+                        onChange={(e) => updateScreenField(currentScreen.id, 'guideAudio', e.target.value)}
+                        className="w-full px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white font-mono"
+                        placeholder="https://... (建议使用 mp3 格式)"
+                      />
+                      <span className="text-[9.5px] text-zinc-500 block">点击悬浮动图时会播放此音频，支持输入任何有效的音频 MP3/WAV/AAC 链接。</span>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest block font-bold">空闲/默认状态动图 (Idle GIF URL)</label>
+                      <input 
+                        type="text" 
+                        value={currentScreen.guideIdleGif || ''} 
+                        onChange={(e) => updateScreenField(currentScreen.id, 'guideIdleGif', e.target.value)}
+                        className="w-full px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white font-mono"
+                        placeholder="https://... (留空则使用默认可爱机器人空闲动图)"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest block font-bold">播放/讲解中状态动图 (Active Speaking GIF URL)</label>
+                      <input 
+                        type="text" 
+                        value={currentScreen.guideActiveGif || ''} 
+                        onChange={(e) => updateScreenField(currentScreen.id, 'guideActiveGif', e.target.value)}
+                        className="w-full px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white font-mono"
+                        placeholder="https://... (留空则使用默认可爱机器人开口动图)"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2 flex items-center justify-between p-3 rounded-lg bg-zinc-900 border border-zinc-850">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-zinc-200">🔄 进入此屏时自动播放语音 (Auto-play voice on enter)</span>
+                        <span className="text-[10px] text-zinc-500 leading-normal">开启后，用户在切到本屏时会自动触发播放讲解，无需手动点击。受浏览器安全限制，部分浏览器需要用户先前有任意点击交互。</span>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer select-none">
+                        <input 
+                          type="checkbox" 
+                          checked={!!currentScreen.guideAutoPlay}
+                          onChange={(e) => updateScreenField(currentScreen.id, 'guideAutoPlay', e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:bg-amber-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
+                      </label>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* SECTION: SCREEN-ASSOCIATED CHILD DATA DIRECTLY ATTACHED (千万不能串!) */}

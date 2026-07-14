@@ -43,6 +43,13 @@ export interface ScreenData {
   bgMusicUrl?: string;
   mobileMusicUrl?: string;
   useVideoAudio?: boolean;
+  
+  // Guide/Explanation Avatar Settings
+  guideEnabled?: boolean;
+  guideIdleGif?: string;
+  guideActiveGif?: string;
+  guideAudio?: string;
+  guideAutoPlay?: boolean;
 }
 
 export interface AudioModule {
