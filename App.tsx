@@ -3096,16 +3096,9 @@ const App: React.FC = () => {
             }}
             className="relative group cursor-pointer active:scale-95 transition-transform"
           >
-            {/* Glow Ring behind Avatar */}
-            <div className={`absolute -inset-1.5 rounded-full blur-[6px] opacity-75 transition-all duration-500 ${
-              guideAudioPlaying 
-                ? 'bg-amber-500 animate-pulse' 
-                : 'bg-zinc-700/50 group-hover:bg-amber-500/30'
-            }`} />
-
             {/* Dynamic Equalizer Waves when speaking */}
             {guideAudioPlaying && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex items-end gap-0.5 h-3">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 flex items-end gap-0.5 h-3 z-20">
                 <span className="w-0.5 h-1.5 bg-amber-400 rounded-full animate-[pulse_0.8s_infinite_alternate]" style={{ animationDelay: '0.1s' }} />
                 <span className="w-0.5 h-3 bg-amber-400 rounded-full animate-[pulse_0.8s_infinite_alternate]" style={{ animationDelay: '0.3s' }} />
                 <span className="w-0.5 h-2 bg-amber-400 rounded-full animate-[pulse_0.8s_infinite_alternate]" style={{ animationDelay: '0.2s' }} />
@@ -3113,11 +3106,11 @@ const App: React.FC = () => {
               </div>
             )}
 
-            {/* Avatar GIF/Image Element */}
-            <div className={`w-14 h-14 rounded-full overflow-hidden border-2 relative z-10 bg-zinc-900 shadow-2xl transition-all duration-300 ${
+            {/* Transparent Avatar GIF/Image Element with Proportional Scaling */}
+            <div className={`relative z-10 transition-all duration-300 w-24 sm:w-28 md:w-32 h-auto flex items-center justify-center ${
               guideAudioPlaying 
-                ? 'border-amber-400 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.4)]' 
-                : 'border-zinc-700 hover:border-zinc-400'
+                ? 'scale-105' 
+                : 'hover:scale-105'
             }`}>
               <img 
                 src={guideAudioPlaying 
@@ -3125,7 +3118,11 @@ const App: React.FC = () => {
                   : (activeScreen.guideIdleGif || "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg")
                 } 
                 alt="Guide Assistant" 
-                className="w-full h-full object-cover"
+                className={`w-full h-auto object-contain transition-all duration-300 ${
+                  guideAudioPlaying 
+                    ? 'drop-shadow-[0_0_15px_rgba(245,158,11,0.85)] drop-shadow-[0_0_3px_rgba(245,158,11,0.4)]' 
+                    : 'drop-shadow-[0_0_6px_rgba(255,255,255,0.4)] hover:drop-shadow-[0_0_12px_rgba(245,158,11,0.5)]'
+                }`}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg";
