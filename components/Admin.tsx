@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { CheckInCalendar } from '../src/components/CheckInCalendar';
 import { 
   Layers, Palette, Shield, Zap, ChevronLeft, ChevronRight, HelpCircle, 
   RefreshCw, CheckCircle, Database, AlertCircle, Play, Pause, Save, 
@@ -51,6 +52,9 @@ interface MarqueeCard {
   isLit?: boolean;
   glowEnabled?: boolean;
   glowColor?: string;
+  checkInEnabled?: boolean;
+  checkInDates?: string[];
+  checkInQuote?: string;
   subCards?: SubCard[];
   audioModules?: AudioModule[];
 }
@@ -2214,6 +2218,56 @@ export default function Admin() {
                                                           </div>
                                                         </div>
                                                       )}
+                                                    </div>
+                                                  )}
+
+                                                  {/* 3. checkInEnabled Toggle (卡片打卡功能) */}
+                                                  <div className="flex items-center justify-between p-2.5 bg-zinc-900 rounded-xl border border-zinc-850">
+                                                    <div className="space-y-0.5">
+                                                      <span className="text-xs font-bold text-white block">每日打卡功能 (Check-in Calendar)</span>
+                                                      <span className="text-[10px] text-zinc-400 block">开启该卡片专属的日历打卡与连续签到统计功能</span>
+                                                    </div>
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => updateCardFieldLocal({ checkInEnabled: !card.checkInEnabled })}
+                                                      className={`px-3 py-1 rounded-full text-xs font-mono font-bold transition-all ${
+                                                        card.checkInEnabled 
+                                                          ? 'bg-emerald-500 text-zinc-950 font-extrabold shadow-[0_0_8px_rgba(16,185,129,0.4)]' 
+                                                          : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300'
+                                                      }`}
+                                                    >
+                                                      {card.checkInEnabled ? "已开启 CHECK-IN" : "已关闭 DISABLED"}
+                                                    </button>
+                                                  </div>
+
+                                                  {card.checkInEnabled && (
+                                                    <div className="space-y-3 mt-3">
+                                                      {/* 每日寄语编辑输入框 */}
+                                                      <div className="space-y-1.5 p-3.5 bg-zinc-900 rounded-xl border border-zinc-850">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                          <span className="text-[11px] font-bold text-white block">自定义每日寄语 (Daily Motivational Quote)</span>
+                                                          <span className="text-[9px] text-zinc-500 font-mono">卡片专属文案</span>
+                                                        </div>
+                                                        <textarea
+                                                          rows={3}
+                                                          value={card.checkInQuote || ""}
+                                                          onChange={(e) => updateCardFieldLocal({ checkInQuote: e.target.value })}
+                                                          placeholder="在此输入当天的学习/打卡寄语。留空时，系统将智能根据打卡状态自动切换默认鼓励文案..."
+                                                          className="w-full text-xs bg-zinc-950 text-white border border-zinc-800 rounded-lg p-2.5 focus:outline-none focus:border-amber-500 font-sans leading-relaxed"
+                                                        />
+                                                        <span className="text-[9.5px] text-zinc-400 block font-sans">
+                                                          * 支持纯文本、中英文。编辑后将即时更新至该卡片的打卡详情弹窗中。
+                                                        </span>
+                                                      </div>
+
+                                                      <CheckInCalendar 
+                                                        cardId={card.id}
+                                                        cardTitle={card.title}
+                                                        checkInDates={card.checkInDates || []}
+                                                        checkInQuote={card.checkInQuote}
+                                                        onCheckInDatesChange={(newDates) => updateCardFieldLocal({ checkInDates: newDates })}
+                                                        readOnly={false}
+                                                      />
                                                     </div>
                                                   )}
                                                 </div>

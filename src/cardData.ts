@@ -36,6 +36,9 @@ export interface MarqueeCard {
   isLit?: boolean;
   glowEnabled?: boolean;
   glowColor?: string;
+  checkInEnabled?: boolean;
+  checkInDates?: string[];
+  checkInQuote?: string;
   subCards?: SubCard[];
   audioModules?: {
     id: string;

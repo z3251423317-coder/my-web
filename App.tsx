@@ -31,6 +31,7 @@ import { AudioSecondaryPage } from './components/AudioSecondaryPage';
 import { SubCardSelectModal } from './components/SubCardSelectModal';
 import ShinyText from './components/ShinyText';
 import { MusicPlayer } from './components/MusicPlayer';
+import { CheckInCalendar } from './src/components/CheckInCalendar';
 import { db } from './firebase-config';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import defaultUserData from './user_data.json';
@@ -3690,8 +3691,13 @@ const App: React.FC = () => {
                               )}
                               <div>
                                 <div className={`flex items-center justify-between ${s.id === 3 ? 'mb-2.5' : 'mb-4'}`}>
-                                  <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase">
-                                    {card.cat || "GENERAL"}
+                                  <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase flex items-center gap-1.5">
+                                    <span>{card.cat || "GENERAL"}</span>
+                                    {s.id === 7 && card.checkInEnabled && (
+                                      <span className="px-1.5 py-0.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 rounded-md text-[8px] tracking-normal font-sans font-black flex items-center gap-0.5 animate-pulse">
+                                        ● 打卡
+                                      </span>
+                                    )}
                                   </span>
                                   <div className="p-1.5 rounded-lg border border-current opacity-85">
                                     <CardIcon className="w-3.5 h-3.5" />
@@ -5015,7 +5021,7 @@ const App: React.FC = () => {
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-2xl bg-zinc-950 border border-zinc-800 rounded-2xl p-8 relative overflow-hidden shadow-2xl"
+            className="w-full max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar bg-zinc-950 border border-zinc-800 rounded-2xl p-6 sm:p-8 relative shadow-2xl pointer-events-auto"
           >
             <button onClick={() => setEnlargedCard(null)} className="absolute top-4 right-4 text-zinc-400 hover:text-white cursor-pointer z-50">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -5025,6 +5031,19 @@ const App: React.FC = () => {
               <h2 className="text-3xl font-display font-bold text-white">{enlargedCard.title}</h2>
             </div>
             <p className="text-zinc-300 text-lg leading-relaxed relative z-10">{enlargedCard.desc}</p>
+            
+            {enlargedCard.checkInEnabled && (
+              <div className="relative z-10">
+                <CheckInCalendar 
+                  cardId={enlargedCard.id} 
+                  cardTitle={enlargedCard.title} 
+                  checkInDates={enlargedCard.checkInDates || []}
+                  checkInQuote={enlargedCard.checkInQuote}
+                  readOnly={true}
+                />
+              </div>
+            )}
+
              {enlargedCard.isLit && enlargedCard.glowEnabled !== false && (
                <>
                  <div 
