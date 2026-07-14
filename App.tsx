@@ -3942,7 +3942,7 @@ const App: React.FC = () => {
                         : s.align === 'right' 
                           ? 'lg:col-span-7 lg:col-start-6 order-1 flex flex-col items-center text-center lg:items-end lg:text-right' 
                           : s.id === 1
-                            ? 'lg:col-span-7 order-1 lg:order-1 z-50 relative pointer-events-auto flex flex-col items-center text-center lg:items-start lg:text-left'
+                            ? 'lg:col-span-7 order-1 lg:order-1 z-50 relative pointer-events-auto flex flex-col items-center text-center lg:items-start lg:text-left -translate-y-12 lg:translate-y-0'
                             : 'lg:col-span-7 order-1 lg:order-1 flex flex-col items-center text-center lg:items-start lg:text-left'
                     } space-y-6 md:space-y-8`}
                   >
