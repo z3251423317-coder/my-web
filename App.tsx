@@ -571,6 +571,7 @@ interface SafeVideoProps {
   className?: string;
   style?: React.CSSProperties;
   muted?: boolean;
+  isGuidePlaying?: boolean;
 }
 
 // Global tracker to handle cases where user has interacted with the page before a video component mounts
@@ -584,22 +585,78 @@ if (typeof window !== "undefined") {
   window.addEventListener("touchstart", markInteracted, { capture: true, passive: true });
 }
 
-const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style, muted = true }) => {
+const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style, muted = true, isGuidePlaying = false }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   
+  // Handle general mute state immediately on changes
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.muted = muted;
+      if (muted || isGuidePlaying) {
+        videoRef.current.muted = true;
+        videoRef.current.volume = 0;
+      } else {
+        videoRef.current.muted = false;
+        videoRef.current.volume = 1;
+      }
     }
   }, [muted]);
+
+  // Volume fade transitions for isGuidePlaying and muted
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (muted) {
+      video.muted = true;
+      video.volume = 0;
+      return;
+    }
+
+    // Control volume fade based on isGuidePlaying
+    let intervalId: any;
+    const startVolume = video.volume;
+    const targetVolume = isGuidePlaying ? 0 : 1;
+
+    if (targetVolume > 0 && video.muted) {
+      video.muted = false;
+    }
+
+    const duration = 1200; // 1.2 seconds for smooth fade transition
+    const steps = 24;
+    const stepTime = duration / steps;
+    const volumeStep = (targetVolume - startVolume) / steps;
+    let currentStep = 0;
+
+    intervalId = setInterval(() => {
+      currentStep++;
+      const nextVolume = Math.min(1, Math.max(0, startVolume + volumeStep * currentStep));
+      video.volume = nextVolume;
+
+      if (nextVolume === 0 && isGuidePlaying) {
+        video.muted = true;
+      }
+
+      if (currentStep >= steps) {
+        video.volume = targetVolume;
+        if (targetVolume === 0) {
+          video.muted = true;
+        }
+        clearInterval(intervalId);
+      }
+    }, stepTime);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [isGuidePlaying, muted]);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     // Force muted & playsinline programmatically to bypass React bugs & aggressive browser rules
-    video.defaultMuted = muted;
-    video.muted = muted;
+    video.defaultMuted = muted || isGuidePlaying;
+    video.muted = muted || isGuidePlaying;
     video.setAttribute("playsinline", "true");
     video.setAttribute("webkit-playsinline", "true");
     
@@ -3257,6 +3314,7 @@ const App: React.FC = () => {
                     className="absolute inset-0 w-full h-full object-cover"
                     style={{ opacity: activeScreen.bgOpacity !== undefined ? activeScreen.bgOpacity / 100 : undefined }}
                     muted={globalMuted || !activeScreen.useVideoAudio}
+                    isGuidePlaying={guideAudioPlaying}
                   />
                 )}
 
@@ -3284,6 +3342,7 @@ const App: React.FC = () => {
                 src={activeScreen.tempBgUrl}
                 className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 mix-blend-screen"
                 style={{ opacity: (activeScreen.temperature ?? 25) / 100 }}
+                isGuidePlaying={guideAudioPlaying}
               />
             )}
 
@@ -5111,6 +5170,7 @@ const App: React.FC = () => {
         isMobile={isMobile}
         isMuted={globalMuted}
         onToggleMute={() => saveGlobalMuted(!globalMuted)}
+        isGuidePlaying={guideAudioPlaying}
       />
 
       {/* Enlarged Card Modal for Screen 7 */}
