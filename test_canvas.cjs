@@ -1,1 +1,1 @@
-console.log("Checking completed.");
+console.log("Validation complete.");

@@ -234,6 +234,8 @@ export default function Admin() {
     }
     if (data.screen7GlowEnabled !== undefined) setScreen7GlowEnabled(!!data.screen7GlowEnabled);
     if (data.screen7GlowColor) setScreen7GlowColor(data.screen7GlowColor);
+    if (Array.isArray(data.topologyNodes)) setTopologyNodes(data.topologyNodes);
+    if (Array.isArray(data.topologyEdges)) setTopologyEdges(data.topologyEdges);
   };
 
   // Helper to construct the unified config object

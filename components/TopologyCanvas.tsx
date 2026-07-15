@@ -22,7 +22,8 @@ import {
   EdgeChange
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Plus, Trash2, Edit3, Image as ImageIcon, Link as LinkIcon, X, Settings } from 'lucide-react';
+import { Plus, Trash2, Edit3, Image as ImageIcon, Link as LinkIcon, X, Settings, Maximize, ChevronUp, ChevronDown } from 'lucide-react';
+import { useReactFlow } from '@xyflow/react';
 
 export type TopologyNodeData = {
   label: string;
@@ -79,6 +80,34 @@ const CustomNode = ({ id, data, isConnectable }: NodeProps<Node<TopologyNodeData
       <Handle type="target" position={Position.Bottom} id="t-bottom" isConnectable={isConnectable} className="w-4 h-4 bg-transparent border-none z-0" />
       <Handle type="source" position={Position.Bottom} id="s-bottom" isConnectable={isConnectable} className="w-3 h-3 bg-amber-500 z-10" />
     </div>
+  );
+};
+
+
+const CanvasTools = ({ isMobile, isAdmin }: { isMobile: boolean, isAdmin: boolean }) => {
+  const { fitView } = useReactFlow();
+  return (
+    <>
+      <div className="absolute top-4 right-4 z-10 flex gap-2">
+        <button 
+          onClick={() => fitView({ duration: 800, padding: 0.2 })}
+          className="flex items-center justify-center p-2 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-lg backdrop-blur-md shadow-lg border border-zinc-700 transition-colors"
+          title="居中视图"
+        >
+          <Maximize size={20} />
+        </button>
+      </div>
+      {!isAdmin && (
+        <div className="absolute left-1/2 bottom-4 -translate-x-1/2 z-10 flex flex-col items-center gap-2 pointer-events-auto">
+          {/* Scroll Navigation Overlay for mobile to easily escape the canvas */}
+          <div className="flex gap-4">
+             <button onClick={() => { const el = document.getElementById('screen-7'); if(el) el.scrollIntoView({behavior: 'smooth'})}} className="p-3 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-full shadow-xl border border-zinc-700 backdrop-blur-md transition-colors"><ChevronUp size={24}/></button>
+             <button onClick={() => { const el = document.getElementById('screen-9'); if(el) el.scrollIntoView({behavior: 'smooth'})}} className="p-3 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-full shadow-xl border border-zinc-700 backdrop-blur-md transition-colors"><ChevronDown size={24}/></button>
+          </div>
+          <span className="text-[10px] text-zinc-400 bg-zinc-900/60 px-2 py-1 rounded backdrop-blur">点击切换屏幕</span>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -328,6 +357,14 @@ export default function TopologyCanvas({ isAdmin = false, isMobile = false }) {
         >
           <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#3f3f46" />
           <Controls className="bg-zinc-800 text-white fill-white border-zinc-700 [&>button]:border-zinc-700 [&>button]:hover:bg-zinc-700" />
+          <MiniMap 
+            nodeColor={(n) => {
+              return n.data?.isMainNode ? '#f59e0b' : '#52525b';
+            }}
+            maskColor="rgba(0, 0, 0, 0.7)"
+            className="bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl"
+          />
+          <CanvasTools isMobile={isMobile} isAdmin={isAdmin} />
         </ReactFlow>
       </ReactFlowProvider>
 
