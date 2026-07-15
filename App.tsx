@@ -19,7 +19,7 @@ import {
   Trash2, Plus, Minus, ExternalLink, Code, GripVertical, Smartphone, Music, Settings,
   Search, Star, Play, Pause, Edit3, Lock, Database, Download, Upload
 } from 'lucide-react';
-import { ScreenData, BackgroundType, RelationshipCard, GraphNode, GraphLink } from './types';
+import { ScreenData, BackgroundType, RelationshipCard } from './types';
 import PillNav, { PillNavItem } from './components/PillNav';
 import LogoLoop from './components/LogoLoop';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -29,7 +29,6 @@ import ProfileCard from './components/ProfileCard';
 import { PdfDecoderPage } from './components/PdfDecoderPage';
 import { AudioSecondaryPage } from './components/AudioSecondaryPage';
 import { SubCardSelectModal } from './components/SubCardSelectModal';
-import { RelationshipGraph } from './components/RelationshipGraph';
 import ShinyText from './components/ShinyText';
 import { MusicPlayer } from './components/MusicPlayer';
 import { CheckInCalendar } from './src/components/CheckInCalendar';
@@ -871,10 +870,8 @@ const App: React.FC = () => {
       try {
         let data: any = null;
         try {
-          // Try local proxy API first in AI Studio environment with cache busting
-          const localRes = await fetch(`/api/config?t=${Date.now()}`, {
-            cache: 'no-store'
-          });
+          // Try local proxy API first in AI Studio environment
+          const localRes = await fetch('/api/config');
           if (localRes.ok) {
             data = await localRes.json();
             console.log("Configuration loaded successfully from local proxy API (/api/config).");
@@ -931,14 +928,6 @@ const App: React.FC = () => {
               setScreen7GlowColor(data.screen7GlowColor);
               localStorage.setItem("alphaqubit_screen7_glow_color", data.screen7GlowColor);
             }
-            if (Array.isArray(data.graphNodes)) {
-              setGraphNodes(data.graphNodes);
-              localStorage.setItem("alphaqubit_graph_nodes_v1", JSON.stringify(data.graphNodes));
-            }
-            if (Array.isArray(data.graphLinks)) {
-              setGraphLinks(data.graphLinks);
-              localStorage.setItem("alphaqubit_graph_links_v1", JSON.stringify(data.graphLinks));
-            }
             setConfigLoaded(true);
             setIsRetryingDb(false);
             return;
@@ -958,18 +947,6 @@ const App: React.FC = () => {
           if (fallback.domeCards) setDomeCards(fallback.domeCards);
           if (fallback.trialCards) setTrialCards(fallback.trialCards);
           if (fallback.relationshipCards) setRelationshipCards(fallback.relationshipCards);
-          if (fallback.graphNodes) {
-            setGraphNodes(fallback.graphNodes);
-            localStorage.setItem("alphaqubit_graph_nodes_v1", JSON.stringify(fallback.graphNodes));
-          } else {
-            setGraphNodes(DEFAULT_GRAPH_NODES);
-          }
-          if (fallback.graphLinks) {
-            setGraphLinks(fallback.graphLinks);
-            localStorage.setItem("alphaqubit_graph_links_v1", JSON.stringify(fallback.graphLinks));
-          } else {
-            setGraphLinks(DEFAULT_GRAPH_LINKS);
-          }
           if (fallback.screen7Cards) setScreen7Cards(fallback.screen7Cards);
           if (fallback.screen7Tabs) {
             setScreen7Tabs(fallback.screen7Tabs);
@@ -1008,75 +985,8 @@ const App: React.FC = () => {
       }
     };
 
-    // Attempt direct real-time Firestore synchronization
-    try {
-      console.log("Setting up real-time Firebase subscription for master config...");
-      unsubFirestore = onSnapshot(doc(db, "app_config", "master"), (docSnap) => {
-        if (docSnap.exists() && isMounted) {
-          const data = docSnap.data();
-          console.log("Received master config update in real-time from Firestore onSnapshot.");
-          
-          setDbConnected(true);
-          setIsDbEmpty(false);
-          setDbErrorMsg("");
-          
-          if (data.screens) setScreens(data.screens);
-          if (data.pillNavItems) setPillNavItems(data.pillNavItems);
-          if (data.marqueeCards) setMarqueeCards(data.marqueeCards);
-          if (data.sphereCards) setSphereCards(data.sphereCards);
-          if (data.domeCards) setDomeCards(data.domeCards);
-          if (data.trialCards) setTrialCards(data.trialCards);
-          if (data.relationshipCards) setRelationshipCards(data.relationshipCards);
-          if (data.screen7Cards) setScreen7Cards(data.screen7Cards);
-          if (data.screen7Tabs) {
-            setScreen7Tabs(data.screen7Tabs);
-            localStorage.setItem("alphaqubit_screen7_tabs", JSON.stringify(data.screen7Tabs));
-          }
-          if (data.screen3TabsBg) {
-            setScreen3TabsBg(data.screen3TabsBg);
-            localStorage.setItem("alphaqubit_screen3_tabs_bg", data.screen3TabsBg);
-          }
-          if (data.screen7TabsBg) {
-            setScreen7TabsBg(data.screen7TabsBg);
-            localStorage.setItem("alphaqubit_screen7_tabs_bg", data.screen7TabsBg);
-          }
-          if (data.screen3Tabs) {
-            setScreen3Tabs(data.screen3Tabs);
-            localStorage.setItem("alphaqubit_screen3_tabs", JSON.stringify(data.screen3Tabs));
-          }
-          if (data.screen7GlowEnabled !== undefined) {
-            setScreen7GlowEnabled(!!data.screen7GlowEnabled);
-            localStorage.setItem("alphaqubit_screen7_glow_enabled", String(!!data.screen7GlowEnabled));
-          }
-          if (data.screen7GlowColor) {
-            setScreen7GlowColor(data.screen7GlowColor);
-            localStorage.setItem("alphaqubit_screen7_glow_color", data.screen7GlowColor);
-          }
-          if (Array.isArray(data.graphNodes)) {
-            setGraphNodes(data.graphNodes);
-            localStorage.setItem("alphaqubit_graph_nodes_v1", JSON.stringify(data.graphNodes));
-          }
-          if (Array.isArray(data.graphLinks)) {
-            setGraphLinks(data.graphLinks);
-            localStorage.setItem("alphaqubit_graph_links_v1", JSON.stringify(data.graphLinks));
-          }
-          setConfigLoaded(true);
-          setIsRetryingDb(false);
-        }
-      }, (err) => {
-        console.warn("Firestore real-time subscription failed (permissions or connection); polling REST proxy instead.", err);
-        if (unsubFirestore) {
-          unsubFirestore();
-          unsubFirestore = null;
-        }
-        load();
-      });
-    } catch (e) {
-      console.error("Failed to setup real-time Firebase subscription:", e);
-      load();
-    }
-
     loadConfigRef.current = () => {
+      // Manual retry: clean up old firestore subscription first to force a fresh test
       if (unsubFirestore) {
         unsubFirestore();
         unsubFirestore = null;
@@ -1084,12 +994,13 @@ const App: React.FC = () => {
       return load(true);
     };
 
+    load();
     const interval = setInterval(() => {
-      // Periodically poll REST API only if real-time subscription is not active
+      // Periodically attempt to refresh via proxy only if direct snapshot isn't listening or active
       if (!unsubFirestore) {
         load();
       }
-    }, 12000);
+    }, 10000);
 
     return () => {
       isMounted = false;
@@ -1517,99 +1428,6 @@ const App: React.FC = () => {
     setRelationshipCards(updated);
     localStorage.setItem("alphaqubit_relationship_cards_v5", JSON.stringify(updated));
   };
-
-  const DEFAULT_GRAPH_NODES: GraphNode[] = [
-    {
-      id: "main-1",
-      name: "超导硬件纠错",
-      type: "main",
-      imageUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg",
-      x: 35,
-      y: 35,
-      width: 100,
-      labelPosition: "bottom",
-      color: "#fbbf24",
-      desc: "AlphaQubit通过在真实的超导量子芯片上直接对硬件物理层错误进行实时解码，实现前所未有的超高纠错精度与容错表现。"
-    },
-    {
-      id: "main-2",
-      name: "神经网络译码",
-      type: "main",
-      imageUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg",
-      x: 65,
-      y: 35,
-      width: 100,
-      labelPosition: "bottom",
-      color: "#3b82f6",
-      desc: "引入深度循环卷积网络，能够智能学习量子噪声随时间推移的动态物理关联，取代传统笨重的硬编码匹配启发式规则。"
-    },
-    {
-      id: "sub-1",
-      name: "多频微波源控制",
-      type: "sub",
-      imageUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg",
-      x: 15,
-      y: 65,
-      width: 80,
-      labelPosition: "bottom",
-      color: "#10b981",
-      desc: "利用精密调谐的超高频射频微波源对底层Qubit状态实施极高精度的物理操作与量子态读取。"
-    },
-    {
-      id: "sub-2",
-      name: "量子状态估测",
-      type: "sub",
-      imageUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg",
-      x: 50,
-      y: 65,
-      width: 80,
-      labelPosition: "bottom",
-      color: "#ec4899",
-      desc: "利用机器学习对物理层数据进行直接校准与优化。"
-    },
-    {
-      id: "sub-3",
-      name: "稀释制冷状态机",
-      type: "sub",
-      imageUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg",
-      x: 85,
-      y: 65,
-      width: 80,
-      labelPosition: "bottom",
-      color: "#8b5cf6",
-      desc: "将量子计算机稀释制冷运行状态与底层微弱环境热噪声变化参数通过LSTM关联，精准补偿环境物理扰动。"
-    }
-  ];
-
-  const DEFAULT_GRAPH_LINKS: GraphLink[] = [
-    { id: "l-1", source: "main-1", target: "main-2", color: "#fbbf24", width: 2, isDashed: false },
-    { id: "l-2", source: "main-1", target: "sub-1", color: "#10b981", width: 1.5, isDashed: true },
-    { id: "l-3", source: "main-1", target: "sub-2", color: "#fbbf24", width: 1.5, isDashed: false },
-    { id: "l-4", source: "main-2", target: "sub-2", color: "#3b82f6", width: 1.5, isDashed: false },
-    { id: "l-5", source: "main-2", target: "sub-3", color: "#8b5cf6", width: 1.5, isDashed: true }
-  ];
-
-  const [graphNodes, setGraphNodes] = useState<GraphNode[]>(() => {
-    const saved = localStorage.getItem("alphaqubit_graph_nodes_v1");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {}
-    }
-    return DEFAULT_GRAPH_NODES;
-  });
-
-  const [graphLinks, setGraphLinks] = useState<GraphLink[]>(() => {
-    const saved = localStorage.getItem("alphaqubit_graph_links_v1");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
-      } catch (e) {}
-    }
-    return DEFAULT_GRAPH_LINKS;
-  });
 
   const [activeConsoleScreenId, setActiveConsoleScreenId] = useState<number | null>(null);
   const [enlargedCard, setEnlargedCard] = useState<MarqueeCard | null>(null);
@@ -3549,7 +3367,6 @@ const App: React.FC = () => {
       >
         {screens.map((s, idx) => {
           const isSelected = s.id === activeId;
-          const hasRightColumn = [3, 5, 8, 9].includes(s.id);
           
           if (s.id === 4) {
             return (
@@ -3852,49 +3669,6 @@ const App: React.FC = () => {
             );
           }
 
-          if (s.id === 8) {
-            return (
-              <section 
-                key={s.id}
-                id={`screen-${s.id}`}
-                className="snap-start snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
-              >
-                <div className="absolute inset-0 w-full h-full pointer-events-auto">
-                  <RelationshipGraph 
-                    nodes={graphNodes} 
-                    links={graphLinks} 
-                    isScreenEight={true}
-                    screenTitle={s.title}
-                    screenSubtitle={s.subtitle}
-                    screenDesc={s.description}
-                    screenCtaText={s.ctaText}
-                    screenCtaUrl={s.ctaUrl}
-                    onCtaClick={() => {
-                      const nextScreen = screens[idx + 1];
-                      if (nextScreen) scrollToScreen(nextScreen.id);
-                    }}
-                  />
-                </div>
-
-                {/* Floating scroll indicator in screen 8 */}
-                {!isMobile && (
-                  <div className="absolute bottom-6 left-6 z-50 pointer-events-auto">
-                    <button
-                      onClick={() => {
-                        const nextScreen = screens[idx + 1];
-                        if (nextScreen) scrollToScreen(nextScreen.id);
-                      }}
-                      className="flex flex-col items-center gap-1 text-[10px] text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                    >
-                      <span>下移一屏</span>
-                      <ArrowDown className="w-3.5 h-3.5 animate-bounce" />
-                    </button>
-                  </div>
-                )}
-              </section>
-            );
-          }
-
           return (
             <section 
               key={s.id}
@@ -4163,15 +3937,13 @@ const App: React.FC = () => {
                     viewport={{ once: false, amount: 0.15 }}
                     transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
                     className={`${
-                      s.align === 'center' && !hasRightColumn
+                      s.align === 'center'
                         ? 'lg:col-span-12 max-w-5xl mx-auto flex flex-col items-center text-center' 
-                        : s.align === 'center' && hasRightColumn
-                          ? 'lg:col-span-7 order-1 flex flex-col items-center text-center'
-                          : s.align === 'right' 
-                            ? 'lg:col-span-7 lg:col-start-6 order-1 flex flex-col items-center text-center lg:items-end lg:text-right' 
-                            : s.id === 1
-                              ? 'lg:col-span-7 order-1 lg:order-1 z-50 relative pointer-events-auto flex flex-col items-center text-center lg:items-start lg:text-left -translate-y-12 lg:translate-y-0'
-                              : 'lg:col-span-7 order-1 lg:order-1 flex flex-col items-center text-center lg:items-start lg:text-left'
+                        : s.align === 'right' 
+                          ? 'lg:col-span-7 lg:col-start-6 order-1 flex flex-col items-center text-center lg:items-end lg:text-right' 
+                          : s.id === 1
+                            ? 'lg:col-span-7 order-1 lg:order-1 z-50 relative pointer-events-auto flex flex-col items-center text-center lg:items-start lg:text-left -translate-y-12 lg:translate-y-0'
+                            : 'lg:col-span-7 order-1 lg:order-1 flex flex-col items-center text-center lg:items-start lg:text-left'
                     } space-y-6 md:space-y-8`}
                   >
                     
@@ -4285,15 +4057,13 @@ const App: React.FC = () => {
                     viewport={{ once: false, amount: 0.15 }}
                     transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
                     className={`${
-                      s.align === 'center' && !hasRightColumn
+                      s.align === 'center'
                         ? 'hidden' 
-                        : s.align === 'center' && hasRightColumn
-                          ? 'lg:col-span-5 order-2 z-50'
-                          : s.align === 'right' 
-                            ? 'lg:col-span-5 order-2 lg:order-1 z-30' 
-                            : s.id === 1 
-                              ? 'lg:col-span-5 order-2 lg:order-2 z-40' 
-                              : 'lg:col-span-5 order-2 lg:order-2 z-50'
+                        : s.align === 'right' 
+                          ? 'lg:col-span-5 order-2 lg:order-1 z-30' 
+                          : s.id === 1 
+                            ? 'lg:col-span-5 order-2 lg:order-2 z-40' 
+                            : 'lg:col-span-5 order-2 lg:order-2 z-50'
                     } w-full flex justify-center py-4 relative pointer-events-auto`}
                   >
                     
@@ -4341,13 +4111,26 @@ const App: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Screen 8: Rich interactive dynamic Relationship Graph */}
+                    {/* Screen 8: Rich visual testimonial card wrapper with golden glow */}
                     {s.id === 8 && (
-                      <div className="w-full max-w-xl aspect-[4/3] lg:scale-[1.05] transition-all duration-300">
-                        <RelationshipGraph 
-                          nodes={graphNodes} 
-                          links={graphLinks} 
-                        />
+                      <div className="w-full max-w-md aspect-[4/3] glassmorphism-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 blur-xl rounded-full" />
+                        <div className="text-4xl text-amber-400 font-serif leading-none">“</div>
+                        <p className="text-sm md:text-base text-zinc-200 font-serif italic leading-relaxed relative z-10">
+                          "By training decoders directly on hardware data, machine learning unlocks hidden efficiency. We push logical fidelity past the limits of human-coded heuristics."
+                        </p>
+                        
+                        <div className="pt-4 border-t border-zinc-800 flex items-center gap-3">
+                          <img 
+                            src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=120&h=120&auto=format&fit=crop" 
+                            className="w-10 h-10 rounded-full border border-zinc-700 object-cover" 
+                            alt="author avatar" 
+                          />
+                          <div>
+                            <p className="text-xs font-bold text-white uppercase font-display tracking-wider">Dr. Elena Bausch</p>
+                            <p className="text-[10px] text-zinc-500 font-sans">Lead Researcher • Google Quantum AI</p>
+                          </div>
+                        </div>
                       </div>
                     )}
 

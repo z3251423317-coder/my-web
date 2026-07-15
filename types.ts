@@ -81,26 +81,3 @@ export interface RelationshipCard {
   isEncrypted?: boolean;
   password?: string;
 }
-
-export interface GraphNode {
-  id: string;
-  name: string;
-  type: 'main' | 'sub';
-  imageUrl?: string;
-  x: number;
-  y: number;
-  width?: number;
-  labelPosition?: 'top' | 'bottom' | 'left' | 'right' | 'center';
-  color?: string;
-  desc?: string;
-}
-
-export interface GraphLink {
-  id: string;
-  source: string;
-  target: string;
-  color?: string;
-  width?: number;
-  isDashed?: boolean;
-}
-
