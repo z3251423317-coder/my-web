@@ -32,16 +32,40 @@ export type TopologyNodeData = {
   copy: string;
   imageUrl: string;
   isMainNode: boolean;
+  linkUrl?: string;
   onEdit?: (id: string) => void;
   onAddChild?: (id: string) => void;
   isAdmin?: boolean;
 };
 
 const CustomNode = ({ id, data, isConnectable }: NodeProps<Node<TopologyNodeData>>) => {
+  const hasLink = !!data.linkUrl;
+  const handleClick = (e: React.MouseEvent) => {
+    if (!data.isAdmin && hasLink) {
+      e.stopPropagation();
+      const url = data.linkUrl!;
+      if (url.startsWith('#')) {
+        // Smooth scroll to a screen section if it's an anchor link
+        const targetElement = document.getElementById(url.substring(1));
+        if (targetElement) {
+          targetElement.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          window.location.hash = url;
+        }
+      } else {
+        window.open(url, '_blank');
+      }
+    }
+  };
+
   return (
-    <div className={`p-4 rounded-xl border-2 shadow-lg backdrop-blur-md min-w-[200px] max-w-[300px] transition-colors
-      ${data.isMainNode ? 'bg-zinc-900/90 border-amber-500' : 'bg-zinc-800/90 border-zinc-600'}
-    `}>
+    <div 
+      onClick={handleClick}
+      className={`p-4 rounded-xl border-2 shadow-lg backdrop-blur-md min-w-[200px] max-w-[300px] transition-all relative
+        ${data.isMainNode ? 'bg-zinc-900/90 border-amber-500 shadow-amber-500/10' : 'bg-zinc-800/90 border-zinc-600'}
+        ${!data.isAdmin && hasLink ? 'hover:scale-[1.03] hover:border-amber-400 cursor-pointer hover:shadow-amber-500/20 active:scale-[0.98]' : ''}
+      `}
+    >
       {/* Top Handles */}
       <Handle type="target" position={Position.Top} id="t-top" isConnectable={isConnectable} className="w-4 h-4 bg-transparent border-none z-0" />
       <Handle type="source" position={Position.Top} id="s-top" isConnectable={isConnectable} className="w-3 h-3 bg-amber-500 z-10" />
@@ -59,6 +83,14 @@ const CustomNode = ({ id, data, isConnectable }: NodeProps<Node<TopologyNodeData
           <h3 className={`font-bold text-lg ${data.isMainNode ? 'text-amber-400' : 'text-zinc-100'}`}>
             {data.label || '未命名节点'}
           </h3>
+          {hasLink && (
+            <span title={data.isAdmin ? `配置了链接: ${data.linkUrl}` : '点击跳转链接'}>
+              <LinkIcon 
+                size={14} 
+                className={`shrink-0 ${data.isMainNode ? 'text-amber-400' : 'text-zinc-400'} ${!data.isAdmin ? 'animate-pulse' : ''}`} 
+              />
+            </span>
+          )}
         </div>
         {data.imageUrl && (
           <img src={data.imageUrl} alt={data.label} className="w-full h-auto rounded-md object-cover" />
@@ -117,9 +149,31 @@ const nodeTypes = {
   customNode: CustomNode,
 };
 
-export default function TopologyCanvas({ isAdmin = false, isMobile = false, onDataChange }: { isAdmin?: boolean, isMobile?: boolean, onDataChange?: (nodes: any[], edges: any[]) => void }) {
-  const [nodes, setNodes] = useState<Node<TopologyNodeData>[]>([]);
-  const [edges, setEdges] = useState<Edge[]>([]);
+export default function TopologyCanvas({ 
+  isAdmin = false, 
+  isMobile = false, 
+  onDataChange,
+  initialNodes,
+  initialEdges
+}: { 
+  isAdmin?: boolean, 
+  isMobile?: boolean, 
+  onDataChange?: (nodes: any[], edges: any[]) => void,
+  initialNodes?: any[],
+  initialEdges?: any[]
+}) {
+  const [nodes, setNodes] = useState<Node<TopologyNodeData>[]>(() => {
+    if (isAdmin && initialNodes && initialNodes.length > 0) {
+      return initialNodes;
+    }
+    return [];
+  });
+  const [edges, setEdges] = useState<Edge[]>(() => {
+    if (isAdmin && initialEdges && initialEdges.length > 0) {
+      return initialEdges;
+    }
+    return [];
+  });
   const [loading, setLoading] = useState(true);
   
   // Editing state
@@ -179,7 +233,11 @@ export default function TopologyCanvas({ isAdmin = false, isMobile = false, onDa
   };
 
   useEffect(() => {
-    loadData();
+    if (isAdmin && nodes.length > 0) {
+      setLoading(false);
+    } else {
+      loadData();
+    }
     if (!isAdmin) {
       const unsub = onSnapshot(doc(db, "app_config", "master"), (docSnap) => {
         if (docSnap.exists()) {
@@ -207,6 +265,8 @@ export default function TopologyCanvas({ isAdmin = false, isMobile = false, onDa
       id: e.id,
       source: e.source,
       target: e.target,
+      sourceHandle: e.sourceHandle,
+      targetHandle: e.targetHandle,
       type: e.type,
       animated: e.animated,
       style: e.style
@@ -454,6 +514,17 @@ export default function TopologyCanvas({ isAdmin = false, isMobile = false, onDa
                   onChange={e => setEditFormData({...editFormData, imageUrl: e.target.value})}
                   className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-white"
                   placeholder="https://..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-zinc-400 mb-1">跳转链接 (可选)</label>
+                <input 
+                  type="text" 
+                  value={editFormData.linkUrl || ''} 
+                  onChange={e => setEditFormData({...editFormData, linkUrl: e.target.value})}
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-white font-mono text-xs"
+                  placeholder="https://... 或 anchor锚点 (如: #screen-1)"
                 />
               </div>
 

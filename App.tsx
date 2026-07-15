@@ -819,15 +819,15 @@ const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style, muted = tr
         }}
         className={canvasError ? className : undefined}
         style={canvasError ? style : {
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          opacity: 0.002,
+          position: "fixed",
+          top: "-200px",
+          left: "-200px",
+          width: "10px",
+          height: "10px",
+          opacity: 0.001,
           pointerEvents: "none",
-          zIndex: -1,
-          objectFit: "cover"
+          zIndex: -9999,
+          overflow: "hidden"
         }}
         {...{
           "webkit-playsinline": "true",
@@ -1877,6 +1877,19 @@ const App: React.FC = () => {
   };
 
   const handleCardClick = (card: MarqueeCard) => {
+    if (card.url) {
+      const url = card.url;
+      if (url.startsWith('#')) {
+        const targetElement = document.getElementById(url.substring(1));
+        if (targetElement) {
+          targetElement.scrollIntoView({ behavior: 'smooth' });
+          return;
+        }
+      } else {
+        window.open(url, '_blank');
+        return;
+      }
+    }
     setActiveCardDetail(card);
   };
 
@@ -5221,8 +5234,28 @@ const App: React.FC = () => {
                   </p>
                 </div>
 
-                {/* Close Action Trigger */}
-                <div className="pt-4 border-t border-zinc-800/40 flex justify-center z-10 shrink-0">
+                 {/* Close Action Trigger */}
+                <div className="pt-4 border-t border-zinc-800/40 flex justify-center gap-3 z-10 shrink-0">
+                  {activeCardDetail.url && (
+                    <button
+                      onClick={() => {
+                        const url = activeCardDetail.url;
+                        if (url.startsWith('#')) {
+                          const targetElement = document.getElementById(url.substring(1));
+                          if (targetElement) {
+                            targetElement.scrollIntoView({ behavior: 'smooth' });
+                            setActiveCardDetail(null);
+                          }
+                        } else {
+                          window.open(url, '_blank');
+                        }
+                      }}
+                      className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold rounded-xl text-xs font-sans tracking-wider transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-95 cursor-pointer flex items-center gap-1.5"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      访问链接 / Open Link
+                    </button>
+                  )}
                   <button
                     onClick={() => setActiveCardDetail(null)}
                     className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-750 text-zinc-200 hover:text-white border border-zinc-700/50 rounded-xl text-xs font-mono tracking-widest uppercase transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-95 cursor-pointer"

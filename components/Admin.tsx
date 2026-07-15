@@ -153,6 +153,7 @@ export default function Admin() {
   const [screen7GlowColor, setScreen7GlowColor] = useState('#fbbf24');
   const [topologyNodes, setTopologyNodes] = useState<any[]>([]);
   const [topologyEdges, setTopologyEdges] = useState<any[]>([]);
+  const [canvasResetKey, setCanvasResetKey] = useState(0);
 
   // Selected sub-elements for active editing
   const [selectedPillNavId, setSelectedPillNavId] = useState<string | null>(null);
@@ -238,6 +239,7 @@ export default function Admin() {
     if (data.screen7GlowColor) setScreen7GlowColor(data.screen7GlowColor);
     if (Array.isArray(data.topologyNodes)) setTopologyNodes(data.topologyNodes);
     if (Array.isArray(data.topologyEdges)) setTopologyEdges(data.topologyEdges);
+    setCanvasResetKey(prev => prev + 1);
   };
 
   // Helper to remove any fields that are undefined recursively so Firestore setDoc doesn't fail
@@ -271,6 +273,8 @@ export default function Admin() {
       id: e.id,
       source: e.source,
       target: e.target,
+      sourceHandle: e.sourceHandle,
+      targetHandle: e.targetHandle,
       type: e.type,
       animated: e.animated,
       style: e.style
@@ -730,20 +734,27 @@ export default function Admin() {
               </div>
 
               {/* SECTION: SCREEN 8 TOPOLOGY */}
-              {currentScreen.id === 8 && (
-                <div className="bg-zinc-900/20 border border-amber-500/30 rounded-xl p-5 space-y-4 shadow-xl">
+              <div style={{ display: currentScreen.id === 8 ? 'block' : 'none' }}>
+                <div className="bg-zinc-900/20 border border-amber-500/30 rounded-xl p-5 space-y-4 shadow-xl mb-6">
                   <h3 className="text-xl font-bold text-white flex items-center gap-2 border-b border-zinc-850 pb-3 mb-4">
                     <Database className="w-5 h-5 text-amber-400" />
                     第八屏：全屏一体化无限拓扑画布控制台
                   </h3>
                   <div className="w-full h-[600px] border border-zinc-700/50 rounded-xl overflow-hidden bg-zinc-950 shadow-inner relative z-10 pointer-events-auto">
-                    <TopologyCanvas isAdmin={true} isMobile={false} onDataChange={(n, e) => { setTopologyNodes(n); setTopologyEdges(e); }} />
+                    <TopologyCanvas 
+                      key={canvasResetKey}
+                      isAdmin={true} 
+                      isMobile={false} 
+                      initialNodes={topologyNodes}
+                      initialEdges={topologyEdges}
+                      onDataChange={(n, e) => { setTopologyNodes(n); setTopologyEdges(e); }} 
+                    />
                   </div>
                   <p className="text-xs text-zinc-400">
                     提示：可以直接按住任意主点/分点并在画布上拖动，点击任意节点或新增节点即可进入专项编辑面板。支持设置、（主点/分点）支持在任意节点（主点与主点、分点与分点，或跨级主分点）之间自由创建关系连线。提供自定义选项，支持连线一键断开管理。虚线样式 (Dashed) 和线条颜色。
                   </p>
                 </div>
-              )}
+              </div>
 
               {/* SECTION: SCREEN TEXTS & CONTENT */}
               <div className="bg-zinc-900/20 border border-zinc-800/50 rounded-xl p-5 space-y-4">
