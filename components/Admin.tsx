@@ -151,6 +151,8 @@ export default function Admin() {
   const [relationshipCards, setRelationshipCards] = useState<RelationshipCard[]>([]);
   const [screen7GlowEnabled, setScreen7GlowEnabled] = useState(true);
   const [screen7GlowColor, setScreen7GlowColor] = useState('#fbbf24');
+  const [topologyNodes, setTopologyNodes] = useState<any[]>([]);
+  const [topologyEdges, setTopologyEdges] = useState<any[]>([]);
 
   // Selected sub-elements for active editing
   const [selectedPillNavId, setSelectedPillNavId] = useState<string | null>(null);
@@ -238,9 +240,43 @@ export default function Admin() {
     if (Array.isArray(data.topologyEdges)) setTopologyEdges(data.topologyEdges);
   };
 
+  // Helper to remove any fields that are undefined recursively so Firestore setDoc doesn't fail
+  const removeUndefined = (obj: any): any => {
+    if (Array.isArray(obj)) {
+      return obj.map(removeUndefined);
+    } else if (obj !== null && typeof obj === 'object') {
+      return Object.entries(obj).reduce((acc, [key, val]) => {
+        if (val !== undefined) {
+          acc[key] = removeUndefined(val);
+        }
+        return acc;
+      }, {} as any);
+    }
+    return obj;
+  };
+
   // Helper to construct the unified config object
   const exportConfig = () => {
-    return {
+    // Safely strip circular refs from topology if any
+    const safeTopologyNodes = Array.isArray(topologyNodes) ? topologyNodes.map(n => ({
+      id: n.id,
+      type: n.type,
+      position: n.position,
+      data: n.data,
+      width: n.width,
+      height: n.height
+    })) : [];
+    
+    const safeTopologyEdges = Array.isArray(topologyEdges) ? topologyEdges.map(e => ({
+      id: e.id,
+      source: e.source,
+      target: e.target,
+      type: e.type,
+      animated: e.animated,
+      style: e.style
+    })) : [];
+
+    return removeUndefined({
       version,
       timestamp: new Date().toISOString(),
       screens,
@@ -254,8 +290,10 @@ export default function Admin() {
       screen7Tabs,
       screen7GlowEnabled,
       screen7GlowColor,
-      screen3Tabs
-    };
+      screen3Tabs,
+      topologyNodes: safeTopologyNodes,
+      topologyEdges: safeTopologyEdges
+    });
   };
 
   // Toast feedback helper
@@ -619,7 +657,7 @@ export default function Admin() {
                   </div>
                   <textarea
                     readOnly
-                    value={JSON.stringify(exportConfig(), null, 2)}
+                    value={(() => { try { return JSON.stringify(exportConfig(), null, 2); } catch (e) { return "Error parsing config for display: " + e; } })()}
                     className="flex-1 w-full p-4 bg-zinc-900 border border-zinc-800 rounded-xl font-mono text-xs text-zinc-400 focus:outline-none select-all"
                   />
                 </div>
@@ -699,7 +737,7 @@ export default function Admin() {
                     第八屏：全屏一体化无限拓扑画布控制台
                   </h3>
                   <div className="w-full h-[600px] border border-zinc-700/50 rounded-xl overflow-hidden bg-zinc-950 shadow-inner relative z-10 pointer-events-auto">
-                    <TopologyCanvas isAdmin={true} isMobile={false} />
+                    <TopologyCanvas isAdmin={true} isMobile={false} onDataChange={(n, e) => { setTopologyNodes(n); setTopologyEdges(e); }} />
                   </div>
                   <p className="text-xs text-zinc-400">
                     提示：可以直接按住任意主点/分点并在画布上拖动，点击任意节点或新增节点即可进入专项编辑面板。支持设置、（主点/分点）支持在任意节点（主点与主点、分点与分点，或跨级主分点）之间自由创建关系连线。提供自定义选项，支持连线一键断开管理。虚线样式 (Dashed) 和线条颜色。

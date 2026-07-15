@@ -865,6 +865,14 @@ const App: React.FC = () => {
     let isMounted = true;
     let unsubFirestore: (() => void) | null = null;
 
+    unsubFirestore = onSnapshot(doc(db, "app_config", "master"), (docSnap) => {
+      if (docSnap.exists() && isMounted) {
+        // Realtime update hook: we just reload from API or use data directly.
+        // Simpler: just call load() again!
+        load(false);
+      }
+    });
+
     const load = async (manual = false) => {
       if (manual && isMounted) setIsRetryingDb(true);
       
@@ -2912,7 +2920,7 @@ const App: React.FC = () => {
    * ================================================================================= */
 
   return (
-    <div className="relative w-full max-w-full h-screen overflow-hidden bg-zinc-950 select-none flex flex-col font-sans shadow-none">
+    <div className="relative w-full max-w-full h-screen h-[100dvh] overflow-hidden bg-zinc-950 select-none flex flex-col font-sans shadow-none">
       {!configLoaded && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-zinc-950">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
@@ -3374,7 +3382,7 @@ const App: React.FC = () => {
               <section 
                 key={s.id}
                 id={`screen-${s.id}`}
-                className="snap-start snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
+                className="snap-start snap-always relative w-full h-screen h-[100dvh] overflow-hidden flex items-center justify-center bg-transparent"
               >
                 {/* Floating controls specifically for Screen 4 to toggle the drawer */}
                 {!isMobile && isAiStudio && (
@@ -3481,7 +3489,7 @@ const App: React.FC = () => {
               <section 
                 key={s.id}
                 id={`screen-${s.id}`}
-                className="snap-start snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
+                className="snap-start snap-always relative w-full h-screen h-[100dvh] overflow-hidden flex items-center justify-center bg-transparent"
               >
                 {/* Floating controls specifically for Screen 5 to toggle the dome drawer */}
                 {!isMobile && isAiStudio && (
@@ -3551,7 +3559,7 @@ const App: React.FC = () => {
               <section 
                 key={s.id}
                 id={`screen-${s.id}`}
-                className="snap-start snap-always relative w-full min-h-screen lg:h-screen overflow-hidden flex items-center justify-center bg-transparent"
+                className="snap-start snap-always relative w-full min-h-screen min-h-[100dvh] lg:h-screen lg:h-[100dvh] overflow-hidden flex items-center justify-center bg-transparent"
               >
                 {/* Floating controls specifically for Screen 6 to toggle the console drawer */}
                 {!isMobile && isAiStudio && (
@@ -3675,7 +3683,7 @@ const App: React.FC = () => {
               <section 
                 key={s.id}
                 id={`screen-${s.id}`}
-                className="snap-start snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
+                className="snap-start snap-always relative w-full h-screen h-[100dvh] overflow-hidden flex items-center justify-center bg-transparent"
               >
                 {/* 
                   To prevent the canvas drag/zoom from conflicting with scroll-snap,
@@ -3690,7 +3698,7 @@ const App: React.FC = () => {
             <section 
               key={s.id}
               id={`screen-${s.id}`}
-              className={`snap-start snap-always relative w-full min-h-screen lg:h-screen lg:min-h-[600px] overflow-visible lg:overflow-hidden flex items-center justify-center bg-transparent py-12 lg:py-0 ${s.id === 7 ? 'pt-[48px] pl-0' : ''}`}
+              className={`snap-start snap-always relative w-full min-h-screen min-h-[100dvh] lg:h-screen lg:h-[100dvh] lg:min-h-[600px] overflow-visible lg:overflow-hidden flex items-center justify-center bg-transparent py-12 lg:py-0 ${s.id === 7 ? 'pt-[48px] pl-0' : ''}`}
             >
               {/* 1700px Content Core ("版心控制在 1700px 左右") */}
               <div className="relative z-10 w-full h-auto lg:h-full max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 flex flex-col justify-center text-white pointer-events-auto">

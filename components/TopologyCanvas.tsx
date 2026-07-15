@@ -24,6 +24,8 @@ import {
 import '@xyflow/react/dist/style.css';
 import { Plus, Trash2, Edit3, Image as ImageIcon, Link as LinkIcon, X, Settings, Maximize, ChevronUp, ChevronDown } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase-config';
 
 export type TopologyNodeData = {
   label: string;
@@ -88,7 +90,7 @@ const CanvasTools = ({ isMobile, isAdmin }: { isMobile: boolean, isAdmin: boolea
   const { fitView } = useReactFlow();
   return (
     <>
-      <div className="absolute top-4 right-4 z-10 flex gap-2">
+      <div className="absolute top-[calc(1rem+env(safe-area-inset-top,0px))] right-4 z-10 flex gap-2">
         <button 
           onClick={() => fitView({ duration: 800, padding: 0.2 })}
           className="flex items-center justify-center p-2 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-lg backdrop-blur-md shadow-lg border border-zinc-700 transition-colors"
@@ -98,7 +100,7 @@ const CanvasTools = ({ isMobile, isAdmin }: { isMobile: boolean, isAdmin: boolea
         </button>
       </div>
       {!isAdmin && (
-        <div className="absolute left-1/2 bottom-4 -translate-x-1/2 z-10 flex flex-col items-center gap-2 pointer-events-auto">
+        <div className="absolute left-1/2 bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] -translate-x-1/2 z-10 flex flex-col items-center gap-2 pointer-events-auto">
           {/* Scroll Navigation Overlay for mobile to easily escape the canvas */}
           <div className="flex gap-4">
              <button onClick={() => { const el = document.getElementById('screen-7'); if(el) el.scrollIntoView({behavior: 'smooth'})}} className="p-3 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-full shadow-xl border border-zinc-700 backdrop-blur-md transition-colors"><ChevronUp size={24}/></button>
@@ -115,7 +117,7 @@ const nodeTypes = {
   customNode: CustomNode,
 };
 
-export default function TopologyCanvas({ isAdmin = false, isMobile = false }) {
+export default function TopologyCanvas({ isAdmin = false, isMobile = false, onDataChange }: { isAdmin?: boolean, isMobile?: boolean, onDataChange?: (nodes: any[], edges: any[]) => void }) {
   const [nodes, setNodes] = useState<Node<TopologyNodeData>[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [loading, setLoading] = useState(true);
@@ -178,23 +180,39 @@ export default function TopologyCanvas({ isAdmin = false, isMobile = false }) {
 
   useEffect(() => {
     loadData();
-  }, []);
+    if (!isAdmin) {
+      const unsub = onSnapshot(doc(db, "app_config", "master"), (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.topologyNodes) setNodes(data.topologyNodes);
+          if (data.topologyEdges) setEdges(data.topologyEdges);
+        }
+      });
+      return () => unsub();
+    }
+  }, [isAdmin]);
 
   const saveData = async (newNodes: Node[], newEdges: Edge[]) => {
     if (!isAdmin) return;
-    try {
-      const res = await fetch('/api/config');
-      const data = res.ok ? await res.json() : {};
-      data.topologyNodes = newNodes;
-      data.topologyEdges = newEdges;
-      await fetch('/api/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-    } catch (e) {
-      console.error(e);
-    }
+    // Strip out internal ReactFlow properties that might cause circular JSON errors
+    const cleanNodes = newNodes.map(n => ({
+      id: n.id,
+      type: n.type,
+      position: n.position,
+      data: n.data,
+      width: n.width,
+      height: n.height
+    }));
+    const cleanEdges = newEdges.map(e => ({
+      id: e.id,
+      source: e.source,
+      target: e.target,
+      type: e.type,
+      animated: e.animated,
+      style: e.style
+    }));
+    
+    if (onDataChange) onDataChange(cleanNodes, cleanEdges);
   };
 
   const onNodesChange = useCallback(

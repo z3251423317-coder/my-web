@@ -76,9 +76,23 @@ async function startServer() {
     }
   });
 
+  const removeUndefined = (obj: any): any => {
+    if (Array.isArray(obj)) {
+      return obj.map(removeUndefined);
+    } else if (obj !== null && typeof obj === 'object') {
+      return Object.entries(obj).reduce((acc, [key, val]) => {
+        if (val !== undefined) {
+          acc[key] = removeUndefined(val);
+        }
+        return acc;
+      }, {} as any);
+    }
+    return obj;
+  };
+
   app.post("/api/config", async (req, res) => {
     try {
-      const data = req.body;
+      const data = removeUndefined(req.body);
       data.updatedAt = new Date().toISOString();
       await setDoc(doc(db, "app_config", "master"), data);
       res.json({ success: true });

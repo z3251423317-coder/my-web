@@ -98,7 +98,7 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
   }, [isMuted, isGuidePlaying]);
 
   return (
-    <div className="fixed top-20 right-4 mt-[-20px] mr-[10px] z-[1000] flex items-center gap-2">
+    <div className="fixed top-[calc(5rem+env(safe-area-inset-top,0px))] right-4 mt-[-20px] mr-[10px] z-[1000] flex items-center gap-2">
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
