@@ -132,9 +132,28 @@ export default function TopologyCanvas({ isAdmin = false, isMobile = false }) {
   
   const loadData = async () => {
     try {
-      const res = await fetch('/api/config');
-      if (res.ok) {
-        const data = await res.json();
+      let data = null;
+      try {
+        const res = await fetch('/api/config');
+        if (res.ok) {
+          data = await res.json();
+        }
+      } catch (localErr) {
+        console.warn("Local config failed, falling back to COS remote...", localErr);
+      }
+      
+      if (!data) {
+        try {
+          const remoteRes = await fetch(`https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/user_data.json?t=${Date.now()}`, {
+            cache: 'no-store'
+          });
+          if (remoteRes.ok) {
+            data = await remoteRes.json();
+          }
+        } catch (e) {}
+      }
+
+      if (data) {
         if (data.topologyNodes) {
           setNodes(data.topologyNodes);
         } else {
