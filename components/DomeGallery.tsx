@@ -416,14 +416,14 @@ export default function DomeGallery({
             if (!hasSwipedRef.current) {
               const absY = Math.abs(dyTotal);
               const absX = Math.abs(dxTotal);
-              if (absY > absX * 1.3 && absY > 30) {
+              if (absY > absX * 1.3 && absY > 45) {
                 hasSwipedRef.current = true;
                 preventTileClickRef.current = true;
                 const scrollFunc = (window as any).alphaQubitScrollToScreen;
                 if (scrollFunc) {
-                  if (dyTotal < -30) {
+                  if (dyTotal < -45) {
                     scrollFunc(6); // swipe UP -> screen 6
-                  } else if (dyTotal > 30) {
+                  } else if (dyTotal > 45) {
                     scrollFunc(4); // swipe DOWN -> screen 4
                   }
                 }

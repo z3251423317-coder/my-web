@@ -533,13 +533,13 @@ class ArcballControl {
             const absY = Math.abs(deltaY);
             const absX = Math.abs(deltaX);
             
-            if (absY > absX * 1.3 && absY > 30) {
+            if (absY > absX * 1.3 && absY > 45) {
               this.hasSwiped = true;
               const scrollFunc = (window as any).alphaQubitScrollToScreen;
               if (scrollFunc) {
-                if (deltaY < -30) {
+                if (deltaY < -45) {
                   scrollFunc(5); // swipe UP -> screen 5
-                } else if (deltaY > 30) {
+                } else if (deltaY > 45) {
                   scrollFunc(3); // swipe DOWN -> screen 3
                 }
               }

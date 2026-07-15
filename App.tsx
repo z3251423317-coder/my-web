@@ -759,11 +759,20 @@ const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style, muted = tr
       loop
       muted={muted}
       playsInline
-      webkit-playsinline="true"
       autoPlay
       preload="auto"
       disablePictureInPicture
       disableRemotePlayback
+      {...{
+        "webkit-playsinline": "true",
+        "playsinline": "true",
+        "x5-playsinline": "true",
+        "x5-video-player-type": "h5-page",
+        "x5-video-player-fullscreen": "false",
+        "x5-video-orientation": "portrait",
+        "x-webkit-airplay": "allow",
+        "uc-video-toolbar": "false"
+      } as any}
     />
   );
 };
@@ -2106,8 +2115,15 @@ const App: React.FC = () => {
       clearTimeout(scrollTimeoutRef.current);
     }
 
+    const container = document.getElementById('slides-container');
     const elem = document.getElementById(`screen-${id}`);
-    if (elem) {
+    if (container && elem) {
+      const targetTop = elem.offsetTop;
+      container.scrollTo({
+        top: targetTop,
+        behavior: 'smooth'
+      });
+    } else if (elem) {
       elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
@@ -3372,7 +3388,8 @@ const App: React.FC = () => {
       {/* Primary vertical scroll presenter with snapping behavior */}
       <div 
         id="slides-container"
-        className="flex-1 w-full h-full overflow-x-hidden overflow-y-auto snap-y snap-mandatory scroll-smooth relative z-10 bg-transparent pl-0 mb-[-145px]"
+        className={`flex-1 w-full h-full overflow-x-hidden overflow-y-auto ${scrollingTo !== null ? '' : 'snap-y snap-mandatory'} scroll-smooth relative z-10 bg-transparent pl-0 mb-[-145px]`}
+        style={{ scrollSnapType: scrollingTo !== null ? 'none' : 'y mandatory' }}
       >
         {screens.map((s, idx) => {
           const isSelected = s.id === activeId;

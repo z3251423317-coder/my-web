@@ -380,7 +380,8 @@ export default function TopologyCanvas({ isAdmin = false, isMobile = false, onDa
           onEdgeClick={onEdgeClick}
           nodeTypes={nodeTypes}
           fitView
-          minZoom={0.1}
+          fitViewOptions={{ maxZoom: isMobile ? 0.42 : 0.9, padding: isMobile ? 0.3 : 0.15 }}
+          minZoom={0.05}
           maxZoom={4}
           panOnDrag={true} // Allow dragging canvas
           panOnScroll={false} // Allow scrolling canvas only on desktop
