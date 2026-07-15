@@ -1,67 +1,55 @@
 const fs = require('fs');
-let admin = fs.readFileSync('components/Admin.tsx', 'utf8');
 
-admin = admin.replace(
-  /import \{ db \} from '\.\.\/firebase-config';\nimport \{ doc, getDoc, setDoc \} from 'firebase\/firestore';/,
-  ''
-);
+let adminCode = fs.readFileSync('components/Admin.tsx', 'utf-8');
 
-const newEffect = `
-  useEffect(() => {
-    fetch('/api/config')
-      .then(res => res.json())
-      .then(data => {
-        if (data && !data.error) {
-          setJsonStr(JSON.stringify(data, null, 2));
-        } else {
-          setJsonStr('{\\n  "screens": [],\\n  "pillNavItems": []\\n}');
-        }
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setMessage('加载失败');
-        setLoading(false);
-      });
-  }, []);
-`;
+if (!adminCode.includes('TopologyCanvas')) {
+  adminCode = adminCode.replace("import { Trash2 } from 'lucide-react';", "import { Trash2 } from 'lucide-react';\nimport TopologyCanvas from './TopologyCanvas';");
+  if (!adminCode.includes('./TopologyCanvas')) {
+    adminCode = adminCode.replace("import { Download, Upload } from 'lucide-react';", "import { Download, Upload } from 'lucide-react';\nimport TopologyCanvas from './TopologyCanvas';");
+  }
+}
 
-admin = admin.replace(
-  /useEffect\(\(\) => \{\s*getDoc\(doc\(db, 'app_config', 'master'\)\)[\s\S]*?\}, \[\]\);/,
-  newEffect
-);
+// Find a good place to inject the Canvas in Tab 8.
+// There is a comment /* SECTION: SCREEN TEXTS & CONTENT */.
+// Let's add it right after the closing div of the currentScreen wrapper.
+const findString = "            </div>\n          )}\n        </div>";
+const replaceString = `            </div>
+          )}
+          {currentScreen && currentScreen.id === 8 && (
+            <div className="max-w-4xl space-y-8 mt-8">
+              <h3 className="text-[10px] font-mono tracking-widest text-zinc-500 block uppercase font-bold border-b border-zinc-850 pb-2">
+                ■ 全屏一体化无限拓扑画布 (Topology Canvas)
+              </h3>
+              <div className="w-full h-[600px] border border-zinc-700 rounded-xl overflow-hidden bg-zinc-950">
+                <TopologyCanvas isAdmin={true} isMobile={false} />
+              </div>
+            </div>
+          )}
+        </div>`;
 
-const newSave = `
-  const handleSave = async () => {
-    setSaving(true);
-    setMessage('');
-    try {
-      const data = JSON.parse(jsonStr);
-      data.updatedAt = new Date().toISOString();
-      
-      const res = await fetch('/api/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      
-      if (res.ok) {
-        setMessage('保存成功！前端刷新或直接切换页面即可看到最新内容。');
-      } else {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Unknown error');
-      }
-    } catch (err: any) {
-      setMessage('保存失败，请检查 JSON 格式是否正确: ' + err.message);
-    }
-    setSaving(false);
-  };
-`;
+if (!adminCode.includes('TopologyCanvas isAdmin={true}')) {
+  // Let's see if we can find the exact place to inject. 
+  // Let's just find "    </div>\n    </div>\n  );\n}"
+  adminCode = adminCode.replace(
+    "        </div>\n      </div>\n    </div>\n  );\n}",
+    `          {currentScreen && currentScreen.id === 8 && (
+            <div className="max-w-4xl space-y-8 mt-8 pb-12">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2 border-b border-zinc-800 pb-2">
+                <Database className="w-5 h-5 text-amber-400" />
+                全屏一体化无限拓扑画布 (Topology Canvas)
+              </h3>
+              <div className="w-full h-[600px] border border-zinc-700 rounded-xl overflow-hidden bg-zinc-950 shadow-2xl relative z-10 pointer-events-auto">
+                <TopologyCanvas isAdmin={true} isMobile={false} />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}`
+  );
+}
 
-admin = admin.replace(
-  /const handleSave = async \(\) => \{[\s\S]*?setSaving\(false\);\s*\};/,
-  newSave
-);
-
-fs.writeFileSync('components/Admin.tsx', admin);
-console.log("Patched Admin.tsx");
+fs.writeFileSync('components/Admin.tsx', adminCode);
+console.log('Admin.tsx patched for Screen 8 Canvas.');

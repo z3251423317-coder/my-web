@@ -32,6 +32,7 @@ import { SubCardSelectModal } from './components/SubCardSelectModal';
 import ShinyText from './components/ShinyText';
 import { MusicPlayer } from './components/MusicPlayer';
 import { CheckInCalendar } from './src/components/CheckInCalendar';
+import TopologyCanvas from './components/TopologyCanvas';
 import { db } from './firebase-config';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import defaultUserData from './user_data.json';
@@ -3669,6 +3670,22 @@ const App: React.FC = () => {
             );
           }
 
+          if (s.id === 8) {
+            return (
+              <section 
+                key={s.id}
+                id={`screen-${s.id}`}
+                className="snap-start snap-always relative w-full h-screen overflow-hidden flex items-center justify-center bg-transparent"
+              >
+                {/* 
+                  To prevent the canvas drag/zoom from conflicting with scroll-snap,
+                  we can handle touchAction appropriately, or rely on ReactFlow's panOnScroll/panOnDrag. 
+                  Normally panOnDrag prevents parent scrolling. 
+                */}
+                <TopologyCanvas isAdmin={false} isMobile={isMobile} />
+              </section>
+            );
+          }
           return (
             <section 
               key={s.id}
