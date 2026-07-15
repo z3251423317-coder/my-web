@@ -7,7 +7,7 @@ import {
   RefreshCw, CheckCircle, Database, AlertCircle, Play, Pause, Save, 
   Home, FileText, Globe, Cpu, Sliders, Music, Lock, Layout, ArrowRight, 
   Trash2, Plus, Edit3, Info, Eye, Upload, Video, Image as ImageIcon, AlertTriangle, Copy, Check, X,
-  ChevronDown, ChevronUp, Folder, FolderPlus
+  ChevronDown, ChevronUp, Folder, FolderPlus, Maximize2, Minimize2
 } from 'lucide-react';
 import defaultUserData from '../user_data.json';
 
@@ -102,6 +102,99 @@ interface ScreenData {
   guideAutoPlay?: boolean;
 }
 
+interface GraphNode {
+  id: string;
+  name: string;
+  type: 'main' | 'sub';
+  imageUrl?: string;
+  x: number;
+  y: number;
+  width?: number;
+  labelPosition?: 'top' | 'bottom' | 'left' | 'right' | 'center';
+  color?: string;
+  desc?: string;
+}
+
+interface GraphLink {
+  id: string;
+  source: string;
+  target: string;
+  color?: string;
+  width?: number;
+  isDashed?: boolean;
+}
+
+const DEFAULT_GRAPH_NODES: GraphNode[] = [
+  {
+    id: "main-1",
+    name: "量子首席科学家 / Elena",
+    type: "main",
+    imageUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg",
+    x: 30,
+    y: 35,
+    width: 100,
+    labelPosition: "bottom",
+    color: "#f59e0b",
+    desc: "Elena 博士负责研发容错拓扑量子比特编解码的核心算法。"
+  },
+  {
+    id: "main-2",
+    name: "超导硬件控制器 / Sycamore",
+    type: "main",
+    imageUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg",
+    x: 70,
+    y: 35,
+    width: 100,
+    labelPosition: "bottom",
+    color: "#3b82f6",
+    desc: "Sycamore 控制芯片执行极低温毫开尔文级的物理位操纵。"
+  },
+  {
+    id: "sub-1",
+    name: "纠错噪声监测器",
+    type: "sub",
+    imageUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg",
+    x: 15,
+    y: 65,
+    width: 80,
+    labelPosition: "bottom",
+    color: "#10b981",
+    desc: "监测物理噪声与实时的空间错配模式。"
+  },
+  {
+    id: "sub-2",
+    name: "保真度算法引擎",
+    type: "sub",
+    imageUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg",
+    x: 45,
+    y: 65,
+    width: 80,
+    labelPosition: "bottom",
+    color: "#ec4899",
+    desc: "利用机器学习对物理层数据进行直接校准与优化。"
+  },
+  {
+    id: "sub-3",
+    name: "稀释制冷状态机",
+    type: "sub",
+    imageUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg",
+    x: 85,
+    y: 65,
+    width: 80,
+    labelPosition: "bottom",
+    color: "#8b5cf6",
+    desc: "管理氦气多级循环制冷，确保系统稳定运作。"
+  }
+];
+
+const DEFAULT_GRAPH_LINKS: GraphLink[] = [
+  { id: "link-1", source: "main-1", target: "main-2", color: "#fbbf24", width: 2, isDashed: false },
+  { id: "link-2", source: "sub-1", target: "main-1", color: "#10b981", width: 1.5, isDashed: true },
+  { id: "link-3", source: "sub-2", target: "main-1", color: "#ec4899", width: 1.5, isDashed: false },
+  { id: "link-4", source: "sub-3", target: "main-2", color: "#8b5cf6", width: 1.5, isDashed: false },
+  { id: "link-5", source: "sub-1", target: "sub-2", color: "#6b7280", width: 1.2, isDashed: true }
+];
+
 export default function Admin() {
   // Global sync states
   const [loading, setLoading] = useState(true);
@@ -151,6 +244,43 @@ export default function Admin() {
   const [screen7GlowEnabled, setScreen7GlowEnabled] = useState(true);
   const [screen7GlowColor, setScreen7GlowColor] = useState('#fbbf24');
 
+  const [graphNodes, setGraphNodes] = useState<GraphNode[]>([]);
+  const [graphLinks, setGraphLinks] = useState<GraphLink[]>([]);
+
+  // Graph editing states
+  const [selectedGraphNodeId, setSelectedGraphNodeId] = useState<string | null>(null);
+  const [activeGraphTab, setActiveGraphTab] = useState<'nodes' | 'links'>('nodes');
+  const [newLinkSource, setNewLinkSource] = useState<string>('');
+  const [newLinkTarget, setNewLinkTarget] = useState<string>('');
+  const [newLinkDashed, setNewLinkDashed] = useState<boolean>(false);
+  const [newLinkColor, setNewLinkColor] = useState<string>('#fbbf24');
+  const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null);
+  const [isGraphFullScreen, setIsGraphFullScreen] = useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!draggingNodeId || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = Math.round(Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100)));
+    const y = Math.round(Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100)));
+    setGraphNodes(prev => prev.map(node => node.id === draggingNodeId ? { ...node, x, y } : node));
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!draggingNodeId || !containerRef.current) return;
+    const touch = e.touches[0];
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = Math.round(Math.max(0, Math.min(100, ((touch.clientX - rect.left) / rect.width) * 100)));
+    const y = Math.round(Math.max(0, Math.min(100, ((touch.clientY - rect.top) / rect.height) * 100)));
+    setGraphNodes(prev => prev.map(node => node.id === draggingNodeId ? { ...node, x, y } : node));
+  };
+
+  const handleMouseUp = () => {
+    setDraggingNodeId(null);
+  };
+
+
+
   // Selected sub-elements for active editing
   const [selectedPillNavId, setSelectedPillNavId] = useState<string | null>(null);
   const [selectedRelCardId, setSelectedRelCardId] = useState<string | null>(null);
@@ -164,7 +294,9 @@ export default function Admin() {
     setLoading(true);
     setMessage('');
     try {
-      const res = await fetch('/api/config');
+      const res = await fetch(`/api/config?t=${Date.now()}`, {
+        cache: 'no-store'
+      });
       if (res.ok) {
         const contentType = res.headers.get('content-type') || '';
         if (contentType.includes('application/json')) {
@@ -233,6 +365,17 @@ export default function Admin() {
     }
     if (data.screen7GlowEnabled !== undefined) setScreen7GlowEnabled(!!data.screen7GlowEnabled);
     if (data.screen7GlowColor) setScreen7GlowColor(data.screen7GlowColor);
+    
+    if (Array.isArray(data.graphNodes)) {
+      setGraphNodes(data.graphNodes);
+    } else {
+      setGraphNodes(DEFAULT_GRAPH_NODES);
+    }
+    if (Array.isArray(data.graphLinks)) {
+      setGraphLinks(data.graphLinks);
+    } else {
+      setGraphLinks(DEFAULT_GRAPH_LINKS);
+    }
   };
 
   // Helper to construct the unified config object
@@ -251,7 +394,9 @@ export default function Admin() {
       screen7Tabs,
       screen7GlowEnabled,
       screen7GlowColor,
-      screen3Tabs
+      screen3Tabs,
+      graphNodes,
+      graphLinks
     };
   };
 
@@ -2369,7 +2514,639 @@ export default function Admin() {
                   </div>
                 )}
                 
-                {[8, 9].includes(currentScreen.id) && (
+                {currentScreen.id === 8 && (
+                  <div className="space-y-6">
+                    <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl space-y-1">
+                      <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2">
+                        <Palette className="w-4 h-4 text-amber-400" />
+                        8屏：交互式关系图谱编辑器 (Relationship Graph Map Editor)
+                      </h3>
+                      <p className="text-xs text-zinc-400 leading-relaxed">
+                        您可以在下方<b>可视化画布</b>上通过直接<b>鼠标拖拽</b>节点放置。左侧是布局预览画布，右侧可添加/编辑/删除“主点”与“分点”，以及管理它们之间的“线条链接”。
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                      {/* Left Side: Drag & Drop Interactive Canvas */}
+                      <div className="lg:col-span-7 flex flex-col space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-mono tracking-widest text-zinc-500 block uppercase font-bold">
+                            可视化画布预览 (直接鼠标按住节点拖动位置)
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setIsGraphFullScreen(true)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 text-xs bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold tracking-wider rounded-lg transition-all cursor-pointer shadow-md hover:scale-[1.02]"
+                          >
+                            <Maximize2 className="w-3.5 h-3.5" />
+                            <span>全屏设计画布 / Maximize</span>
+                          </button>
+                        </div>
+                        <div 
+                          ref={containerRef}
+                          onMouseMove={handleMouseMove}
+                          onMouseUp={handleMouseUp}
+                          onMouseLeave={handleMouseUp}
+                          onTouchMove={handleTouchMove}
+                          onTouchEnd={handleMouseUp}
+                          className="w-full aspect-[4/3] bg-zinc-950 border border-zinc-800 rounded-xl relative overflow-hidden select-none"
+                          style={{
+                            backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)',
+                            backgroundSize: '20px 20px'
+                          }}
+                        >
+                          {/* Render connection lines */}
+                          <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                            {graphLinks.map((link) => {
+                              const srcNode = graphNodes.find(n => n.id === link.source);
+                              const tgtNode = graphNodes.find(n => n.id === link.target);
+                              if (!srcNode || !tgtNode) return null;
+                              
+                              // Calculate pixel positions from percentages
+                              const x1 = `${srcNode.x}%`;
+                              const y1 = `${srcNode.y}%`;
+                              const x2 = `${tgtNode.x}%`;
+                              const y2 = `${tgtNode.y}%`;
+                              
+                              return (
+                                <line
+                                  key={link.id}
+                                  x1={x1}
+                                  y1={y1}
+                                  x2={x2}
+                                  y2={y2}
+                                  stroke={link.color || '#fbbf24'}
+                                  strokeWidth={link.width || 1.5}
+                                  strokeDasharray={link.isDashed ? "4 4" : "none"}
+                                  className="transition-all duration-75"
+                                />
+                              );
+                            })}
+                          </svg>
+
+                          {/* Render nodes */}
+                          {graphNodes.map((node) => {
+                            const isSelected = selectedGraphNodeId === node.id;
+                            const isDragging = draggingNodeId === node.id;
+                            
+                            return (
+                              <div
+                                key={node.id}
+                                onMouseDown={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedGraphNodeId(node.id);
+                                  setDraggingNodeId(node.id);
+                                }}
+                                onTouchStart={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedGraphNodeId(node.id);
+                                  setDraggingNodeId(node.id);
+                                }}
+                                className={`absolute cursor-grab active:cursor-grabbing -translate-x-1/2 -translate-y-1/2 group flex flex-col items-center ${
+                                  isDragging ? 'z-50 scale-105' : 'z-10'
+                                }`}
+                                style={{
+                                  left: `${node.x}%`,
+                                  top: `${node.y}%`
+                                }}
+                              >
+                                {/* Transparent GIF / Image container scaled proportionally */}
+                                <div 
+                                  className={`rounded-lg transition-all p-1 flex items-center justify-center ${
+                                    isSelected 
+                                      ? 'bg-zinc-800 border-2 border-amber-500 shadow-lg shadow-amber-500/25 scale-105' 
+                                      : 'hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-600'
+                                  }`}
+                                  style={{
+                                    width: `${node.width || 80}px`
+                                  }}
+                                >
+                                  {node.imageUrl ? (
+                                    <img 
+                                      src={node.imageUrl} 
+                                      alt={node.name}
+                                      className="w-full h-auto object-contain rounded pointer-events-none"
+                                      referrerPolicy="no-referrer"
+                                    />
+                                  ) : (
+                                    <div 
+                                      className={`w-full aspect-square rounded-full flex items-center justify-center text-xs font-bold`}
+                                      style={{ backgroundColor: node.color || '#3b82f6' }}
+                                    >
+                                      {node.type === 'main' ? '主' : '分'}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Label text */}
+                                <div className="mt-1 px-1.5 py-0.5 bg-zinc-950/90 border border-zinc-850 rounded text-[9px] font-mono text-zinc-300 pointer-events-none max-w-[120px] truncate text-center font-bold">
+                                  {node.name || '未命名'}
+                                </div>
+                                <div className="text-[8px] text-zinc-500 font-mono scale-90 pointer-events-none mt-0.5">
+                                  {node.type === 'main' ? '👑 主点' : '📎 分点'}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Fullscreen Overlay Dialog for Advanced Drag and Drop Designing */}
+                      {isGraphFullScreen && (
+                        <div className="fixed inset-0 z-[9999] bg-zinc-950/98 flex flex-col w-screen h-screen">
+                          {/* Full Screen Header */}
+                          <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-md">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/20">
+                                <Palette className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <h3 className="text-sm font-bold text-white tracking-wide">
+                                  8屏：交互式关系图谱全屏设计器 (Relationship Graph Canvas Fullscreen)
+                                </h3>
+                                <p className="text-[10px] text-zinc-400 mt-0.5">
+                                  全屏设计空间，鼠标按住任意节点拖拽定位（拖拽完自动保存）。
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setIsGraphFullScreen(false)}
+                              className="flex items-center gap-1.5 px-4 py-2 bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 hover:border-zinc-700 rounded-xl text-xs text-zinc-300 hover:text-white font-bold transition-all cursor-pointer"
+                            >
+                              <Minimize2 className="w-4 h-4 text-amber-500" />
+                              <span>退出全屏 / Exit</span>
+                            </button>
+                          </div>
+
+                          {/* Canvas Area */}
+                          <div className="flex-1 w-full bg-zinc-950 relative overflow-hidden flex items-center justify-center p-6">
+                            <div 
+                              ref={containerRef}
+                              onMouseMove={handleMouseMove}
+                              onMouseUp={handleMouseUp}
+                              onMouseLeave={handleMouseUp}
+                              onTouchMove={handleTouchMove}
+                              onTouchEnd={handleMouseUp}
+                              className="w-full h-full max-w-[1400px] max-h-[90vh] aspect-[4/3] bg-zinc-950 border border-zinc-800/80 rounded-2xl relative overflow-hidden select-none shadow-2xl"
+                              style={{
+                                backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.06) 1.5px, transparent 1.5px)',
+                                backgroundSize: '24px 24px'
+                              }}
+                            >
+                              {/* Render connection lines */}
+                              <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                                {graphLinks.map((link) => {
+                                  const srcNode = graphNodes.find(n => n.id === link.source);
+                                  const tgtNode = graphNodes.find(n => n.id === link.target);
+                                  if (!srcNode || !tgtNode) return null;
+                                  
+                                  const x1 = `${srcNode.x}%`;
+                                  const y1 = `${srcNode.y}%`;
+                                  const x2 = `${tgtNode.x}%`;
+                                  const y2 = `${tgtNode.y}%`;
+                                  
+                                  return (
+                                    <line
+                                      key={link.id}
+                                      x1={x1}
+                                      y1={y1}
+                                      x2={x2}
+                                      y2={y2}
+                                      stroke={link.color || '#fbbf24'}
+                                      strokeWidth={link.width || 2.0}
+                                      strokeDasharray={link.isDashed ? "4 4" : "none"}
+                                      className="transition-all duration-75"
+                                    />
+                                  );
+                                })}
+                              </svg>
+
+                              {/* Render nodes */}
+                              {graphNodes.map((node) => {
+                                const isSelected = selectedGraphNodeId === node.id;
+                                const isDragging = draggingNodeId === node.id;
+                                
+                                return (
+                                  <div
+                                    key={node.id}
+                                    onMouseDown={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedGraphNodeId(node.id);
+                                      setDraggingNodeId(node.id);
+                                    }}
+                                    onTouchStart={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedGraphNodeId(node.id);
+                                      setDraggingNodeId(node.id);
+                                    }}
+                                    className={`absolute cursor-grab active:cursor-grabbing -translate-x-1/2 -translate-y-1/2 group flex flex-col items-center ${
+                                      isDragging ? 'z-50 scale-105' : 'z-10'
+                                    }`}
+                                    style={{
+                                      left: `${node.x}%`,
+                                      top: `${node.y}%`
+                                    }}
+                                  >
+                                    <div 
+                                      className={`rounded-xl transition-all p-1.5 flex items-center justify-center ${
+                                        isSelected 
+                                          ? 'bg-zinc-800 border-2 border-amber-500 shadow-xl shadow-amber-500/35 scale-105' 
+                                          : 'hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-500 bg-zinc-950/80'
+                                      }`}
+                                      style={{
+                                        width: `${node.width ? node.width * 1.2 : 100}px`
+                                      }}
+                                    >
+                                      {node.imageUrl ? (
+                                        <img 
+                                          src={node.imageUrl} 
+                                          alt={node.name}
+                                          className="w-full h-auto object-contain rounded pointer-events-none"
+                                          referrerPolicy="no-referrer"
+                                        />
+                                      ) : (
+                                        <div 
+                                          className={`w-full aspect-square rounded-full flex items-center justify-center text-xs font-bold`}
+                                          style={{ backgroundColor: node.color || '#3b82f6' }}
+                                        >
+                                          {node.type === 'main' ? '主' : '分'}
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    <div 
+                                      className={`mt-2 px-3 py-1 rounded-lg text-xs font-mono font-bold tracking-wide shadow-lg border backdrop-blur-md transition-all duration-300 ${
+                                        isSelected 
+                                          ? 'border-amber-500 bg-zinc-900 text-amber-400' 
+                                          : 'border-zinc-800 bg-zinc-950/90 text-zinc-300'
+                                      }`}
+                                    >
+                                      {node.name}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Right Side: Tabbed Forms */}
+                      <div className="lg:col-span-5 space-y-4">
+                        <div className="flex border-b border-zinc-850">
+                          <button
+                            onClick={() => setActiveGraphTab('nodes')}
+                            className={`flex-1 py-2 text-xs font-bold transition-all border-b-2 ${
+                              activeGraphTab === 'nodes'
+                                ? 'border-amber-500 text-amber-400 font-bold'
+                                : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                            }`}
+                          >
+                            📍 节点管理 ({graphNodes.length})
+                          </button>
+                          <button
+                            onClick={() => setActiveGraphTab('links')}
+                            className={`flex-1 py-2 text-xs font-bold transition-all border-b-2 ${
+                              activeGraphTab === 'links'
+                                ? 'border-amber-500 text-amber-400 font-bold'
+                                : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                            }`}
+                          >
+                            🔗 关系连线 ({graphLinks.length})
+                          </button>
+                        </div>
+
+                        {activeGraphTab === 'nodes' && (
+                          <div className="space-y-4">
+                            {/* Node Creation */}
+                            <button
+                              onClick={() => {
+                                const newId = `node_${Date.now()}`;
+                                const newNode: GraphNode = {
+                                  id: newId,
+                                  name: "新节点",
+                                  type: "sub",
+                                  imageUrl: "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg",
+                                  x: 50,
+                                  y: 50,
+                                  width: 80,
+                                  labelPosition: "bottom",
+                                  color: "#3b82f6",
+                                  desc: ""
+                                };
+                                setGraphNodes([...graphNodes, newNode]);
+                                setSelectedGraphNodeId(newId);
+                              }}
+                              className="w-full py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                              <Plus className="w-4 h-4" />
+                              添加新节点 (主点/分点)
+                            </button>
+
+                            {/* Node Editing Form */}
+                            {(() => {
+                              const node = graphNodes.find(n => n.id === selectedGraphNodeId);
+                              if (!node) {
+                                return (
+                                  <div className="p-4 bg-zinc-900/50 text-center rounded-lg border border-zinc-850 text-xs text-zinc-500 italic">
+                                    请在左侧画布点击节点，或者添加新节点开始编辑
+                                  </div>
+                                );
+                              }
+
+                              return (
+                                <div className="p-4 bg-zinc-900/80 border border-zinc-800 rounded-xl space-y-3">
+                                  <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+                                    <span className="text-[10px] font-mono font-bold text-amber-400">编辑节点：{node.id}</span>
+                                    <button
+                                      onClick={() => {
+                                        setGraphNodes(graphNodes.filter(n => n.id !== node.id));
+                                        setGraphLinks(graphLinks.filter(l => l.source !== node.id && l.target !== node.id));
+                                        setSelectedGraphNodeId(null);
+                                      }}
+                                      className="text-rose-400 hover:text-rose-300 text-xs flex items-center gap-1 font-semibold"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                      删除此节点
+                                    </button>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                      <label className="text-[10px] text-zinc-500 block mb-1">节点类型 (Type)</label>
+                                      <select
+                                        value={node.type}
+                                        onChange={(e) => {
+                                          setGraphNodes(graphNodes.map(n => n.id === node.id ? { ...n, type: e.target.value as 'main' | 'sub' } : n));
+                                        }}
+                                        className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-300 focus:outline-none focus:border-amber-500"
+                                      >
+                                        <option value="main">👑 主点 (Main Node)</option>
+                                        <option value="sub">📎 分点 (Sub Node)</option>
+                                      </select>
+                                    </div>
+
+                                    <div>
+                                      <label className="text-[10px] text-zinc-500 block mb-1">节点名称 (Label)</label>
+                                      <input
+                                        type="text"
+                                        value={node.name}
+                                        onChange={(e) => {
+                                          setGraphNodes(graphNodes.map(n => n.id === node.id ? { ...n, name: e.target.value } : n));
+                                        }}
+                                        className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-300 focus:outline-none focus:border-amber-500"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    <label className="text-[10px] text-zinc-500 block mb-1">透明底 GIF/PNG 图标 URL</label>
+                                    <input
+                                      type="text"
+                                      value={node.imageUrl || ''}
+                                      placeholder="https://example.com/character.gif"
+                                      onChange={(e) => {
+                                        setGraphNodes(graphNodes.map(n => n.id === node.id ? { ...n, imageUrl: e.target.value } : n));
+                                      }}
+                                      className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs font-mono text-zinc-350 focus:outline-none focus:border-amber-500"
+                                    />
+                                    <p className="text-[9px] text-zinc-500 mt-1">
+                                      系统将根据图片比例自动等比缩放。留空则显示为圆点。
+                                    </p>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                      <label className="text-[10px] text-zinc-500 block mb-1">节点大小/宽度 ({node.width || 80}px)</label>
+                                      <input
+                                        type="range"
+                                        min="40"
+                                        max="160"
+                                        step="5"
+                                        value={node.width || 80}
+                                        onChange={(e) => {
+                                          setGraphNodes(graphNodes.map(n => n.id === node.id ? { ...n, width: parseInt(e.target.value) } : n));
+                                        }}
+                                        className="w-full h-1 bg-zinc-850 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <label className="text-[10px] text-zinc-500 block mb-1">主题色调 (Fallback)</label>
+                                      <input
+                                        type="color"
+                                        value={node.color || '#3b82f6'}
+                                        onChange={(e) => {
+                                          setGraphNodes(graphNodes.map(n => n.id === node.id ? { ...n, color: e.target.value } : n));
+                                        }}
+                                        className="w-full h-8 px-1 py-0.5 bg-zinc-950 border border-zinc-800 rounded cursor-pointer"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                      <label className="text-[10px] text-zinc-500 block mb-1">手动 X 轴坐标 (0-100%)</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={node.x}
+                                        onChange={(e) => {
+                                          setGraphNodes(graphNodes.map(n => n.id === node.id ? { ...n, x: Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) } : n));
+                                        }}
+                                        className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-300 focus:outline-none"
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <label className="text-[10px] text-zinc-500 block mb-1">手动 Y 轴坐标 (0-100%)</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={node.y}
+                                        onChange={(e) => {
+                                          setGraphNodes(graphNodes.map(n => n.id === node.id ? { ...n, y: Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) } : n));
+                                        }}
+                                        className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-300 focus:outline-none"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    <label className="text-[10px] text-zinc-500 block mb-1">节点描述（点击弹出层显示，支持微文案）</label>
+                                    <textarea
+                                      rows={2}
+                                      value={node.desc || ''}
+                                      onChange={(e) => {
+                                        setGraphNodes(graphNodes.map(n => n.id === node.id ? { ...n, desc: e.target.value } : n));
+                                      }}
+                                      className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-300 focus:outline-none focus:border-amber-500"
+                                    />
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )}
+
+                        {activeGraphTab === 'links' && (
+                          <div className="space-y-4">
+                            {/* Add New Link Panel */}
+                            <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl space-y-3">
+                              <span className="text-[10px] font-mono tracking-widest text-amber-400 block font-bold uppercase">
+                                新建关系线条链接
+                              </span>
+                              
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label className="text-[10px] text-zinc-500 block mb-1">起始节点 (Source)</label>
+                                  <select
+                                    value={newLinkSource}
+                                    onChange={(e) => setNewLinkSource(e.target.value)}
+                                    className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-300 focus:outline-none"
+                                  >
+                                    <option value="">-- 选择起点 --</option>
+                                    {graphNodes.map(n => (
+                                      <option key={n.id} value={n.id}>{n.name} ({n.type === 'main' ? '主' : '分'})</option>
+                                    ))}
+                                  </select>
+                                </div>
+
+                                <div>
+                                  <label className="text-[10px] text-zinc-500 block mb-1">目标节点 (Target)</label>
+                                  <select
+                                    value={newLinkTarget}
+                                    onChange={(e) => setNewLinkTarget(e.target.value)}
+                                    className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-300 focus:outline-none"
+                                  >
+                                    <option value="">-- 选择终点 --</option>
+                                    {graphNodes.map(n => (
+                                      <option key={n.id} value={n.id}>{n.name} ({n.type === 'main' ? '主' : '分'})</option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label className="text-[10px] text-zinc-500 block mb-1">虚线样式</label>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <input
+                                      type="checkbox"
+                                      id="link_dashed_check"
+                                      checked={newLinkDashed}
+                                      onChange={(e) => setNewLinkDashed(e.target.checked)}
+                                      className="rounded bg-zinc-950 border-zinc-800 text-amber-500 focus:ring-amber-500"
+                                    />
+                                    <label htmlFor="link_dashed_check" className="text-xs text-zinc-300 cursor-pointer">设为虚线 (Dashed)</label>
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <label className="text-[10px] text-zinc-500 block mb-1">线条颜色</label>
+                                  <div className="flex gap-2">
+                                    <input
+                                      type="color"
+                                      value={newLinkColor}
+                                      onChange={(e) => setNewLinkColor(e.target.value)}
+                                      className="h-8 w-12 p-0.5 bg-zinc-950 border border-zinc-800 rounded cursor-pointer"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={newLinkColor}
+                                      onChange={(e) => setNewLinkColor(e.target.value)}
+                                      className="flex-1 px-2 py-1 bg-zinc-950 border border-zinc-800 rounded text-xs font-mono text-zinc-300"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
+                              <button
+                                onClick={() => {
+                                  if (!newLinkSource || !newLinkTarget) {
+                                    alert("必须选择起点和终点！");
+                                    return;
+                                  }
+                                  if (newLinkSource === newLinkTarget) {
+                                    alert("起点和终点不能是同一个节点！");
+                                    return;
+                                  }
+                                  // Check if this connection already exists
+                                  const exists = graphLinks.some(l => 
+                                    (l.source === newLinkSource && l.target === newLinkTarget) ||
+                                    (l.source === newLinkTarget && l.target === newLinkSource)
+                                  );
+                                  if (exists) {
+                                    alert("这两个节点之间已存在一条链接！");
+                                    return;
+                                  }
+
+                                  const newLink: GraphLink = {
+                                    id: `link_${Date.now()}`,
+                                    source: newLinkSource,
+                                    target: newLinkTarget,
+                                    isDashed: newLinkDashed,
+                                    color: newLinkColor,
+                                    width: 1.5
+                                  };
+                                  setGraphLinks([...graphLinks, newLink]);
+                                  setNewLinkSource('');
+                                  setNewLinkTarget('');
+                                }}
+                                className="w-full py-2 bg-amber-500 hover:bg-amber-450 text-black rounded-lg text-xs font-bold transition-all cursor-pointer"
+                              >
+                                建立该条连接
+                              </button>
+                            </div>
+
+                            {/* Existing links table */}
+                            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+                              <span className="px-3 py-2 border-b border-zinc-800 bg-zinc-950/40 text-[10px] font-mono tracking-widest text-zinc-500 block uppercase font-bold">
+                                已建立的关系连接 ({graphLinks.length})
+                              </span>
+                              
+                              <div className="max-h-56 overflow-y-auto divide-y divide-zinc-850">
+                                {graphLinks.length === 0 ? (
+                                  <div className="p-4 text-center text-xs text-zinc-500 italic">
+                                    暂无连接线条
+                                  </div>
+                                ) : (
+                                  graphLinks.map((link) => {
+                                    const srcNode = graphNodes.find(n => n.id === link.source);
+                                    const tgtNode = graphNodes.find(n => n.id === link.target);
+                                    return (
+                                      <div key={link.id} className="p-2.5 flex items-center justify-between text-xs">
+                                        <div className="flex items-center gap-2 font-mono text-zinc-350">
+                                          <span className="font-bold text-zinc-200">{srcNode?.name || '未知'}</span>
+                                          <span className="text-zinc-600">→</span>
+                                          <span className="font-bold text-zinc-200">{tgtNode?.name || '未知'}</span>
+                                          {link.isDashed && <span className="px-1 py-0.2 bg-zinc-800 text-[8px] text-zinc-500 rounded">虚线</span>}
+                                        </div>
+                                        <button
+                                          onClick={() => {
+                                            setGraphLinks(graphLinks.filter(l => l.id !== link.id));
+                                          }}
+                                          className="text-rose-450 hover:text-rose-400 p-1 font-semibold"
+                                        >
+                                          断开
+                                        </button>
+                                      </div>
+                                    );
+                                  })
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {currentScreen.id === 9 && (
                   <div className="p-4 bg-zinc-950/40 border border-zinc-850 rounded-lg text-xs space-y-1">
                     <span className="font-mono text-[9px] text-zinc-500 uppercase tracking-widest block font-bold">板块提示</span>
                     <p className="text-zinc-400">
