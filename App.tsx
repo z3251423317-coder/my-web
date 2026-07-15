@@ -4269,31 +4269,51 @@ const App: React.FC = () => {
 
                     {/* Screen 9: Mock headquarters location address and real clock */}
                     {s.id === 9 && (
-                      <div className="w-full max-w-md glassmorphism-card text-zinc-300 rounded-2xl p-6 space-y-4 -translate-y-8 lg:-translate-y-14 transition-transform duration-300">
+                      <div className="w-full max-w-md glassmorphism-card text-zinc-300 rounded-2xl p-6 space-y-4 translate-y-0 lg:-translate-y-14 transition-transform duration-300 pointer-events-auto">
                         <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
                           <span className="text-xs text-white uppercase tracking-wider font-bold font-display">AlphaQubit Headquarters</span>
                           <span className="text-xs text-amber-500 font-mono font-bold animate-pulse">{currentTime} UTC</span>
                         </div>
 
-                        <div className="space-y-2 text-xs leading-relaxed">
-                          <div className="flex items-center gap-2.5">
-                            <MapPin className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                        <div className="space-y-2.5 text-xs leading-relaxed">
+                          <a 
+                            href="https://maps.google.com/?q=1600+Amphitheatre+Pkwy,+Mountain+View,+CA+94043" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2.5 hover:text-amber-400 transition-colors cursor-pointer py-1 group/link"
+                          >
+                            <MapPin className="w-4 h-4 text-amber-500 flex-shrink-0 group-hover/link:scale-110 transition-transform" />
                             <span>1600 Amphitheatre Pkwy, Mountain View, CA 94043, United States</span>
-                          </div>
-                          <div className="flex items-center gap-2.5">
-                            <Phone className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                          </a>
+                          <a 
+                            href="tel:+16502530000" 
+                            className="flex items-center gap-2.5 hover:text-amber-400 transition-colors cursor-pointer py-1 group/link"
+                          >
+                            <Phone className="w-4 h-4 text-emerald-400 flex-shrink-0 group-hover/link:scale-110 transition-transform" />
                             <span>+1 (650) 253-0000 (Research Relations)</span>
-                          </div>
-                          <div className="flex items-center gap-2.5">
-                            <Globe className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                            <span>ai.google/research/alphaqubit</span>
-                          </div>
+                          </a>
+                          <a 
+                            href="https://ai.google/research/alphaqubit" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2.5 hover:text-amber-400 transition-colors cursor-pointer py-1 group/link"
+                          >
+                            <Globe className="w-4 h-4 text-blue-400 flex-shrink-0 group-hover/link:scale-110 transition-transform" />
+                            <span className="underline decoration-blue-400/30 underline-offset-2">ai.google/research/alphaqubit</span>
+                          </a>
                         </div>
 
-                        <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-between">
-                          <div>
+                        <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-between gap-2">
+                          <div className="min-w-0 flex-1">
                             <span className="text-[10px] text-zinc-500 block uppercase font-mono font-bold">Research Code Sandbox</span>
-                            <span className="text-xs text-zinc-300 font-mono">github/google-deepmind/alphaqubit</span>
+                            <a 
+                              href="https://github.com/google-deepmind/alphaqubit" 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-zinc-300 font-mono hover:text-amber-400 transition-colors truncate block"
+                            >
+                              github/google-deepmind/alphaqubit
+                            </a>
                           </div>
                           <button 
                             onClick={async () => {
@@ -4304,10 +4324,10 @@ const App: React.FC = () => {
                                 alert("https://github.com/google-deepmind/alphaqubit");
                               }
                             }}
-                            className="p-2 bg-zinc-820 hover:bg-zinc-700 hover:text-white rounded border border-zinc-700/60 transition-colors"
+                            className="p-3 md:p-2 bg-zinc-800 hover:bg-zinc-700 hover:text-white rounded-lg border border-zinc-700/60 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95 shadow-md flex-shrink-0"
                             title="复制链接"
                           >
-                            <Copy className="w-3.5 h-3.5 text-zinc-300" />
+                            <Copy className="w-4 h-4 text-zinc-300" />
                           </button>
                         </div>
                       </div>
