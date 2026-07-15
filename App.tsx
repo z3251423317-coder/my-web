@@ -588,6 +588,7 @@ if (typeof window !== "undefined") {
 
 const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style, muted = true, isGuidePlaying = false }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   
   // Handle general mute state immediately on changes
   useEffect(() => {
@@ -750,30 +751,86 @@ const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style, muted = tr
     };
   }, [src]);
 
+  // RequestAnimationFrame loop to draw video frame onto Canvas to completely avoid browser video player hijack
+  useEffect(() => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    const ctx = canvas.getContext("2d", { alpha: false });
+    if (!ctx) return;
+
+    let animId: number;
+    let isActive = true;
+
+    const render = () => {
+      if (!isActive) return;
+
+      if (video.readyState >= 2) { // HAVE_CURRENT_DATA or greater
+        const vw = video.videoWidth;
+        const vh = video.videoHeight;
+        if (vw && vh && (canvas.width !== vw || canvas.height !== vh)) {
+          canvas.width = vw;
+          canvas.height = vh;
+        }
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      }
+      
+      animId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => {
+      isActive = false;
+      cancelAnimationFrame(animId);
+    };
+  }, [src]);
+
   return (
-    <video
-      ref={videoRef}
-      className={className}
-      style={style}
-      src={src}
-      loop
-      muted={muted}
-      playsInline
-      autoPlay
-      preload="auto"
-      disablePictureInPicture
-      disableRemotePlayback
-      {...{
-        "webkit-playsinline": "true",
-        "playsinline": "true",
-        "x5-playsinline": "true",
-        "x5-video-player-type": "h5-page",
-        "x5-video-player-fullscreen": "false",
-        "x5-video-orientation": "portrait",
-        "x-webkit-airplay": "allow",
-        "uc-video-toolbar": "false"
-      } as any}
-    />
+    <>
+      <video
+        ref={videoRef}
+        src={src}
+        loop
+        muted={muted}
+        playsInline
+        autoPlay
+        preload="auto"
+        disablePictureInPicture
+        disableRemotePlayback
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "16px",
+          height: "16px",
+          opacity: 0.01,
+          pointerEvents: "none",
+          zIndex: -999,
+          overflow: "hidden"
+        }}
+        {...{
+          "webkit-playsinline": "true",
+          "playsinline": "true",
+          "x5-playsinline": "true",
+          "x5-video-player-type": "h5-page",
+          "x5-video-player-fullscreen": "false",
+          "x5-video-orientation": "portrait",
+          "x-webkit-airplay": "allow",
+          "uc-video-toolbar": "false"
+        } as any}
+      />
+      <canvas
+        ref={canvasRef}
+        className={className}
+        style={{
+          ...style,
+          display: "block",
+          objectFit: "cover"
+        }}
+      />
+    </>
   );
 };
 
