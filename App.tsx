@@ -589,6 +589,8 @@ if (typeof window !== "undefined") {
 const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style, muted = true, isGuidePlaying = false }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [canvasError, setCanvasError] = useState(false);
+  const [useCrossOrigin, setUseCrossOrigin] = useState(true);
   
   // Handle general mute state immediately on changes
   useEffect(() => {
@@ -749,10 +751,12 @@ const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style, muted = tr
       window.removeEventListener("mousedown", handleInteraction);
       window.removeEventListener("keydown", handleInteraction);
     };
-  }, [src]);
+  }, [src, useCrossOrigin]);
 
   // RequestAnimationFrame loop to draw video frame onto Canvas to completely avoid browser video player hijack
   useEffect(() => {
+    if (canvasError) return;
+
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
@@ -773,7 +777,14 @@ const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style, muted = tr
           canvas.width = vw;
           canvas.height = vh;
         }
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        try {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        } catch (e) {
+          console.warn("Canvas draw failed, falling back to raw video element:", e);
+          setCanvasError(true);
+          isActive = false;
+          return;
+        }
       }
       
       animId = requestAnimationFrame(render);
@@ -785,7 +796,7 @@ const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style, muted = tr
       isActive = false;
       cancelAnimationFrame(animId);
     };
-  }, [src]);
+  }, [src, canvasError]);
 
   return (
     <>
@@ -799,16 +810,24 @@ const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style, muted = tr
         preload="auto"
         disablePictureInPicture
         disableRemotePlayback
-        style={{
+        crossOrigin={useCrossOrigin ? "anonymous" : undefined}
+        onError={() => {
+          if (useCrossOrigin) {
+            console.warn("Video failed to load with crossOrigin='anonymous', falling back to no-CORS...");
+            setUseCrossOrigin(false);
+          }
+        }}
+        className={canvasError ? className : undefined}
+        style={canvasError ? style : {
           position: "absolute",
           top: 0,
           left: 0,
-          width: "16px",
-          height: "16px",
-          opacity: 0.01,
+          width: "100%",
+          height: "100%",
+          opacity: 0.002,
           pointerEvents: "none",
-          zIndex: -999,
-          overflow: "hidden"
+          zIndex: -1,
+          objectFit: "cover"
         }}
         {...{
           "webkit-playsinline": "true",
@@ -821,15 +840,17 @@ const SafeVideo: React.FC<SafeVideoProps> = ({ src, className, style, muted = tr
           "uc-video-toolbar": "false"
         } as any}
       />
-      <canvas
-        ref={canvasRef}
-        className={className}
-        style={{
-          ...style,
-          display: "block",
-          objectFit: "cover"
-        }}
-      />
+      {!canvasError && (
+        <canvas
+          ref={canvasRef}
+          className={className}
+          style={{
+            ...style,
+            display: "block",
+            objectFit: "cover"
+          }}
+        />
+      )}
     </>
   );
 };
