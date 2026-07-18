@@ -36,6 +36,9 @@ export type TopologyNodeData = {
   onEdit?: (id: string) => void;
   onAddChild?: (id: string) => void;
   isAdmin?: boolean;
+  bgColor?: string;
+  borderColor?: string;
+  textColor?: string;
 };
 
 const CustomNode = ({ id, data, isConnectable }: NodeProps<Node<TopologyNodeData>>) => {
@@ -58,13 +61,20 @@ const CustomNode = ({ id, data, isConnectable }: NodeProps<Node<TopologyNodeData
     }
   };
 
+  const inlineStyles: React.CSSProperties = {};
+  if (data.bgColor) inlineStyles.backgroundColor = data.bgColor;
+  if (data.borderColor) inlineStyles.borderColor = data.borderColor;
+  if (data.textColor) inlineStyles.color = data.textColor;
+
   return (
     <div 
       onClick={handleClick}
       className={`p-4 rounded-xl border-2 shadow-lg backdrop-blur-md min-w-[200px] max-w-[300px] transition-all relative
-        ${data.isMainNode ? 'bg-zinc-900/90 border-amber-500 shadow-amber-500/10' : 'bg-zinc-800/90 border-zinc-600'}
-        ${!data.isAdmin && hasLink ? 'hover:scale-[1.03] hover:border-amber-400 cursor-pointer hover:shadow-amber-500/20 active:scale-[0.98]' : ''}
+        ${!data.bgColor ? (data.isMainNode ? 'bg-zinc-900/90' : 'bg-zinc-800/90') : ''}
+        ${!data.borderColor ? (data.isMainNode ? 'border-amber-500 shadow-amber-500/10' : 'border-zinc-600') : ''}
+        ${!data.isAdmin && hasLink ? 'nopan nodrag hover:scale-[1.03] hover:border-amber-400 cursor-pointer hover:shadow-amber-500/20 active:scale-[0.98]' : ''}
       `}
+      style={inlineStyles}
     >
       {/* Top Handles */}
       <Handle type="target" position={Position.Top} id="t-top" isConnectable={isConnectable} className="w-4 h-4 bg-transparent border-none z-0" />
@@ -80,14 +90,18 @@ const CustomNode = ({ id, data, isConnectable }: NodeProps<Node<TopologyNodeData
       
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <h3 className={`font-bold text-lg ${data.isMainNode ? 'text-amber-400' : 'text-zinc-100'}`}>
+          <h3 
+            className="font-bold text-lg"
+            style={{ color: data.textColor || (data.isMainNode ? '#f59e0b' : '#f4f4f5') }}
+          >
             {data.label || '未命名节点'}
           </h3>
           {hasLink && (
             <span title={data.isAdmin ? `配置了链接: ${data.linkUrl}` : '点击跳转链接'}>
               <LinkIcon 
                 size={14} 
-                className={`shrink-0 ${data.isMainNode ? 'text-amber-400' : 'text-zinc-400'} ${!data.isAdmin ? 'animate-pulse' : ''}`} 
+                className={`shrink-0 ${!data.isAdmin ? 'animate-pulse' : ''}`}
+                style={{ color: data.textColor || (data.isMainNode ? '#f59e0b' : '#a1a1aa') }}
               />
             </span>
           )}
@@ -96,7 +110,12 @@ const CustomNode = ({ id, data, isConnectable }: NodeProps<Node<TopologyNodeData
           <img src={data.imageUrl} alt={data.label} className="w-full h-auto rounded-md object-cover" />
         )}
         {data.copy && (
-          <p className="text-sm text-zinc-300 break-words whitespace-pre-wrap">{data.copy}</p>
+          <p 
+            className="text-sm break-words whitespace-pre-wrap"
+            style={data.textColor ? { color: data.textColor, opacity: 0.85 } : { color: '#d4d4d8' }}
+          >
+            {data.copy}
+          </p>
         )}
         
         {data.isAdmin && (
@@ -149,6 +168,27 @@ const nodeTypes = {
   customNode: CustomNode,
 };
 
+function deduplicateEdges(edgesList: Edge[]): Edge[] {
+  const seenIds = new Set<string>();
+  const seenConnections = new Set<string>();
+  const result: Edge[] = [];
+
+  for (const edge of edgesList) {
+    const connectionKey = `${edge.source}-${edge.sourceHandle || ''}-${edge.target}-${edge.targetHandle || ''}`;
+    const edgeId = edge.id || `e-${connectionKey}`;
+    
+    if (!seenIds.has(edgeId) && !seenConnections.has(connectionKey)) {
+      seenIds.add(edgeId);
+      seenConnections.add(connectionKey);
+      result.push({
+        ...edge,
+        id: edgeId
+      });
+    }
+  }
+  return result;
+}
+
 export default function TopologyCanvas({ 
   isAdmin = false, 
   isMobile = false, 
@@ -170,7 +210,7 @@ export default function TopologyCanvas({
   });
   const [edges, setEdges] = useState<Edge[]>(() => {
     if (isAdmin && initialEdges && initialEdges.length > 0) {
-      return initialEdges;
+      return deduplicateEdges(initialEdges);
     }
     return [];
   });
@@ -223,7 +263,7 @@ export default function TopologyCanvas({
             }
           ]);
         }
-        if (data.topologyEdges) setEdges(data.topologyEdges);
+        if (data.topologyEdges) setEdges(deduplicateEdges(data.topologyEdges));
       }
     } catch (e) {
       console.error(e);
@@ -243,7 +283,7 @@ export default function TopologyCanvas({
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data.topologyNodes) setNodes(data.topologyNodes);
-          if (data.topologyEdges) setEdges(data.topologyEdges);
+          if (data.topologyEdges) setEdges(deduplicateEdges(data.topologyEdges));
         }
       });
       return () => unsub();
@@ -261,7 +301,7 @@ export default function TopologyCanvas({
       width: n.width,
       height: n.height
     }));
-    const cleanEdges = newEdges.map(e => ({
+    const cleanEdges = deduplicateEdges(newEdges).map(e => ({
       id: e.id,
       source: e.source,
       target: e.target,
@@ -302,8 +342,9 @@ export default function TopologyCanvas({
       if (!isAdmin) return;
       setEdges((eds) => {
         const next = addEdge({ ...params, type: 'default', animated: true, style: { stroke: '#ffffff' } } as any, eds);
-        saveData(nodes, next);
-        return next;
+        const uniqueNext = deduplicateEdges(next);
+        saveData(nodes, uniqueNext);
+        return uniqueNext;
       });
     },
     [nodes, isAdmin]
@@ -341,7 +382,7 @@ export default function TopologyCanvas({
             style: { stroke: '#ffffff' }
           };
           const nextNodes = [...nodes, newNode];
-          const nextEdges = [...edges, newEdge];
+          const nextEdges = deduplicateEdges([...edges, newEdge]);
           setNodes(nextNodes);
           setEdges(nextEdges);
           saveData(nextNodes, nextEdges);
@@ -480,13 +521,13 @@ export default function TopologyCanvas({
       {/* Node Edit Modal */}
       {isAdmin && editingNodeId && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 w-full max-w-md shadow-2xl">
-            <div className="flex justify-between items-center mb-4">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 w-full max-w-md shadow-2xl max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center mb-4 flex-shrink-0 pb-3 border-b border-zinc-800">
               <h2 className="text-xl font-bold text-white">编辑节点</h2>
               <button onClick={() => setEditingNodeId(null)} className="text-zinc-400 hover:text-white"><X size={20}/></button>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-4 flex-1 overflow-y-auto pr-2 py-2 min-h-0">
               <div>
                 <label className="block text-xs text-zinc-400 mb-1">节点标题</label>
                 <input 
@@ -528,6 +569,155 @@ export default function TopologyCanvas({
                 />
               </div>
 
+              <div>
+                <label className="block text-xs text-zinc-400 mb-1 font-semibold">卡片颜色样式</label>
+                
+                <div className="space-y-3 p-3 bg-zinc-950 border border-zinc-800 rounded-lg">
+                  {/* Preset Buttons */}
+                  <div>
+                    <span className="text-[10px] text-zinc-500 uppercase font-mono font-bold block mb-1.5">快捷主题预设</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditFormData({
+                          ...editFormData,
+                          bgColor: '#18181b',
+                          borderColor: '#f59e0b',
+                          textColor: '#f59e0b'
+                        })}
+                        className="px-2 py-1 bg-zinc-900 border border-amber-500 text-amber-500 text-[10px] rounded hover:bg-zinc-850 active:scale-95 transition-all truncate text-left flex items-center gap-1.5"
+                      >
+                        <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" />
+                        Quantum Amber
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditFormData({
+                          ...editFormData,
+                          bgColor: '#0f172a',
+                          borderColor: '#06b6d4',
+                          textColor: '#22d3ee'
+                        })}
+                        className="px-2 py-1 bg-slate-900 border border-cyan-500 text-cyan-400 text-[10px] rounded hover:bg-slate-850 active:scale-95 transition-all truncate text-left flex items-center gap-1.5"
+                      >
+                        <span className="w-2.5 h-2.5 rounded-full bg-cyan-500 shrink-0" />
+                        Tech Cyan
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditFormData({
+                          ...editFormData,
+                          bgColor: '#1e1b4b',
+                          borderColor: '#a855f7',
+                          textColor: '#c084fc'
+                        })}
+                        className="px-2 py-1 bg-indigo-950 border border-purple-500 text-purple-400 text-[10px] rounded hover:bg-indigo-900 active:scale-95 transition-all truncate text-left flex items-center gap-1.5"
+                      >
+                        <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shrink-0" />
+                        Cyber Purple
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditFormData({
+                          ...editFormData,
+                          bgColor: '#064e3b',
+                          borderColor: '#10b981',
+                          textColor: '#34d399'
+                        })}
+                        className="px-2 py-1 bg-emerald-950 border border-emerald-500 text-emerald-400 text-[10px] rounded hover:bg-emerald-900 active:scale-95 transition-all truncate text-left flex items-center gap-1.5"
+                      >
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
+                        Bio Emerald
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditFormData({
+                          ...editFormData,
+                          bgColor: '#451a03',
+                          borderColor: '#f97316',
+                          textColor: '#fdba74'
+                        })}
+                        className="px-2 py-1 bg-orange-950 border border-orange-500 text-orange-400 text-[10px] rounded hover:bg-orange-900 active:scale-95 transition-all truncate text-left flex items-center gap-1.5"
+                      >
+                        <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shrink-0" />
+                        Solar Flare
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditFormData({
+                          ...editFormData,
+                          bgColor: undefined,
+                          borderColor: undefined,
+                          textColor: undefined
+                        })}
+                        className="px-2 py-1 bg-zinc-800 border border-zinc-600 text-zinc-300 text-[10px] rounded hover:bg-zinc-700 active:scale-95 transition-all truncate text-left flex items-center gap-1.5"
+                      >
+                        <span className="w-2.5 h-2.5 rounded-full bg-zinc-400 shrink-0" />
+                        恢复默认样式
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Custom Color Inputs */}
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-zinc-800">
+                    <div>
+                      <label className="block text-[10px] text-zinc-500 mb-1">背景</label>
+                      <div className="flex items-center gap-1">
+                        <input 
+                          type="color" 
+                          value={editFormData.bgColor || '#27272a'} 
+                          onChange={e => setEditFormData({...editFormData, bgColor: e.target.value})}
+                          className="w-6 h-6 bg-transparent border-0 cursor-pointer rounded overflow-hidden flex-shrink-0"
+                        />
+                        <input 
+                          type="text" 
+                          value={editFormData.bgColor || ''} 
+                          placeholder="默认"
+                          onChange={e => setEditFormData({...editFormData, bgColor: e.target.value || undefined})}
+                          className="w-full bg-zinc-800 text-[10px] p-1 text-white border border-zinc-700 rounded font-mono"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-zinc-500 mb-1">边框</label>
+                      <div className="flex items-center gap-1">
+                        <input 
+                          type="color" 
+                          value={editFormData.borderColor || '#52525b'} 
+                          onChange={e => setEditFormData({...editFormData, borderColor: e.target.value})}
+                          className="w-6 h-6 bg-transparent border-0 cursor-pointer rounded overflow-hidden flex-shrink-0"
+                        />
+                        <input 
+                          type="text" 
+                          value={editFormData.borderColor || ''} 
+                          placeholder="默认"
+                          onChange={e => setEditFormData({...editFormData, borderColor: e.target.value || undefined})}
+                          className="w-full bg-zinc-800 text-[10px] p-1 text-white border border-zinc-700 rounded font-mono"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-zinc-500 mb-1">文字</label>
+                      <div className="flex items-center gap-1">
+                        <input 
+                          type="color" 
+                          value={editFormData.textColor || '#f4f4f5'} 
+                          onChange={e => setEditFormData({...editFormData, textColor: e.target.value})}
+                          className="w-6 h-6 bg-transparent border-0 cursor-pointer rounded overflow-hidden flex-shrink-0"
+                        />
+                        <input 
+                          type="text" 
+                          value={editFormData.textColor || ''} 
+                          placeholder="默认"
+                          onChange={e => setEditFormData({...editFormData, textColor: e.target.value || undefined})}
+                          className="w-full bg-zinc-800 text-[10px] p-1 text-white border border-zinc-700 rounded font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex items-center gap-2">
                 <input 
                   type="checkbox" 
@@ -539,7 +729,7 @@ export default function TopologyCanvas({
               </div>
             </div>
 
-            <div className="mt-6 flex justify-between">
+            <div className="mt-6 flex justify-between flex-shrink-0 pt-4 border-t border-zinc-800">
               <button onClick={deleteNode} className="px-4 py-2 bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white rounded flex items-center gap-1 transition-colors">
                 <Trash2 size={16}/> 删除节点
               </button>
