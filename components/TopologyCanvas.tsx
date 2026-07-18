@@ -350,6 +350,27 @@ export default function TopologyCanvas({
     [nodes, isAdmin]
   );
 
+  const handleNodeClick = useCallback(
+    (event: React.MouseEvent, node: Node) => {
+      if (isAdmin) return;
+      const url = node.data?.linkUrl as string | undefined;
+      if (url) {
+        event.preventDefault();
+        if (url.startsWith('#')) {
+          const targetElement = document.getElementById(url.substring(1));
+          if (targetElement) {
+            targetElement.scrollIntoView({ behavior: 'smooth' });
+          } else {
+            window.location.hash = url;
+          }
+        } else {
+          window.open(url, '_blank');
+        }
+      }
+    },
+    [isAdmin]
+  );
+
   // Inject callbacks into node data
   const nodesWithCallbacks = useMemo(() => {
     return nodes.map(n => ({
@@ -479,6 +500,7 @@ export default function TopologyCanvas({
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onEdgeClick={onEdgeClick}
+          onNodeClick={handleNodeClick}
           nodeTypes={nodeTypes}
           fitView
           fitViewOptions={{ maxZoom: isMobile ? 0.42 : 0.9, padding: isMobile ? 0.3 : 0.15 }}
@@ -489,7 +511,7 @@ export default function TopologyCanvas({
           zoomOnScroll={true} // Scroll to zoom on desktop
           zoomOnPinch={true}
           nodesDraggable={isAdmin}
-          elementsSelectable={isAdmin}
+          elementsSelectable={true}
           edgesFocusable={isAdmin}
           proOptions={{ hideAttribution: true }}
           className="bg-zinc-950"
