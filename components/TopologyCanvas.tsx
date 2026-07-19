@@ -19,10 +19,11 @@ import {
   applyNodeChanges,
   applyEdgeChanges,
   NodeChange,
-  EdgeChange
+  EdgeChange,
+  SelectionMode
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Plus, Trash2, Edit3, Image as ImageIcon, Link as LinkIcon, X, Settings, Maximize, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, Trash2, Edit3, Image as ImageIcon, Link as LinkIcon, X, Settings, Maximize, ChevronUp, ChevronDown, Hand, MousePointer, BookOpen } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase-config';
@@ -35,44 +36,62 @@ export type TopologyNodeData = {
   linkUrl?: string;
   onEdit?: (id: string) => void;
   onAddChild?: (id: string) => void;
+  onShowDetail?: (label: string, copy: string, imageUrl?: string) => void;
   isAdmin?: boolean;
   bgColor?: string;
   borderColor?: string;
   textColor?: string;
 };
 
-const CustomNode = ({ id, data, isConnectable }: NodeProps<Node<TopologyNodeData>>) => {
+const CustomNode = ({ id, data, isConnectable }: NodeProps<Node<TopologyNodeData & {
+  linkNodeBg?: string;
+  linkNodeBorder?: string;
+  linkNodeText?: string;
+  nonLinkNodeBg?: string;
+  nonLinkNodeBorder?: string;
+  nonLinkNodeText?: string;
+}>>) => {
   const hasLink = !!data.linkUrl;
+  const hasCopy = !!data.copy;
+  const isClickable = !data.isAdmin && (hasLink || hasCopy);
+
+  const activeBg = data.bgColor || (hasLink ? (data.linkNodeBg || '#1e1b4b') : (data.nonLinkNodeBg || '#0f172a'));
+  const activeBorder = data.borderColor || (hasLink ? (data.linkNodeBorder || '#a855f7') : (data.nonLinkNodeBorder || '#06b6d4'));
+  const activeText = data.textColor || (hasLink ? (data.linkNodeText || '#c084fc') : (data.nonLinkNodeText || '#22d3ee'));
+
   const handleClick = (e: React.MouseEvent) => {
-    if (!data.isAdmin && hasLink) {
-      e.stopPropagation();
-      const url = data.linkUrl!;
-      if (url.startsWith('#')) {
-        // Smooth scroll to a screen section if it's an anchor link
-        const targetElement = document.getElementById(url.substring(1));
-        if (targetElement) {
-          targetElement.scrollIntoView({ behavior: 'smooth' });
+    if (!data.isAdmin) {
+      if (hasLink) {
+        e.stopPropagation();
+        const url = data.linkUrl!;
+        if (url.startsWith('#')) {
+          const targetElement = document.getElementById(url.substring(1));
+          if (targetElement) {
+            targetElement.scrollIntoView({ behavior: 'smooth' });
+          } else {
+            window.location.hash = url;
+          }
         } else {
-          window.location.hash = url;
+          window.open(url, '_blank');
         }
-      } else {
-        window.open(url, '_blank');
+      } else if (hasCopy && data.onShowDetail) {
+        e.stopPropagation();
+        data.onShowDetail(data.label, data.copy, data.imageUrl);
       }
     }
   };
 
-  const inlineStyles: React.CSSProperties = {};
-  if (data.bgColor) inlineStyles.backgroundColor = data.bgColor;
-  if (data.borderColor) inlineStyles.borderColor = data.borderColor;
-  if (data.textColor) inlineStyles.color = data.textColor;
+  const inlineStyles: React.CSSProperties = {
+    backgroundColor: activeBg,
+    borderColor: activeBorder,
+    color: activeText
+  };
 
   return (
     <div 
       onClick={handleClick}
       className={`p-4 rounded-xl border-2 shadow-lg backdrop-blur-md min-w-[200px] max-w-[300px] transition-all relative
-        ${!data.bgColor ? (data.isMainNode ? 'bg-zinc-900/90' : 'bg-zinc-800/90') : ''}
-        ${!data.borderColor ? (data.isMainNode ? 'border-amber-500 shadow-amber-500/10' : 'border-zinc-600') : ''}
-        ${!data.isAdmin && hasLink ? 'nopan nodrag hover:scale-[1.03] hover:border-amber-400 cursor-pointer hover:shadow-amber-500/20 active:scale-[0.98]' : ''}
+        ${isClickable ? 'nopan nodrag hover:scale-[1.03] cursor-pointer hover:shadow-amber-500/20 active:scale-[0.98]' : ''}
       `}
       style={inlineStyles}
     >
@@ -89,21 +108,38 @@ const CustomNode = ({ id, data, isConnectable }: NodeProps<Node<TopologyNodeData
       <Handle type="source" position={Position.Right} id="s-right" isConnectable={isConnectable} className="w-3 h-3 bg-amber-500 z-10" />
       
       <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <h3 
-            className="font-bold text-lg"
-            style={{ color: data.textColor || (data.isMainNode ? '#f59e0b' : '#f4f4f5') }}
+            className="font-bold text-lg truncate flex-1"
+            style={{ color: activeText }}
+            title={data.label || '未命名节点'}
           >
             {data.label || '未命名节点'}
           </h3>
-          {hasLink && (
-            <span title={data.isAdmin ? `配置了链接: ${data.linkUrl}` : '点击跳转链接'}>
+          {hasLink ? (
+            <span 
+              className="p-1 bg-zinc-850/85 border border-zinc-700/50 rounded flex items-center justify-center shrink-0"
+              title={data.isAdmin ? `配置了链接: ${data.linkUrl}` : '点击跳转链接'}
+            >
               <LinkIcon 
                 size={14} 
                 className={`shrink-0 ${!data.isAdmin ? 'animate-pulse' : ''}`}
-                style={{ color: data.textColor || (data.isMainNode ? '#f59e0b' : '#a1a1aa') }}
+                style={{ color: activeText }}
               />
             </span>
+          ) : (
+            hasCopy && (
+              <span 
+                className="p-1 bg-zinc-850/85 border border-zinc-700/50 rounded flex items-center justify-center shrink-0"
+                title={data.isAdmin ? '详情展示节点文案' : '点击阅读详细内容'}
+              >
+                <BookOpen 
+                  size={14} 
+                  className={`shrink-0 ${!data.isAdmin ? 'animate-pulse' : ''}`}
+                  style={{ color: activeText }}
+                />
+              </span>
+            )
           )}
         </div>
         {data.imageUrl && (
@@ -111,8 +147,9 @@ const CustomNode = ({ id, data, isConnectable }: NodeProps<Node<TopologyNodeData
         )}
         {data.copy && (
           <p 
-            className="text-sm break-words whitespace-pre-wrap"
-            style={data.textColor ? { color: data.textColor, opacity: 0.85 } : { color: '#d4d4d8' }}
+            className="text-sm break-words truncate"
+            title={data.copy}
+            style={{ color: activeText, opacity: 0.85 }}
           >
             {data.copy}
           </p>
@@ -194,13 +231,25 @@ export default function TopologyCanvas({
   isMobile = false, 
   onDataChange,
   initialNodes,
-  initialEdges
+  initialEdges,
+  linkNodeBg: propLinkNodeBg,
+  linkNodeBorder: propLinkNodeBorder,
+  linkNodeText: propLinkNodeText,
+  nonLinkNodeBg: propNonLinkNodeBg,
+  nonLinkNodeBorder: propNonLinkNodeBorder,
+  nonLinkNodeText: propNonLinkNodeText
 }: { 
   isAdmin?: boolean, 
   isMobile?: boolean, 
   onDataChange?: (nodes: any[], edges: any[]) => void,
   initialNodes?: any[],
-  initialEdges?: any[]
+  initialEdges?: any[],
+  linkNodeBg?: string,
+  linkNodeBorder?: string,
+  linkNodeText?: string,
+  nonLinkNodeBg?: string,
+  nonLinkNodeBorder?: string,
+  nonLinkNodeText?: string
 }) {
   const [nodes, setNodes] = useState<Node<TopologyNodeData>[]>(() => {
     if (isAdmin && initialNodes && initialNodes.length > 0) {
@@ -215,6 +264,23 @@ export default function TopologyCanvas({
     return [];
   });
   const [loading, setLoading] = useState(true);
+
+  // Global color preset states
+  const [linkNodeBg, setLinkNodeBg] = useState<string>(propLinkNodeBg || '#1e1b4b');
+  const [linkNodeBorder, setLinkNodeBorder] = useState<string>(propLinkNodeBorder || '#a855f7');
+  const [linkNodeText, setLinkNodeText] = useState<string>(propLinkNodeText || '#c084fc');
+  const [nonLinkNodeBg, setNonLinkNodeBg] = useState<string>(propNonLinkNodeBg || '#0f172a');
+  const [nonLinkNodeBorder, setNonLinkNodeBorder] = useState<string>(propNonLinkNodeBorder || '#06b6d4');
+  const [nonLinkNodeText, setNonLinkNodeText] = useState<string>(propNonLinkNodeText || '#22d3ee');
+
+  useEffect(() => {
+    if (propLinkNodeBg) setLinkNodeBg(propLinkNodeBg);
+    if (propLinkNodeBorder) setLinkNodeBorder(propLinkNodeBorder);
+    if (propLinkNodeText) setLinkNodeText(propLinkNodeText);
+    if (propNonLinkNodeBg) setNonLinkNodeBg(propNonLinkNodeBg);
+    if (propNonLinkNodeBorder) setNonLinkNodeBorder(propNonLinkNodeBorder);
+    if (propNonLinkNodeText) setNonLinkNodeText(propNonLinkNodeText);
+  }, [propLinkNodeBg, propLinkNodeBorder, propLinkNodeText, propNonLinkNodeBg, propNonLinkNodeBorder, propNonLinkNodeText]);
   
   // Editing state
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
@@ -222,6 +288,15 @@ export default function TopologyCanvas({
   
   const [editingEdgeId, setEditingEdgeId] = useState<string | null>(null);
   const [edgeFormData, setEdgeFormData] = useState<{ stroke: string; dashed: boolean }>({ stroke: '#ffffff', dashed: false });
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [readingNode, setReadingNode] = useState<{
+    label: string;
+    copy: string;
+    imageUrl?: string;
+    bgColor?: string;
+    borderColor?: string;
+    textColor?: string;
+  } | null>(null);
 
   // Add touch panning on mobile by avoiding ReactFlow capturing everything? 
   // Actually ReactFlow supports panOnDrag and zoomOnPinch natively.
@@ -264,6 +339,14 @@ export default function TopologyCanvas({
           ]);
         }
         if (data.topologyEdges) setEdges(deduplicateEdges(data.topologyEdges));
+        
+        // Load global colors
+        if (data.linkNodeBg) setLinkNodeBg(data.linkNodeBg);
+        if (data.linkNodeBorder) setLinkNodeBorder(data.linkNodeBorder);
+        if (data.linkNodeText) setLinkNodeText(data.linkNodeText);
+        if (data.nonLinkNodeBg) setNonLinkNodeBg(data.nonLinkNodeBg);
+        if (data.nonLinkNodeBorder) setNonLinkNodeBorder(data.nonLinkNodeBorder);
+        if (data.nonLinkNodeText) setNonLinkNodeText(data.nonLinkNodeText);
       }
     } catch (e) {
       console.error(e);
@@ -284,6 +367,14 @@ export default function TopologyCanvas({
           const data = docSnap.data();
           if (data.topologyNodes) setNodes(data.topologyNodes);
           if (data.topologyEdges) setEdges(deduplicateEdges(data.topologyEdges));
+          
+          // Sync global colors in real-time
+          if (data.linkNodeBg) setLinkNodeBg(data.linkNodeBg);
+          if (data.linkNodeBorder) setLinkNodeBorder(data.linkNodeBorder);
+          if (data.linkNodeText) setLinkNodeText(data.linkNodeText);
+          if (data.nonLinkNodeBg) setNonLinkNodeBg(data.nonLinkNodeBg);
+          if (data.nonLinkNodeBorder) setNonLinkNodeBorder(data.nonLinkNodeBorder);
+          if (data.nonLinkNodeText) setNonLinkNodeText(data.nonLinkNodeText);
         }
       });
       return () => unsub();
@@ -354,6 +445,7 @@ export default function TopologyCanvas({
     (event: React.MouseEvent, node: Node) => {
       if (isAdmin) return;
       const url = node.data?.linkUrl as string | undefined;
+      const copyText = node.data?.copy as string | undefined;
       if (url) {
         event.preventDefault();
         if (url.startsWith('#')) {
@@ -366,6 +458,15 @@ export default function TopologyCanvas({
         } else {
           window.open(url, '_blank');
         }
+      } else if (copyText) {
+        setReadingNode({
+          label: (node.data?.label as string) || '查看内容',
+          copy: copyText,
+          imageUrl: node.data?.imageUrl as string,
+          bgColor: node.data?.bgColor as string,
+          borderColor: node.data?.borderColor as string,
+          textColor: node.data?.textColor as string
+        });
       }
     },
     [isAdmin]
@@ -378,6 +479,12 @@ export default function TopologyCanvas({
       data: {
         ...n.data,
         isAdmin,
+        linkNodeBg,
+        linkNodeBorder,
+        linkNodeText,
+        nonLinkNodeBg,
+        nonLinkNodeBorder,
+        nonLinkNodeText,
         onEdit: (id: string) => {
           const node = nodes.find(x => x.id === id);
           if (node) {
@@ -407,10 +514,20 @@ export default function TopologyCanvas({
           setNodes(nextNodes);
           setEdges(nextEdges);
           saveData(nextNodes, nextEdges);
+        },
+        onShowDetail: (label: string, copy: string, imageUrl?: string) => {
+          setReadingNode({
+            label,
+            copy,
+            imageUrl,
+            bgColor: n.data.bgColor,
+            borderColor: n.data.borderColor,
+            textColor: n.data.textColor
+          });
         }
       }
     }));
-  }, [nodes, isAdmin, edges]);
+  }, [nodes, isAdmin, edges, linkNodeBg, linkNodeBorder, linkNodeText, nonLinkNodeBg, nonLinkNodeBorder, nonLinkNodeText]);
 
   const addMainNode = () => {
     if (!isAdmin) return;
@@ -506,7 +623,9 @@ export default function TopologyCanvas({
           fitViewOptions={{ maxZoom: isMobile ? 0.42 : 0.9, padding: isMobile ? 0.3 : 0.15 }}
           minZoom={0.05}
           maxZoom={4}
-          panOnDrag={true} // Allow dragging canvas
+          panOnDrag={isSelectionMode ? false : true} // Allow dragging canvas unless in selection mode
+          selectionOnDrag={isSelectionMode}
+          selectionMode={SelectionMode.Partial}
           panOnScroll={false} // Allow scrolling canvas only on desktop
           zoomOnScroll={true} // Scroll to zoom on desktop
           zoomOnPinch={true}
@@ -530,13 +649,38 @@ export default function TopologyCanvas({
       </ReactFlowProvider>
 
       {isAdmin && (
-        <div className="absolute top-4 left-4 z-10 flex gap-2">
+        <div className="absolute top-4 left-4 z-10 flex flex-col sm:flex-row gap-2">
           <button 
             onClick={addMainNode}
-            className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold rounded-lg shadow-lg"
+            className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold rounded-lg shadow-lg text-sm transition-colors shrink-0"
           >
             <Plus size={16} /> 添加主节点
           </button>
+
+          <div className="flex bg-zinc-900/90 border border-zinc-700 rounded-lg p-0.5 shadow-lg backdrop-blur-md">
+            <button
+              onClick={() => setIsSelectionMode(false)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                !isSelectionMode 
+                  ? 'bg-amber-500 text-zinc-950 font-bold' 
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+              title="拖拽画布 (鼠标左键拖拽移动视角，可按住 Shift 键临时框选)"
+            >
+              <Hand size={14} /> 拖拽画布
+            </button>
+            <button
+              onClick={() => setIsSelectionMode(true)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                isSelectionMode 
+                  ? 'bg-amber-500 text-zinc-950 font-bold' 
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+              title="框选卡片 (左键直接拖动即可框选，框选后可一并移动多个卡片)"
+            >
+              <MousePointer size={14} /> 框选卡片
+            </button>
+          </div>
         </div>
       )}
 
@@ -803,6 +947,64 @@ export default function TopologyCanvas({
                 <button onClick={() => setEditingEdgeId(null)} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded">取消</button>
                 <button onClick={saveEdgeEdit} className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold rounded">保存</button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reading / Detail Modal */}
+      {readingNode && (
+        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/75 backdrop-blur-md p-4">
+          <div 
+            className="border rounded-2xl p-6 w-full max-w-md shadow-2xl max-h-[85vh] flex flex-col relative animate-fade-in"
+            style={{
+              backgroundColor: readingNode.bgColor || '#18181b', // Default to bg-zinc-900
+              borderColor: readingNode.borderColor || '#3f3f46', // Default to border-zinc-700
+              color: readingNode.textColor || '#f4f4f5' // Default to text-zinc-100
+            }}
+          >
+            {/* Header */}
+            <div className="flex justify-between items-center mb-4 flex-shrink-0 pb-3 border-b border-zinc-800/60">
+              <div className="flex items-center gap-2">
+                <BookOpen className="text-amber-500" size={18} />
+                <h2 className="text-xl font-bold">查看详情</h2>
+              </div>
+              <button 
+                onClick={() => setReadingNode(null)} 
+                className="p-1 hover:bg-zinc-800/80 rounded-full transition-colors cursor-pointer"
+                style={{ color: readingNode.textColor || '#a1a1aa' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Content Body */}
+            <div className="flex-1 overflow-y-auto pr-2 py-2 min-h-0 space-y-4 scrollbar-thin scrollbar-thumb-zinc-800">
+              <h3 className="text-lg font-bold text-amber-400">{readingNode.label}</h3>
+              
+              {readingNode.imageUrl && (
+                <div className="relative rounded-lg overflow-hidden border border-zinc-800/80 max-h-[300px] flex items-center justify-center bg-black/40">
+                  <img 
+                    src={readingNode.imageUrl} 
+                    alt={readingNode.label} 
+                    className="max-h-full max-w-full object-contain" 
+                  />
+                </div>
+              )}
+              
+              <div className="text-sm leading-relaxed whitespace-pre-wrap break-words opacity-90 font-sans">
+                {readingNode.copy}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="mt-6 flex justify-end flex-shrink-0 pt-4 border-t border-zinc-800/60">
+              <button 
+                onClick={() => setReadingNode(null)} 
+                className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold rounded-lg shadow-lg active:scale-95 transition-all cursor-pointer text-sm"
+              >
+                关闭
+              </button>
             </div>
           </div>
         </div>

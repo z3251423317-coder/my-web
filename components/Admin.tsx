@@ -155,6 +155,13 @@ export default function Admin() {
   const [topologyEdges, setTopologyEdges] = useState<any[]>([]);
   const [canvasResetKey, setCanvasResetKey] = useState(0);
 
+  const [linkNodeBg, setLinkNodeBg] = useState<string>('#1e1b4b');
+  const [linkNodeBorder, setLinkNodeBorder] = useState<string>('#a855f7');
+  const [linkNodeText, setLinkNodeText] = useState<string>('#c084fc');
+  const [nonLinkNodeBg, setNonLinkNodeBg] = useState<string>('#0f172a');
+  const [nonLinkNodeBorder, setNonLinkNodeBorder] = useState<string>('#06b6d4');
+  const [nonLinkNodeText, setNonLinkNodeText] = useState<string>('#22d3ee');
+
   // Selected sub-elements for active editing
   const [selectedPillNavId, setSelectedPillNavId] = useState<string | null>(null);
   const [selectedRelCardId, setSelectedRelCardId] = useState<string | null>(null);
@@ -237,6 +244,14 @@ export default function Admin() {
     }
     if (data.screen7GlowEnabled !== undefined) setScreen7GlowEnabled(!!data.screen7GlowEnabled);
     if (data.screen7GlowColor) setScreen7GlowColor(data.screen7GlowColor);
+    
+    setLinkNodeBg(data.linkNodeBg || '#1e1b4b');
+    setLinkNodeBorder(data.linkNodeBorder || '#a855f7');
+    setLinkNodeText(data.linkNodeText || '#c084fc');
+    setNonLinkNodeBg(data.nonLinkNodeBg || '#0f172a');
+    setNonLinkNodeBorder(data.nonLinkNodeBorder || '#06b6d4');
+    setNonLinkNodeText(data.nonLinkNodeText || '#22d3ee');
+
     if (Array.isArray(data.topologyNodes)) setTopologyNodes(data.topologyNodes);
     if (Array.isArray(data.topologyEdges)) setTopologyEdges(data.topologyEdges);
     setCanvasResetKey(prev => prev + 1);
@@ -296,7 +311,13 @@ export default function Admin() {
       screen7GlowColor,
       screen3Tabs,
       topologyNodes: safeTopologyNodes,
-      topologyEdges: safeTopologyEdges
+      topologyEdges: safeTopologyEdges,
+      linkNodeBg,
+      linkNodeBorder,
+      linkNodeText,
+      nonLinkNodeBg,
+      nonLinkNodeBorder,
+      nonLinkNodeText
     });
   };
 
@@ -740,14 +761,151 @@ export default function Admin() {
                     <Database className="w-5 h-5 text-amber-400" />
                     第八屏：全屏一体化无限拓扑画布控制台
                   </h3>
+
+                  {/* 全局节点颜色统一修改面板 */}
+                  <div className="bg-zinc-950/60 p-4 border border-zinc-800 rounded-xl mb-4 space-y-3">
+                    <h4 className="text-xs font-mono uppercase tracking-widest text-amber-500 font-bold">
+                      🎨 画布节点色彩统一配置 (Global Node Color Presets)
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* 带链接的节点 */}
+                      <div className="bg-purple-950/20 border border-purple-900/40 p-3 rounded-lg space-y-2.5">
+                        <span className="text-xs font-bold text-purple-400 flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                          带有跳转链接的卡片 (With Links)
+                        </span>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <label className="text-[10px] text-zinc-400 block mb-1">背景</label>
+                            <div className="flex items-center gap-1">
+                              <input 
+                                type="color" 
+                                value={linkNodeBg} 
+                                onChange={(e) => setLinkNodeBg(e.target.value)} 
+                                className="w-5 h-5 border-0 bg-transparent cursor-pointer rounded shrink-0"
+                              />
+                              <input 
+                                type="text" 
+                                value={linkNodeBg} 
+                                onChange={(e) => setLinkNodeBg(e.target.value)} 
+                                className="w-full bg-zinc-900 border border-zinc-800 text-[10px] px-1 py-0.5 text-white rounded font-mono"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-zinc-400 block mb-1">边框</label>
+                            <div className="flex items-center gap-1">
+                              <input 
+                                type="color" 
+                                value={linkNodeBorder} 
+                                onChange={(e) => setLinkNodeBorder(e.target.value)} 
+                                className="w-5 h-5 border-0 bg-transparent cursor-pointer rounded shrink-0"
+                              />
+                              <input 
+                                type="text" 
+                                value={linkNodeBorder} 
+                                onChange={(e) => setLinkNodeBorder(e.target.value)} 
+                                className="w-full bg-zinc-900 border border-zinc-800 text-[10px] px-1 py-0.5 text-white rounded font-mono"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-zinc-400 block mb-1">文字</label>
+                            <div className="flex items-center gap-1">
+                              <input 
+                                type="color" 
+                                value={linkNodeText} 
+                                onChange={(e) => setLinkNodeText(e.target.value)} 
+                                className="w-5 h-5 border-0 bg-transparent cursor-pointer rounded shrink-0"
+                              />
+                              <input 
+                                type="text" 
+                                value={linkNodeText} 
+                                onChange={(e) => setLinkNodeText(e.target.value)} 
+                                className="w-full bg-zinc-900 border border-zinc-800 text-[10px] px-1 py-0.5 text-white rounded font-mono"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 不带链接的节点 */}
+                      <div className="bg-cyan-950/20 border border-cyan-900/40 p-3 rounded-lg space-y-2.5">
+                        <span className="text-xs font-bold text-cyan-400 flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-cyan-500"></span>
+                          不带跳转链接的卡片 (No Links)
+                        </span>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <label className="text-[10px] text-zinc-400 block mb-1">背景</label>
+                            <div className="flex items-center gap-1">
+                              <input 
+                                type="color" 
+                                value={nonLinkNodeBg} 
+                                onChange={(e) => setNonLinkNodeBg(e.target.value)} 
+                                className="w-5 h-5 border-0 bg-transparent cursor-pointer rounded shrink-0"
+                              />
+                              <input 
+                                type="text" 
+                                value={nonLinkNodeBg} 
+                                onChange={(e) => setNonLinkNodeBg(e.target.value)} 
+                                className="w-full bg-zinc-900 border border-zinc-800 text-[10px] px-1 py-0.5 text-white rounded font-mono"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-zinc-400 block mb-1">边框</label>
+                            <div className="flex items-center gap-1">
+                              <input 
+                                type="color" 
+                                value={nonLinkNodeBorder} 
+                                onChange={(e) => setNonLinkNodeBorder(e.target.value)} 
+                                className="w-5 h-5 border-0 bg-transparent cursor-pointer rounded shrink-0"
+                              />
+                              <input 
+                                type="text" 
+                                value={nonLinkNodeBorder} 
+                                onChange={(e) => setNonLinkNodeBorder(e.target.value)} 
+                                className="w-full bg-zinc-900 border border-zinc-800 text-[10px] px-1 py-0.5 text-white rounded font-mono"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-zinc-400 block mb-1">文字</label>
+                            <div className="flex items-center gap-1">
+                              <input 
+                                type="color" 
+                                value={nonLinkNodeText} 
+                                onChange={(e) => setNonLinkNodeText(e.target.value)} 
+                                className="w-5 h-5 border-0 bg-transparent cursor-pointer rounded shrink-0"
+                              />
+                              <input 
+                                type="text" 
+                                value={nonLinkNodeText} 
+                                onChange={(e) => setNonLinkNodeText(e.target.value)} 
+                                className="w-full bg-zinc-900 border border-zinc-800 text-[10px] px-1 py-0.5 text-white rounded font-mono"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="w-full h-[600px] border border-zinc-700/50 rounded-xl overflow-hidden bg-zinc-950 shadow-inner relative z-10 pointer-events-auto">
                     <TopologyCanvas 
-                      key={canvasResetKey}
+                      key={`${canvasResetKey}-${linkNodeBg}-${linkNodeBorder}-${linkNodeText}-${nonLinkNodeBg}-${nonLinkNodeBorder}-${nonLinkNodeText}`}
                       isAdmin={true} 
                       isMobile={false} 
                       initialNodes={topologyNodes}
                       initialEdges={topologyEdges}
                       onDataChange={(n, e) => { setTopologyNodes(n); setTopologyEdges(e); }} 
+                      linkNodeBg={linkNodeBg}
+                      linkNodeBorder={linkNodeBorder}
+                      linkNodeText={linkNodeText}
+                      nonLinkNodeBg={nonLinkNodeBg}
+                      nonLinkNodeBorder={nonLinkNodeBorder}
+                      nonLinkNodeText={nonLinkNodeText}
                     />
                   </div>
                   <p className="text-xs text-zinc-400">

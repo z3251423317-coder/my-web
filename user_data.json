@@ -472,5 +472,11 @@
       ],
       "colorType": "emerald"
     }
-  ]
+  ],
+  "linkNodeBg": "#1e1b4b",
+  "linkNodeBorder": "#a855f7",
+  "linkNodeText": "#c084fc",
+  "nonLinkNodeBg": "#0f172a",
+  "nonLinkNodeBorder": "#06b6d4",
+  "nonLinkNodeText": "#22d3ee"
 }
