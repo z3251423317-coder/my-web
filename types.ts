@@ -48,6 +48,7 @@ export interface ScreenData {
   guideEnabled?: boolean;
   guideIdleGif?: string;
   guideActiveGif?: string;
+  guideDragGif?: string;
   guideAudio?: string;
   guideAutoPlay?: boolean;
 }

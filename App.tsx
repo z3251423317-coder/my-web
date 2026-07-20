@@ -941,6 +941,8 @@ const App: React.FC = () => {
   const [guideAudioPlaying, setGuideAudioPlaying] = useState<boolean>(false);
   const guideAudioRef = useRef<HTMLAudioElement | null>(null);
   const [showGuideTooltip, setShowGuideTooltip] = useState<boolean>(true);
+  const [isDraggingGuide, setIsDraggingGuide] = useState<boolean>(false);
+  const [guideFlipX, setGuideFlipX] = useState<number>(1);
 
   const loadConfigRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
@@ -3203,6 +3205,15 @@ const App: React.FC = () => {
         <motion.div 
           drag
           dragMomentum={false}
+          onDragStart={() => setIsDraggingGuide(true)}
+          onDragEnd={() => setIsDraggingGuide(false)}
+          onDrag={(event, info) => {
+            if (info.delta.x < -0.1) {
+              setGuideFlipX(-1);
+            } else if (info.delta.x > 0.1) {
+              setGuideFlipX(1);
+            }
+          }}
           initial={{ opacity: 0, scale: 0.8, y: 50 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           className="fixed bottom-6 right-6 z-[2000] flex flex-col items-center select-none pointer-events-auto"
@@ -3286,9 +3297,11 @@ const App: React.FC = () => {
                 : 'hover:scale-105'
             }`}>
               <img 
-                src={guideAudioPlaying 
-                  ? (activeScreen.guideActiveGif || activeScreen.guideIdleGif || "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg")
-                  : (activeScreen.guideIdleGif || "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg")
+                src={isDraggingGuide
+                  ? (activeScreen.guideDragGif || "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbzh0bnduMXh4NHlhNXBxNHRxbGk3aTZnd3A0cjFmYmFyeXF5c2FobSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/tAnT9268Svs0E/giphy.gif")
+                  : guideAudioPlaying 
+                    ? (activeScreen.guideActiveGif || activeScreen.guideIdleGif || "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg")
+                    : (activeScreen.guideIdleGif || "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg")
                 } 
                 alt="Guide Assistant" 
                 className={`w-full h-auto object-contain transition-all duration-300 ${
@@ -3296,6 +3309,7 @@ const App: React.FC = () => {
                     ? 'drop-shadow-[0_0_15px_rgba(245,158,11,0.85)] drop-shadow-[0_0_3px_rgba(245,158,11,0.4)]' 
                     : 'drop-shadow-[0_0_6px_rgba(255,255,255,0.4)] hover:drop-shadow-[0_0_12px_rgba(245,158,11,0.5)]'
                 }`}
+                style={{ transform: `scaleX(${guideFlipX})` }}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "https://wangzhan-1379786748.cos.ap-beijing.myqcloud.com/%E9%A6%96%E9%A1%B5%E8%A7%86%E9%A2%91/%E6%A0%87%E7%AD%BE.jpg";

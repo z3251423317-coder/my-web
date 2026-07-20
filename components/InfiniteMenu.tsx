@@ -490,7 +490,7 @@ class ArcballControl {
     this.longPressTimer = setTimeout(() => {
       this.isLongPressed = true;
       this.canvas.style.cursor = 'grabbing';
-    }, 250);
+    }, 10);
   };
 
   #onPointerUp = () => {

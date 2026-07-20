@@ -99,6 +99,7 @@ interface ScreenData {
   guideEnabled?: boolean;
   guideIdleGif?: string;
   guideActiveGif?: string;
+  guideDragGif?: string;
   guideAudio?: string;
   guideAutoPlay?: boolean;
 }
@@ -1206,6 +1207,17 @@ export default function Admin() {
                         onChange={(e) => updateScreenField(currentScreen.id, 'guideActiveGif', e.target.value)}
                         className="w-full px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white font-mono"
                         placeholder="https://... (留空则使用默认可爱机器人开口动图)"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest block font-bold">拖拽/跑步状态动图 (Dragging/Running GIF URL)</label>
+                      <input 
+                        type="text" 
+                        value={currentScreen.guideDragGif || ''} 
+                        onChange={(e) => updateScreenField(currentScreen.id, 'guideDragGif', e.target.value)}
+                        className="w-full px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white font-mono"
+                        placeholder="https://... (留空则使用默认可爱机器人跑步动图)"
                       />
                     </div>
 

@@ -394,7 +394,7 @@ export default function DomeGallery({
           if (mainRef.current) {
             mainRef.current.style.cursor = 'grabbing';
           }
-        }, 250);
+        }, 10);
       },
       onDrag: ({ event, last, velocity = [0, 0], direction = [0, 0], movement }) => {
         if (focusedElRef.current || !draggingRef.current || !startPosRef.current) return;
