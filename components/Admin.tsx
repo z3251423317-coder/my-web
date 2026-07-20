@@ -2038,6 +2038,7 @@ export default function Admin() {
                     saveCards={setSphereCards} 
                     selectedId={selectedSphereCardId} 
                     setSelectedId={setSelectedSphereCardId} 
+                    customConfirm={customConfirm}
                   />
                 )}
 
@@ -2051,6 +2052,7 @@ export default function Admin() {
                     saveCards={setDomeCards} 
                     selectedId={selectedDomeCardId} 
                     setSelectedId={setSelectedDomeCardId} 
+                    customConfirm={customConfirm}
                   />
                 )}
 
@@ -2065,6 +2067,7 @@ export default function Admin() {
                     selectedId={selectedTrialCardId} 
                     setSelectedId={setSelectedTrialCardId} 
                     enableSubCards={true}
+                    customConfirm={customConfirm}
                   />
                 )}
 
@@ -2718,9 +2721,10 @@ interface CardListProps {
   setSelectedId: React.Dispatch<React.SetStateAction<number | null>>;
   enableSubCards?: boolean;
   availableCategories?: string[];
+  customConfirm?: (message: string) => Promise<boolean>;
 }
 
-function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId, enableSubCards, availableCategories }: CardListProps) {
+function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId, enableSubCards, availableCategories, customConfirm }: CardListProps) {
   const [selectedAudioId, setSelectedAudioId] = useState<string | null>(null);
   const [selectedSubCardId, setSelectedSubCardId] = useState<string | null>(null);
   const [selectedSubAudioId, setSelectedSubAudioId] = useState<string | null>(null);
@@ -2746,9 +2750,12 @@ function CardListFormGroup({ title, cards, saveCards, selectedId, setSelectedId,
 
   const deleteCard = async (id: number) => {
     if (cards.length <= 1) {
-      if (!window.confirm("这是最后一张卡片。删除它后该板块可能会显示为空（白屏）。您确定要删除最后一张卡片吗？")) {
-        return;
+      const confirmFunc = customConfirm || (async (msg: string) => window.confirm(msg));
+      if (await confirmFunc("这是最后一张卡片。删除它后该板块可能会显示为空（白屏）。您确定要删除最后一张卡片吗？")) {
+        saveCards(cards.filter(c => c.id !== id));
+        if (selectedId === id) setSelectedId(null);
       }
+      return;
     }
     saveCards(cards.filter(c => c.id !== id));
     if (selectedId === id) setSelectedId(null);

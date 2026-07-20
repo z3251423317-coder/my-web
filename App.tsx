@@ -1802,13 +1802,7 @@ const App: React.FC = () => {
   };
 
   const deleteMarqueeCard = (id: number) => {
-    if (marqueeCards.length > 1) {
-      saveMarqueeCards(marqueeCards.filter(c => c.id !== id));
-    } else {
-      if (window.confirm("这是最后一张走马灯卡片。删除它后对应的走马灯板块可能会显示为空（白屏）。您确定要删除最后一张卡片吗？")) {
-        saveMarqueeCards(marqueeCards.filter(c => c.id !== id));
-      }
-    }
+    saveMarqueeCards(marqueeCards.filter(c => c.id !== id));
   };
 
   const updateMarqueeCard = (id: number, fields: Partial<MarqueeCard>) => {
@@ -1849,13 +1843,7 @@ const App: React.FC = () => {
   };
 
   const deleteSphereCard = (id: number) => {
-    if (sphereCards.length > 1) {
-      saveSphereCards(sphereCards.filter(c => c.id !== id));
-    } else {
-      if (window.confirm("这是最后一张球形卡片。删除它后对应的球形板块可能会显示为空（白屏）。您确定要删除最后一张卡片吗？")) {
-        saveSphereCards(sphereCards.filter(c => c.id !== id));
-      }
-    }
+    saveSphereCards(sphereCards.filter(c => c.id !== id));
   };
 
   const updateSphereCard = (id: number, fields: Partial<MarqueeCard>) => {
@@ -1878,6 +1866,29 @@ const App: React.FC = () => {
     }
   };
 
+  const isVideoUrl = (url?: string) => {
+    if (!url) return false;
+    const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.m4v', '.3gp', '.m3u8'];
+    const lowercaseUrl = url.toLowerCase();
+    
+    if (videoExtensions.some(ext => lowercaseUrl.includes(ext))) {
+      return true;
+    }
+    
+    if (
+      lowercaseUrl.includes('youtube.com/') || 
+      lowercaseUrl.includes('youtu.be/') || 
+      lowercaseUrl.includes('bilibili.com/') || 
+      lowercaseUrl.includes('player.bilibili.com') ||
+      lowercaseUrl.includes('v.qq.com/') ||
+      lowercaseUrl.includes('vimeo.com/')
+    ) {
+      return true;
+    }
+    
+    return false;
+  };
+
   const handleCardClick = (card: MarqueeCard) => {
     if (card.url) {
       const url = card.url;
@@ -1887,6 +1898,10 @@ const App: React.FC = () => {
           targetElement.scrollIntoView({ behavior: 'smooth' });
           return;
         }
+      } else if (isVideoUrl(url)) {
+        // If it's a video link, open the immersive detail modal with the video player
+        setActiveCardDetail(card);
+        return;
       } else {
         window.open(url, '_blank');
         return;
@@ -2383,11 +2398,6 @@ const App: React.FC = () => {
 
     const deleteCard = (id: number | string) => {
       if (!cards || !saveCards) return;
-      if (cards.length <= 1) {
-        if (!window.confirm("这是最后一张卡片。删除它后前台对应的板块可能会显示为空（白屏）。您确定要删除最后一张卡片吗？")) {
-          return;
-        }
-      }
       saveCards(cards.filter(c => c.id !== id));
     };
 
@@ -5232,7 +5242,7 @@ const App: React.FC = () => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 30, scale: 0.95 }}
                 transition={{ type: "spring", damping: 25, stiffness: 180 }}
-                className="w-full max-w-lg bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden flex flex-col max-h-[85vh] md:max-h-[80vh]"
+                className={`w-full ${activeCardDetail.url && isVideoUrl(activeCardDetail.url) ? 'max-w-2xl' : 'max-w-lg'} bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh] md:max-h-[85vh]`}
               >
                 {/* Background glow matching card theme */}
                 <div className={`absolute -top-40 left-1/2 -translate-x-1/2 w-80 h-80 bg-gradient-to-b ${colorGlow} rounded-full filter blur-[60px] opacity-60 pointer-events-none`} />
@@ -5247,6 +5257,69 @@ const App: React.FC = () => {
 
                 {/* Scrollable Content Area */}
                 <div className="flex-1 overflow-y-auto pr-1 md:pr-2 my-4 z-10 flex flex-col items-center text-center w-full scrollbar-thin scrollbar-thumb-zinc-800">
+                  {/* Video Player */}
+                  {activeCardDetail.url && isVideoUrl(activeCardDetail.url) && (() => {
+                    const url = activeCardDetail.url;
+                    const lowercaseUrl = url.toLowerCase();
+                    
+                    // Youtube embed
+                    if (lowercaseUrl.includes('youtube.com/') || lowercaseUrl.includes('youtu.be/')) {
+                      let videoId = '';
+                      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+                      const match = url.match(regExp);
+                      if (match && match[2].length === 11) {
+                        videoId = match[2];
+                      }
+                      const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0` : url;
+                      return (
+                        <div className="w-full aspect-video rounded-2xl overflow-hidden border border-zinc-800/60 bg-black mb-5 shadow-xl relative z-10 shrink-0">
+                          <iframe
+                            src={embedUrl}
+                            title="YouTube video player"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                            className="w-full h-full"
+                          />
+                        </div>
+                      );
+                    }
+
+                    // Bilibili embed
+                    if (lowercaseUrl.includes('bilibili.com/') || lowercaseUrl.includes('player.bilibili.com')) {
+                      let embedUrl = url;
+                      const match = url.match(/video\/(BV[a-zA-Z0-9]+|av[0-9]+)/);
+                      if (match) {
+                        const id = match[1];
+                        embedUrl = `https://player.bilibili.com/player.html?bvid=${id}&autoplay=1&high_quality=1&as_wide=1`;
+                      }
+                      return (
+                        <div className="w-full aspect-video rounded-2xl overflow-hidden border border-zinc-800/60 bg-black mb-5 shadow-xl relative z-10 shrink-0">
+                          <iframe
+                            src={embedUrl}
+                            title="Bilibili video player"
+                            allowFullScreen
+                            className="w-full h-full border-0"
+                            style={{ border: 'none' }}
+                          />
+                        </div>
+                      );
+                    }
+
+                    // Standard direct mp4/webm/ogg video player
+                    return (
+                      <div className="w-full aspect-video rounded-2xl overflow-hidden border border-zinc-800/60 bg-black mb-5 shadow-xl relative z-10 shrink-0">
+                        <video
+                          src={url}
+                          controls
+                          autoPlay
+                          playsInline
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    );
+                  })()}
+
                   {/* Category Pill */}
                   {activeCardDetail.cat && (
                     <span className="font-mono text-amber-500 text-[10px] tracking-[0.2em] font-extrabold uppercase bg-amber-500/5 px-3 py-1 rounded-full border border-amber-500/10 mb-4 block w-fit shrink-0">
@@ -5287,7 +5360,7 @@ const App: React.FC = () => {
                       className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold rounded-xl text-xs font-sans tracking-wider transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-95 cursor-pointer flex items-center gap-1.5"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
-                      访问链接 / Open Link
+                      {isVideoUrl(activeCardDetail.url) ? "浏览器打开 / Open in Browser" : "访问链接 / Open Link"}
                     </button>
                   )}
                   <button
