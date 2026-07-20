@@ -15,6 +15,7 @@ interface AudioSecondaryPageProps {
   activeCard: MarqueeCard | null;
   onUpdateCard: (updatedCard: MarqueeCard) => void;
   isAiStudio?: boolean;
+  onAudioPlayStateChange?: (isPlaying: boolean) => void;
 }
 
 export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({ 
@@ -22,7 +23,8 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
   onClose, 
   activeCard,
   onUpdateCard,
-  isAiStudio: isAiStudioProp
+  isAiStudio: isAiStudioProp,
+  onAudioPlayStateChange
 }) => {
   const isAiStudio = isAiStudioProp !== undefined ? isAiStudioProp : (
     typeof window !== 'undefined' && (
@@ -73,8 +75,27 @@ export const AudioSecondaryPage: React.FC<AudioSecondaryPageProps> = ({
   useEffect(() => {
     return () => {
       activeAudioObj?.pause();
+      if (onAudioPlayStateChange) {
+        onAudioPlayStateChange(false);
+      }
     };
-  }, [activeAudioObj]);
+  }, [activeAudioObj, onAudioPlayStateChange]);
+
+  // Sync audio play status to parent when playingAudioId changes
+  useEffect(() => {
+    if (onAudioPlayStateChange) {
+      onAudioPlayStateChange(playingAudioId !== null);
+    }
+  }, [playingAudioId, onAudioPlayStateChange]);
+
+  // Stop playing audio and reset state if page is closed
+  useEffect(() => {
+    if (!isOpen && activeAudioObj) {
+      activeAudioObj.pause();
+      setPlayingAudioId(null);
+      setActiveAudioObj(null);
+    }
+  }, [isOpen, activeAudioObj]);
 
   // Reset lock state whenever the page is opened or the card changes
   useEffect(() => {

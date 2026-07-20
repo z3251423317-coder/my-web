@@ -939,6 +939,7 @@ const App: React.FC = () => {
 
   // Voice guide / assistant states
   const [guideAudioPlaying, setGuideAudioPlaying] = useState<boolean>(false);
+  const [secondaryAudioPlaying, setSecondaryAudioPlaying] = useState<boolean>(false);
   const guideAudioRef = useRef<HTMLAudioElement | null>(null);
   const [showGuideTooltip, setShowGuideTooltip] = useState<boolean>(true);
   const [isDraggingGuide, setIsDraggingGuide] = useState<boolean>(false);
@@ -3454,7 +3455,7 @@ const App: React.FC = () => {
                     className="absolute inset-0 w-full h-full object-cover"
                     style={{ opacity: activeScreen.bgOpacity !== undefined ? activeScreen.bgOpacity / 100 : undefined }}
                     muted={globalMuted || !activeScreen.useVideoAudio}
-                    isGuidePlaying={guideAudioPlaying}
+                    isGuidePlaying={guideAudioPlaying || secondaryAudioPlaying || (activeCardDetail !== null && isVideoUrl(activeCardDetail.url))}
                   />
                 )}
 
@@ -3482,7 +3483,7 @@ const App: React.FC = () => {
                 src={activeScreen.tempBgUrl}
                 className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 mix-blend-screen"
                 style={{ opacity: (activeScreen.temperature ?? 25) / 100 }}
-                isGuidePlaying={guideAudioPlaying}
+                isGuidePlaying={guideAudioPlaying || secondaryAudioPlaying || (activeCardDetail !== null && isVideoUrl(activeCardDetail.url))}
               />
             )}
 
@@ -5343,7 +5344,7 @@ const App: React.FC = () => {
 
                  {/* Close Action Trigger */}
                 <div className="pt-4 border-t border-zinc-800/40 flex justify-center gap-3 z-10 shrink-0">
-                  {activeCardDetail.url && (
+                  {activeCardDetail.url && !isVideoUrl(activeCardDetail.url) && (
                     <button
                       onClick={() => {
                         const url = activeCardDetail.url;
@@ -5360,7 +5361,7 @@ const App: React.FC = () => {
                       className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold rounded-xl text-xs font-sans tracking-wider transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-95 cursor-pointer flex items-center gap-1.5"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
-                      {isVideoUrl(activeCardDetail.url) ? "浏览器打开 / Open in Browser" : "访问链接 / Open Link"}
+                      访问链接 / Open Link
                     </button>
                   )}
                   <button
@@ -5386,6 +5387,7 @@ const App: React.FC = () => {
       <AudioSecondaryPage 
         isOpen={isAudioSecondaryPageOpen} 
         onClose={() => setIsAudioSecondaryPageOpen(false)}
+        onAudioPlayStateChange={setSecondaryAudioPlaying}
         activeCard={
           selectedCard6 && selectedSubCard
             ? {
@@ -5430,7 +5432,7 @@ const App: React.FC = () => {
         isMobile={isMobile}
         isMuted={globalMuted}
         onToggleMute={() => saveGlobalMuted(!globalMuted)}
-        isGuidePlaying={guideAudioPlaying}
+        isGuidePlaying={guideAudioPlaying || secondaryAudioPlaying || (activeCardDetail !== null && isVideoUrl(activeCardDetail.url))}
       />
 
       {/* Enlarged Card Modal for Screen 7 */}
