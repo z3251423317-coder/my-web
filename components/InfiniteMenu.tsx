@@ -1516,7 +1516,8 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick, act
               if (e.currentTarget.hasPointerCapture(e.pointerId)) {
                 e.currentTarget.releasePointerCapture(e.pointerId);
                 forwardPointerEventToCanvas('pointerup', e);
-                if (dragDistanceRef.current < 8) {
+                const maxDragDist = e.pointerType === 'touch' ? 25 : 12;
+                if (dragDistanceRef.current < maxDragDist) {
                   handleButtonClick();
                 }
               }
@@ -1545,7 +1546,20 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick, act
               onClick={(e) => {
                 e.stopPropagation();
                 if (activeItem.link) {
-                  window.open(activeItem.link, '_blank', 'noopener,noreferrer');
+                  const lowercaseUrl = activeItem.link.toLowerCase();
+                  const isVideo = ['.mp4', '.webm', '.ogg', '.mov', '.m4v', '.3gp', '.m3u8'].some(ext => lowercaseUrl.includes(ext)) ||
+                    lowercaseUrl.includes('youtube.com/') || 
+                    lowercaseUrl.includes('youtu.be/') || 
+                    lowercaseUrl.includes('bilibili.com/') || 
+                    lowercaseUrl.includes('player.bilibili.com') ||
+                    lowercaseUrl.includes('v.qq.com/') ||
+                    lowercaseUrl.includes('vimeo.com/');
+
+                  if (isVideo) {
+                    handleButtonClick();
+                  } else {
+                    window.open(activeItem.link, '_blank', 'noopener,noreferrer');
+                  }
                 } else {
                   handleButtonClick();
                 }
@@ -1554,7 +1568,18 @@ export default function InfiniteMenu({ items = [], scale = 1.0, onItemClick, act
                 isMoving ? 'opacity-0 translate-y-6 scale-90 pointer-events-none' : 'opacity-100 translate-y-0 scale-100'
               }`}
             >
-              <span>{activeItem.link ? "OPEN LINK / 打开链接" : "EXPLORE / 探索"}</span>
+              <span>{activeItem.link ? (() => {
+                const url = activeItem.link;
+                const lowercaseUrl = url.toLowerCase();
+                const isVideo = ['.mp4', '.webm', '.ogg', '.mov', '.m4v', '.3gp', '.m3u8'].some(ext => lowercaseUrl.includes(ext)) ||
+                  lowercaseUrl.includes('youtube.com/') || 
+                  lowercaseUrl.includes('youtu.be/') || 
+                  lowercaseUrl.includes('bilibili.com/') || 
+                  lowercaseUrl.includes('player.bilibili.com') ||
+                  lowercaseUrl.includes('v.qq.com/') ||
+                  lowercaseUrl.includes('vimeo.com/');
+                return isVideo ? "PLAY VIDEO / 播放视频" : "OPEN LINK / 打开链接";
+              })() : "EXPLORE / 探索"}</span>
               <p className="font-sans text-sm font-bold transition-transform group-hover:translate-x-0.5">&#x2197;</p>
             </button>
           </div>
